@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ ComplyTools - Web Platform (Frontend)
 
-## Getting Started
+Este repositorio contiene la plataforma web administrativa del ecosistema ComplyTools. Está construida con **Next.js (App Router), React y TypeScript**, y se encarga de consumir la API del backend para gestionar de forma visual la seguridad, los riesgos y las operaciones.
 
-First, run the development server:
+## 🏗️ Arquitectura del Proyecto
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+El proyecto sigue una estructura altamente modular para mantener la interfaz escalable y ordenada, separando estrictamente el enrutamiento de la lógica de negocio. 
+
+```text
+src/
+├── app/                    # Enrutamiento de Next.js (App Router)
+│   ├── (auth)/             # Rutas públicas (Ej. /login)
+│   ├── (dashboard)/        # Rutas privadas (Requieren autenticación)
+│   │   ├── cursos/
+│   │   ├── denuncias/
+│   │   ├── listas-negativas/
+│   │   ├── matriz-riesgos/
+│   │   ├── operaciones/
+│   │   ├── overview/
+│   │   └── scoring/
+│   ├── globals.css         # Estilos globales de Tailwind/CSS
+│   └── layout.tsx & page.tsx
+├── modules/                # Componentes y lógica de negocio por dominio
+│   ├── cursos/
+│   ├── debida_diligencia/
+│   ├── denuncias/
+│   ├── listas_negativas/
+│   ├── matrices_riesgo/
+│   ├── motor_reglas/
+│   ├── operaciones/
+│   └── scoring/
+└── shared/                 # Código reutilizable en toda la aplicación
+    ├── api/                # Clientes Axios/Fetch (Ej. apiClient.ts)
+    └── lib/                # Utilidades y funciones de soporte
+
 ```
+Regla de oro para el equipo: La carpeta app/ solo debe utilizarse para declarar las rutas (page.tsx) y la estructura visual base (layout.tsx). Todos los componentes pesados, formularios, interfaces y lógica de estado deben programarse dentro de su respectivo dominio en la carpeta modules/.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🛑 ALTO: Requisitos Previos (Instalaciones necesarias)
+Para que este proyecto funcione en tu computadora, debes tener instalado lo siguiente:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Node.js (v18 o superior): Descárgalo desde nodejs.org. Esto instalará automáticamente npm.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Visual Studio Code: El editor recomendado para trabajar con React.
 
-## Learn More
+🛠️ Paso a paso para levantar el proyecto localmente
+Paso 1:
 
-To learn more about Next.js, take a look at the following resources:
+Clonar el proyecto
+Abre tu terminal y descarga el código fuente:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Bash
+git clone [https://github.com/jeliases-informaDev/Security-FrontEnd.git](https://github.com/jeliases-informaDev/Security-FrontEnd.git)
+cd security-web
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+Paso 2:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Instalar las dependencias
+A diferencia del backend, aquí sí usamos Node. Ejecuta este comando para descargar todas las librerías (React, Next, utilidades visuales) definidas en el package.json:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Bash
+npm install
+(Este paso creará una carpeta llamada node_modules que pesa bastante; no te preocupes, está ignorada en Git y no se subirá).
+
+Paso 3:
+
+Configurar variables de entorno (Opcional por ahora)
+Crea un archivo llamado .env.local en la raíz del proyecto (al mismo nivel que el package.json). Aquí definiremos la ruta para conectar con el backend de Kotlin:
+
+Fragmento de código
+NEXT_PUBLIC_API_URL=http://localhost:8081
+
+Paso 4: 
+
+evantar el servidor de desarrollo
+Una vez finalizada la instalación de paquetes, arranca el proyecto con este comando:
+
+Bash
+npm run dev
+
+
+✅ ¿Cómo sé que funcionó?
+La consola te indicará que el servidor compiló exitosamente. Abre tu navegador web y entra a http://localhost:3000. Verás la pantalla inicial de la plataforma.
+
+🤝 Flujo de Trabajo para el Equipo (Git Flow)
+Para evitar sobrescribir el trabajo de otros compañeros, seguiremos estas reglas estrictas:
+
+Nunca programes ni hagas commits en la rama main.
+
+Antes de empezar tu día, actualiza tu código: git pull origin main.
+
+Crea una rama para la pantalla o componente que vayas a hacer: git checkout -b feature/pantalla-denuncias o fix/boton-login.
+
+Haz tus cambios y súbelos a tu rama:
+
+Bash
+git add .
+git commit -m "feat: agrega diseño base del dashboard de operaciones"
+git push origin feature/pantalla-denuncias
+En GitHub, crea un Pull Request (PR) para unir tu código con la rama principal después de una revisión.

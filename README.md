@@ -1,6 +1,6 @@
-# 🛡️ ComplyTools - Web Platform (Frontend)
+# 🛡️ Security - Web Platform (Frontend)
 
-Este repositorio contiene la plataforma web administrativa del ecosistema ComplyTools. Está construida con **Next.js (App Router), React y TypeScript**, y se encarga de consumir la API del backend para gestionar de forma visual la seguridad, los riesgos y las operaciones.
+Este repositorio contiene la plataforma web administrativa del ecosistema Security. Está construida con **Next.js (App Router), React y TypeScript**, y se encarga de consumir la API del backend para gestionar de forma visual la seguridad, los riesgos y las operaciones.
 
 ## 🏗️ Arquitectura del Proyecto
 

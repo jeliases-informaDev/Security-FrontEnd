@@ -1,17 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService, UsuarioLoginResponse } from '@/modules/auth/services/authService';
 
-interface UseAuthResult {
+interface AuthContextValue {
   usuario: UsuarioLoginResponse | null;
   cargando: boolean;
   error: string | null;
   logout: () => void;
 }
 
-export function useAuth(): UseAuthResult {
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [usuario, setUsuario] = useState<UsuarioLoginResponse | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -37,5 +39,17 @@ export function useAuth(): UseAuthResult {
     router.replace('/login');
   }, [router]);
 
-  return { usuario, cargando, error, logout };
+  return (
+    <AuthContext.Provider value={{ usuario, cargando, error, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+  }
+  return context;
 }

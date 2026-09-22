@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShieldCheck, LogOut } from 'lucide-react';
 import type { UsuarioLoginResponse } from '@/modules/auth/services/authService';
+import { MODULOS_DASHBOARD } from '@/shared/lib/modulos';
 
 interface DashboardHeaderProps {
   usuario: UsuarioLoginResponse;
@@ -10,6 +12,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ usuario, onLogout }: DashboardHeaderProps) {
+  const pathname = usePathname();
+
   const iniciales = (usuario.nombreCompleto || usuario.usuario)
     .split(' ')
     .filter(Boolean)
@@ -49,6 +53,40 @@ export function DashboardHeader({ usuario, onLogout }: DashboardHeaderProps) {
           </button>
         </div>
       </div>
+
+      <nav className="bg-brand-navy-2 border-t border-white/10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto">
+          {MODULOS_DASHBOARD.map((modulo) => {
+            const activo = pathname === modulo.href;
+
+            if (!modulo.disponible) {
+              return (
+                <span
+                  key={modulo.codigo}
+                  className="shrink-0 px-3.5 py-2.5 text-sm text-white/30 cursor-not-allowed"
+                  title="Próximamente"
+                >
+                  {modulo.nombre}
+                </span>
+              );
+            }
+
+            return (
+              <Link
+                key={modulo.codigo}
+                href={modulo.href}
+                className={`shrink-0 px-3.5 py-2.5 text-sm border-b-2 transition ${
+                  activo
+                    ? 'text-white border-brand-amber font-medium'
+                    : 'text-white/60 border-transparent hover:text-white hover:border-white/30'
+                }`}
+              >
+                {modulo.nombre}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 }

@@ -25,6 +25,21 @@ export interface ResultadoBusquedaResponse {
   manchas: ManchaResponse[];
 }
 
+export interface HistorialConsultaResponse {
+  id: number;
+  fechaConsulta: string;
+  resultado: ResultadoBusquedaResponse;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  last: boolean;
+}
+
 export interface BusquedaListasNegativasParams {
   documento?: string;
   nombres?: string;
@@ -37,6 +52,19 @@ export const listasNegativasService = {
     const { data } = await apiClient.get<ResultadoBusquedaResponse[]>('/listas-negativas/buscar', {
       params,
     });
+    return data;
+  },
+
+  async obtenerHistorial(page: number, size = 10): Promise<PageResponse<HistorialConsultaResponse>> {
+    const { data } = await apiClient.get<PageResponse<HistorialConsultaResponse>>(
+      '/listas-negativas/historial',
+      { params: { page, size, sort: 'fechaConsulta,desc' } }
+    );
+    return data;
+  },
+
+  async obtenerDetalle(entidadId: number): Promise<ResultadoBusquedaResponse> {
+    const { data } = await apiClient.get<ResultadoBusquedaResponse>(`/listas-negativas/${entidadId}`);
     return data;
   },
 };

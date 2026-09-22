@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Search, User, IdCard, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud } from 'lucide-react';
 import {
   listasNegativasService,
   ResultadoBusquedaResponse,
 } from '@/modules/listas_negativas/services/listasNegativasService';
+import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
+import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
+import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
+import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
 
 const busquedaSchema = z
   .object({
@@ -27,21 +31,8 @@ const busquedaSchema = z
 
 type BusquedaFormValues = z.infer<typeof busquedaSchema>;
 
-const TIPO_LISTA_STYLES: Record<string, string> = {
-  PEP: 'bg-blue-50 text-blue-700 border-blue-100',
-  ACTOS_ILICITOS: 'bg-red-50 text-red-700 border-red-100',
-  NOTICIAS: 'bg-amber-50 text-amber-700 border-amber-100',
-  INTERNACIONAL: 'bg-purple-50 text-purple-700 border-purple-100',
-};
-
 const inputClass =
   'w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition';
-
-function formatearFecha(fecha: string | null): string {
-  if (!fecha) return '—';
-  const [anio, mes, dia] = fecha.split('-');
-  return `${dia}/${mes}/${anio}`;
-}
 
 function iniciales(nombre: string): string {
   return nombre
@@ -55,6 +46,9 @@ function iniciales(nombre: string): string {
 export function BuscadorListasNegativas() {
   const [resultados, setResultados] = useState<ResultadoBusquedaResponse[] | null>(null);
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [personaDetalle, setPersonaDetalle] = useState<ResultadoBusquedaResponse | null>(null);
+  const [modalEnConstruccion, setModalEnConstruccion] = useState<string | null>(null);
+  const [recargarHistorial, setRecargarHistorial] = useState(0);
 
   const {
     register,
@@ -69,12 +63,24 @@ export function BuscadorListasNegativas() {
     try {
       const data = await listasNegativasService.buscar(values);
       setResultados(data);
+      if (data.length > 0) {
+        setRecargarHistorial((n) => n + 1);
+      }
     } catch (err: unknown) {
       const mensaje =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'No se pudo completar la búsqueda. Verifica que el backend esté disponible.';
       setErrorServidor(mensaje);
       setResultados(null);
+    }
+  };
+
+  const abrirDetallePorId = async (entidadId: number) => {
+    try {
+      const detalle = await listasNegativasService.obtenerDetalle(entidadId);
+      setPersonaDetalle(detalle);
+    } catch {
+      setErrorServidor('No se pudo cargar el detalle del registro.');
     }
   };
 
@@ -89,7 +95,7 @@ export function BuscadorListasNegativas() {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-6"
+        className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="lg:col-span-2">
@@ -173,6 +179,23 @@ export function BuscadorListasNegativas() {
         )}
       </form>
 
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setModalEnConstruccion('Programar búsqueda')}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+        >
+          <CalendarClock className="w-4 h-4" />
+          Programar búsqueda
+        </button>
+        <button
+          onClick={() => setModalEnConstruccion('Consulta masiva')}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+        >
+          <UploadCloud className="w-4 h-4" />
+          Consulta masiva
+        </button>
+      </div>
+
       {resultados === null && (
         <div className="bg-white p-10 rounded-2xl border border-dashed border-slate-200 text-center">
           <ShieldAlert className="w-8 h-8 text-slate-300 mx-auto mb-3" />
@@ -190,9 +213,10 @@ export function BuscadorListasNegativas() {
             </div>
           ) : (
             resultados.map((persona) => (
-              <div
+              <button
                 key={persona.entidadId}
-                className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+                onClick={() => setPersonaDetalle(persona)}
+                className="w-full text-left bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:border-brand-amber/40 transition"
               >
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-11 h-11 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
@@ -217,57 +241,35 @@ export function BuscadorListasNegativas() {
                     </p>
 
                     <div className="mt-4 space-y-3">
-                      {persona.manchas.map((mancha) => (
-                        <div
-                          key={mancha.id}
-                          className="border border-slate-100 rounded-xl p-4 bg-slate-50/60"
-                        >
-                          <div className="flex items-center gap-2 flex-wrap mb-2">
-                            <span
-                              className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                                TIPO_LISTA_STYLES[mancha.tipoListaCodigo ?? ''] ??
-                                'bg-slate-100 text-slate-700 border-slate-200'
-                              }`}
-                            >
-                              {mancha.tipoListaNombre ?? mancha.tipoListaCodigo}
-                            </span>
-                            <span className="text-xs text-brand-muted">
-                              {formatearFecha(mancha.fechaRegistro)}
-                              {mancha.fechaHasta ? ` – ${formatearFecha(mancha.fechaHasta)}` : ''}
-                            </span>
-                          </div>
-
-                          {mancha.cargo || mancha.institucion ? (
-                            <p className="text-sm text-brand-ink">
-                              {[mancha.cargo, mancha.institucion].filter(Boolean).join(' — ')}
-                              {mancha.periodoDesde && mancha.periodoHasta
-                                ? ` (periodo: ${mancha.periodoDesde} – ${mancha.periodoHasta})`
-                                : ''}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-brand-ink">{mancha.descripcion}</p>
-                          )}
-
-                          {mancha.link && (
-                            <a
-                              href={mancha.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1.5 inline-flex items-center gap-1 text-xs text-brand-navy hover:underline"
-                            >
-                              Ver fuente
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
+                      {persona.manchas.slice(0, 1).map((mancha) => (
+                        <ManchaCard key={mancha.id} mancha={mancha} />
                       ))}
+                      {persona.manchas.length > 1 && (
+                        <p className="text-xs text-brand-navy font-medium">
+                          Ver {persona.manchas.length - 1} registro
+                          {persona.manchas.length - 1 === 1 ? '' : 's'} más →
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
+      )}
+
+      <HistorialBusquedas onVerDetalle={abrirDetallePorId} recargarClave={recargarHistorial} />
+
+      {personaDetalle && (
+        <DetalleEntidadModal persona={personaDetalle} onClose={() => setPersonaDetalle(null)} />
+      )}
+
+      {modalEnConstruccion && (
+        <TrabajandoEnElloModal
+          titulo={modalEnConstruccion}
+          onClose={() => setModalEnConstruccion(null)}
+        />
       )}
     </main>
   );

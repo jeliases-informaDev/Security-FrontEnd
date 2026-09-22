@@ -1,0 +1,54 @@
+'use client';
+
+import Link from 'next/link';
+import { ShieldCheck, LogOut } from 'lucide-react';
+import type { UsuarioLoginResponse } from '@/modules/auth/services/authService';
+
+interface DashboardHeaderProps {
+  usuario: UsuarioLoginResponse;
+  onLogout: () => void;
+}
+
+export function DashboardHeader({ usuario, onLogout }: DashboardHeaderProps) {
+  const iniciales = (usuario.nombreCompleto || usuario.usuario)
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase())
+    .join('');
+
+  return (
+    <header className="sticky top-0 z-10 bg-brand-navy text-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <Link href="/overview" className="flex items-center gap-2.5 shrink-0">
+          <ShieldCheck className="w-6 h-6 text-brand-amber" />
+          <span className="font-semibold tracking-tight text-sm sm:text-base">
+            RegTech Core
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="hidden sm:flex flex-col items-end leading-tight">
+            <span className="text-sm font-medium text-white">
+              {usuario.nombreCompleto || usuario.usuario}
+            </span>
+            <span className="text-xs text-white/60">{usuario.rol}</span>
+          </div>
+
+          <div className="w-9 h-9 rounded-full bg-brand-amber-soft text-brand-navy text-xs font-semibold flex items-center justify-center shrink-0">
+            {iniciales || '·'}
+          </div>
+
+          <button
+            onClick={onLogout}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}

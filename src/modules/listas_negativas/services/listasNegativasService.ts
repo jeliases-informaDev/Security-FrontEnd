@@ -4,6 +4,9 @@ export interface ManchaResponse {
   id: number;
   tipoListaCodigo: string | null;
   tipoListaNombre: string | null;
+  grupoNombre: string | null;
+  grupoColor: string | null;
+  esPep: boolean;
   descripcion: string | null;
   link: string | null;
   fechaRegistro: string | null;
@@ -21,6 +24,12 @@ export interface ResultadoBusquedaResponse {
   documento: string;
   tipoDocumento: string | null;
   nombreCompleto: string;
+  nombres: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
+  pasaporte: string | null;
+  alias: string | null;
+  fechaNacimientoRegistro: string | null;
   pais: string | null;
   manchas: ManchaResponse[];
 }
@@ -40,8 +49,11 @@ export interface PageResponse<T> {
   last: boolean;
 }
 
+export type TipoDocumentoCodigo = 'DNI' | 'CE' | 'RUC' | 'PASAPORTE';
+
 export interface BusquedaListasNegativasParams {
   documento?: string;
+  tipoDocumento?: TipoDocumentoCodigo | '';
   nombres?: string;
   apellidoPaterno?: string;
   apellidoMaterno?: string;

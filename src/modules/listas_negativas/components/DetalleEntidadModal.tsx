@@ -15,6 +15,16 @@ function iniciales(nombre: string): string {
     .join('');
 }
 
+function Dato({ label, valor }: { label: string; valor: string | null | undefined }) {
+  if (!valor) return null;
+  return (
+    <div>
+      <p className="text-[11px] font-medium text-brand-muted uppercase tracking-wide">{label}</p>
+      <p className="text-sm text-brand-ink mt-0.5">{valor}</p>
+    </div>
+  );
+}
+
 export function DetalleEntidadModal({
   persona,
   onClose,
@@ -24,6 +34,9 @@ export function DetalleEntidadModal({
 }) {
   const { usuario } = useAuth();
   const [descargando, setDescargando] = useState(false);
+  const fechaNacimientoRegistro = persona.fechaNacimientoRegistro
+    ? formatearFecha(persona.fechaNacimientoRegistro)
+    : null;
 
   const descargarPdf = async () => {
     setDescargando(true);
@@ -63,6 +76,20 @@ export function DetalleEntidadModal({
         margen,
         y
       );
+
+      const datosAdicionales = [
+        persona.apellidoPaterno && `Apellido paterno: ${persona.apellidoPaterno}`,
+        persona.apellidoMaterno && `Apellido materno: ${persona.apellidoMaterno}`,
+        persona.nombres && `Nombres: ${persona.nombres}`,
+        persona.pasaporte && `Pasaporte: ${persona.pasaporte}`,
+        persona.alias && `Alias: ${persona.alias}`,
+        fechaNacimientoRegistro && `Fecha de nacimiento/registro: ${fechaNacimientoRegistro}`,
+      ].filter(Boolean) as string[];
+
+      datosAdicionales.forEach((linea) => {
+        y += 5;
+        doc.text(linea, margen, y);
+      });
 
       persona.manchas.forEach((mancha) => {
         y += 10;
@@ -131,6 +158,17 @@ export function DetalleEntidadModal({
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 p-4 mb-4 rounded-xl bg-slate-50/80 border border-slate-100">
+            <Dato label="Tipo" valor={persona.tipoEntidad === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural'} />
+            <Dato label="Apellido paterno" valor={persona.apellidoPaterno} />
+            <Dato label="Apellido materno" valor={persona.apellidoMaterno} />
+            <Dato label="Nombres" valor={persona.nombres} />
+            <Dato label="Pasaporte" valor={persona.pasaporte} />
+            <Dato label="Alias" valor={persona.alias} />
+            <Dato label="Fecha de nacimiento / registro" valor={fechaNacimientoRegistro} />
+            <Dato label="Lugar de nacimiento" valor={persona.pais} />
           </div>
 
           <div className="space-y-3">

@@ -1,11 +1,14 @@
 import { ExternalLink } from 'lucide-react';
 import type { ManchaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
 
-const TIPO_LISTA_STYLES: Record<string, string> = {
-  PEP: 'bg-blue-50 text-blue-700 border-blue-100',
-  ACTOS_ILICITOS: 'bg-red-50 text-red-700 border-red-100',
-  NOTICIAS: 'bg-amber-50 text-amber-700 border-amber-100',
-  INTERNACIONAL: 'bg-purple-50 text-purple-700 border-purple-100',
+// Colorimetria real de Inspektor/Risk Consulting (grupoColor viene del backend);
+// NOTICIAS y cualquier lista sin grupo cae en el estilo por defecto (gris).
+const COLOR_GRUPO_STYLES: Record<string, string> = {
+  Vinotinto: 'bg-rose-50 text-rose-800 border-rose-200',
+  Rojo: 'bg-red-50 text-red-700 border-red-100',
+  Naranja: 'bg-orange-50 text-orange-700 border-orange-100',
+  Amarillo: 'bg-amber-50 text-amber-700 border-amber-100',
+  Verde: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
 export function formatearFecha(fecha: string | null): string {
@@ -20,12 +23,17 @@ export function ManchaCard({ mancha }: { mancha: ManchaResponse }) {
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-            TIPO_LISTA_STYLES[mancha.tipoListaCodigo ?? ''] ??
+            COLOR_GRUPO_STYLES[mancha.grupoColor ?? ''] ??
             'bg-slate-100 text-slate-700 border-slate-200'
           }`}
         >
           {mancha.tipoListaNombre ?? mancha.tipoListaCodigo}
         </span>
+        {mancha.esPep && (
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-100">
+            PEP
+          </span>
+        )}
         <span className="text-xs text-brand-muted">
           {formatearFecha(mancha.fechaRegistro)}
           {mancha.fechaHasta ? ` – ${formatearFecha(mancha.fechaHasta)}` : ''}

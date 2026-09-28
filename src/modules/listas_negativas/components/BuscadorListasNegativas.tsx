@@ -8,17 +8,37 @@ import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud } from 'l
 import {
   listasNegativasService,
   ResultadoBusquedaResponse,
+  TipoDocumentoCodigo,
 } from '@/modules/listas_negativas/services/listasNegativasService';
 import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
 import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
 import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
 import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
 
+// Formato real de cada documento peruano: largo exacto/maximo y los caracteres que acepta,
+// para restringir la escritura y no dejar pasar valores con el formato incorrecto.
+const FORMATO_DOCUMENTO: Record<
+  TipoDocumentoCodigo,
+  { label: string; maxLength: number; pattern: RegExp; soloDigitos: boolean; ejemplo: string }
+> = {
+  DNI: { label: 'DNI', maxLength: 8, pattern: /^\d{8}$/, soloDigitos: true, ejemplo: '12345678' },
+  RUC: { label: 'RUC', maxLength: 11, pattern: /^\d{11}$/, soloDigitos: true, ejemplo: '20123456789' },
+  CE: { label: 'CE', maxLength: 12, pattern: /^[A-Za-z0-9]{6,12}$/, soloDigitos: false, ejemplo: '001234567' },
+  PASAPORTE: {
+    label: 'Pasaporte',
+    maxLength: 12,
+    pattern: /^[A-Za-z0-9]{5,12}$/,
+    soloDigitos: false,
+    ejemplo: 'AB123456',
+  },
+};
+
 const busquedaSchema = z
   .object({
     nombres: z.string().optional(),
     apellidoPaterno: z.string().optional(),
     apellidoMaterno: z.string().optional(),
+    tipoDocumento: z.union([z.literal('DNI'), z.literal('CE'), z.literal('RUC'), z.literal('PASAPORTE'), z.literal('')]).optional(),
     documento: z.string().optional(),
   })
   .refine(
@@ -27,12 +47,23 @@ const busquedaSchema = z
         (v) => v && v.trim().length > 0
       ),
     { message: 'Ingresa al menos un criterio de búsqueda', path: ['nombres'] }
+  )
+  .refine(
+    (values) => {
+      if (!values.documento || !values.documento.trim()) return true;
+      if (!values.tipoDocumento) return true;
+      return FORMATO_DOCUMENTO[values.tipoDocumento as TipoDocumentoCodigo].pattern.test(values.documento.trim());
+    },
+    { message: 'El documento no tiene el formato esperado para el tipo seleccionado', path: ['documento'] }
   );
 
 type BusquedaFormValues = z.infer<typeof busquedaSchema>;
 
 const inputClass =
   'w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition';
+
+const selectClass =
+  'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition appearance-none';
 
 function iniciales(nombre: string): string {
   return nombre
@@ -53,10 +84,16 @@ export function BuscadorListasNegativas() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<BusquedaFormValues>({
     resolver: zodResolver(busquedaSchema),
+    defaultValues: { tipoDocumento: '' },
   });
+
+  const tipoDocumentoSeleccionado = watch('tipoDocumento') as TipoDocumentoCodigo | '' | undefined;
+  const formatoActivo = tipoDocumentoSeleccionado ? FORMATO_DOCUMENTO[tipoDocumentoSeleccionado] : null;
 
   const onSubmit = async (values: BusquedaFormValues) => {
     setErrorServidor(null);
@@ -89,7 +126,8 @@ export function BuscadorListasNegativas() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brand-ink tracking-tight">Listas Negativas</h1>
         <p className="text-brand-muted text-sm mt-1">
-          Busca coincidencias en PEP, Actos Ilícitos, Noticias y Listas Internacionales.
+          Busca coincidencias en PEP y en el catálogo real de listas restrictivas, de LA/FT,
+          sanciones administrativas y noticias.
         </p>
       </div>
 
@@ -145,17 +183,52 @@ export function BuscadorListasNegativas() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          <div className="lg:col-span-2">
+          <div>
             <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              DNI / RUC / Pasaporte
+              Tipo de documento
+            </label>
+            <select
+              className={selectClass}
+              {...register('tipoDocumento', {
+                onChange: () => {
+                  // al cambiar el tipo, se limpia el numero para que no quede un valor
+                  // valido para el tipo anterior pero invalido para el nuevo
+                  setValue('documento', '');
+                },
+              })}
+            >
+              <option value="">Todos</option>
+              {(Object.keys(FORMATO_DOCUMENTO) as TipoDocumentoCodigo[]).map((codigo) => (
+                <option key={codigo} value={codigo}>
+                  {FORMATO_DOCUMENTO[codigo].label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
+              N° de documento
             </label>
             <div className="relative">
               <IdCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 className={inputClass}
-                placeholder="Ej. 12345678"
-                {...register('documento')}
+                placeholder={formatoActivo ? `Ej. ${formatoActivo.ejemplo}` : 'DNI, CE, RUC o pasaporte'}
+                maxLength={formatoActivo?.maxLength}
+                {...register('documento', {
+                  onChange: (e) => {
+                    if (!formatoActivo) return;
+                    const crudo = e.target.value;
+                    const limpio = formatoActivo.soloDigitos
+                      ? crudo.replace(/\D/g, '')
+                      : crudo.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                    setValue('documento', limpio.slice(0, formatoActivo.maxLength), {
+                      shouldValidate: true,
+                    });
+                  },
+                })}
               />
             </div>
           </div>
@@ -171,6 +244,9 @@ export function BuscadorListasNegativas() {
 
         {errors.nombres && (
           <p className="mt-3 text-xs text-red-600">{errors.nombres.message}</p>
+        )}
+        {errors.documento && (
+          <p className="mt-3 text-xs text-red-600">{errors.documento.message}</p>
         )}
         {errorServidor && (
           <div className="mt-3 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">

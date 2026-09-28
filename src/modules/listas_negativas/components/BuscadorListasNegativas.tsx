@@ -4,16 +4,41 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud } from 'lucide-react';
 import {
   listasNegativasService,
   ResultadoBusquedaResponse,
+  TipoDocumentoCodigo,
 } from '@/modules/listas_negativas/services/listasNegativasService';
+import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
+import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
+import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
+import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
+
+// Formato real de cada documento peruano: largo exacto/maximo y los caracteres que acepta,
+// para restringir la escritura y no dejar pasar valores con el formato incorrecto.
+const FORMATO_DOCUMENTO: Record<
+  TipoDocumentoCodigo,
+  { label: string; maxLength: number; pattern: RegExp; soloDigitos: boolean; ejemplo: string }
+> = {
+  DNI: { label: 'DNI', maxLength: 8, pattern: /^\d{8}$/, soloDigitos: true, ejemplo: '12345678' },
+  RUC: { label: 'RUC', maxLength: 11, pattern: /^\d{11}$/, soloDigitos: true, ejemplo: '20123456789' },
+  CE: { label: 'CE', maxLength: 12, pattern: /^[A-Za-z0-9]{6,12}$/, soloDigitos: false, ejemplo: '001234567' },
+  PASAPORTE: {
+    label: 'Pasaporte',
+    maxLength: 12,
+    pattern: /^[A-Za-z0-9]{5,12}$/,
+    soloDigitos: false,
+    ejemplo: 'AB123456',
+  },
+};
 
 const busquedaSchema = z
   .object({
     nombres: z.string().optional(),
     apellidoPaterno: z.string().optional(),
     apellidoMaterno: z.string().optional(),
+    tipoDocumento: z.union([z.literal('DNI'), z.literal('CE'), z.literal('RUC'), z.literal('PASAPORTE'), z.literal('')]).optional(),
     documento: z.string().optional(),
   })
   .refine(
@@ -22,40 +47,62 @@ const busquedaSchema = z
         (v) => v && v.trim().length > 0
       ),
     { message: 'Ingresa al menos un criterio de búsqueda', path: ['nombres'] }
+  )
+  .refine(
+    (values) => {
+      if (!values.documento || !values.documento.trim()) return true;
+      if (!values.tipoDocumento) return true;
+      return FORMATO_DOCUMENTO[values.tipoDocumento as TipoDocumentoCodigo].pattern.test(values.documento.trim());
+    },
+    { message: 'El documento no tiene el formato esperado para el tipo seleccionado', path: ['documento'] }
   );
 
 type BusquedaFormValues = z.infer<typeof busquedaSchema>;
 
-const TIPO_LISTA_STYLES: Record<string, string> = {
-  PEP: 'bg-blue-50 text-blue-700 border-blue-100',
-  ACTOS_ILICITOS: 'bg-red-50 text-red-700 border-red-100',
-  NOTICIAS: 'bg-amber-50 text-amber-700 border-amber-100',
-  INTERNACIONAL: 'bg-purple-50 text-purple-700 border-purple-100',
-};
+const inputClass =
+  'w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition';
 
-function formatearFecha(fecha: string | null): string {
-  if (!fecha) return '—';
-  const [anio, mes, dia] = fecha.split('-');
-  return `${dia}/${mes}/${anio}`;
+const selectClass =
+  'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition appearance-none';
+
+function iniciales(nombre: string): string {
+  return nombre
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
 }
 
 export function BuscadorListasNegativas() {
   const [resultados, setResultados] = useState<ResultadoBusquedaResponse[] | null>(null);
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [personaDetalle, setPersonaDetalle] = useState<ResultadoBusquedaResponse | null>(null);
+  const [modalEnConstruccion, setModalEnConstruccion] = useState<string | null>(null);
+  const [recargarHistorial, setRecargarHistorial] = useState(0);
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<BusquedaFormValues>({
     resolver: zodResolver(busquedaSchema),
+    defaultValues: { tipoDocumento: '' },
   });
+
+  const tipoDocumentoSeleccionado = watch('tipoDocumento') as TipoDocumentoCodigo | '' | undefined;
+  const formatoActivo = tipoDocumentoSeleccionado ? FORMATO_DOCUMENTO[tipoDocumentoSeleccionado] : null;
 
   const onSubmit = async (values: BusquedaFormValues) => {
     setErrorServidor(null);
     try {
       const data = await listasNegativasService.buscar(values);
       setResultados(data);
+      if (data.length > 0) {
+        setRecargarHistorial((n) => n + 1);
+      }
     } catch (err: unknown) {
       const mensaje =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
@@ -65,158 +112,241 @@ export function BuscadorListasNegativas() {
     }
   };
 
+  const abrirDetallePorId = async (entidadId: number) => {
+    try {
+      const detalle = await listasNegativasService.obtenerDetalle(entidadId);
+      setPersonaDetalle(detalle);
+    } catch {
+      setErrorServidor('No se pudo cargar el detalle del registro.');
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Listas Negativas</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Busca coincidencias en PEP, Actos Ilícitos, Noticias y Listas Internacionales.
+        <h1 className="text-2xl font-bold text-brand-ink tracking-tight">Listas Negativas</h1>
+        <p className="text-brand-muted text-sm mt-1">
+          Busca coincidencias en PEP y en el catálogo real de listas restrictivas, de LA/FT,
+          sanciones administrativas y noticias.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-6"
+        className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-4"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="lg:col-span-2">
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
               Nombres / Razón Social
             </label>
-            <input
-              type="text"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Buscar por Nombres / Razón Social"
-              {...register('nombres')}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">
-              Apellidos paterno y materno
-            </label>
-            <div className="flex gap-2">
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Paterno"
+                className={inputClass}
+                placeholder="Ej. Juan Carlos"
+                {...register('nombres')}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
+              Apellido paterno
+            </label>
+            <div className="relative">
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                className={inputClass}
+                placeholder="Ej. Garcia"
                 {...register('apellidoPaterno')}
               />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
+              Apellido materno
+            </label>
+            <div className="relative">
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Materno"
+                className={inputClass}
+                placeholder="Ej. Lopez"
                 {...register('apellidoMaterno')}
               />
             </div>
           </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">DNI / RUC</label>
-            <input
-              type="text"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Buscar por DNI / RUC"
-              {...register('documento')}
-            />
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
+              Tipo de documento
+            </label>
+            <select
+              className={selectClass}
+              {...register('tipoDocumento', {
+                onChange: () => {
+                  // al cambiar el tipo, se limpia el numero para que no quede un valor
+                  // valido para el tipo anterior pero invalido para el nuevo
+                  setValue('documento', '');
+                },
+              })}
+            >
+              <option value="">Todos</option>
+              {(Object.keys(FORMATO_DOCUMENTO) as TipoDocumentoCodigo[]).map((codigo) => (
+                <option key={codigo} value={codigo}>
+                  {FORMATO_DOCUMENTO[codigo].label}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1.5">
+              N° de documento
+            </label>
+            <div className="relative">
+              <IdCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                className={inputClass}
+                placeholder={formatoActivo ? `Ej. ${formatoActivo.ejemplo}` : 'DNI, CE, RUC o pasaporte'}
+                maxLength={formatoActivo?.maxLength}
+                {...register('documento', {
+                  onChange: (e) => {
+                    if (!formatoActivo) return;
+                    const crudo = e.target.value;
+                    const limpio = formatoActivo.soloDigitos
+                      ? crudo.replace(/\D/g, '')
+                      : crudo.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                    setValue('documento', limpio.slice(0, formatoActivo.maxLength), {
+                      shouldValidate: true,
+                    });
+                  },
+                })}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="lg:col-start-4 px-6 py-2.5 bg-brand-navy text-white text-sm font-semibold rounded-xl hover:bg-brand-navy-2 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Buscando…' : 'Realizar búsqueda'}
+          </button>
         </div>
 
         {errors.nombres && (
           <p className="mt-3 text-xs text-red-600">{errors.nombres.message}</p>
+        )}
+        {errors.documento && (
+          <p className="mt-3 text-xs text-red-600">{errors.documento.message}</p>
         )}
         {errorServidor && (
           <div className="mt-3 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
             {errorServidor}
           </div>
         )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="mt-4 px-6 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-900 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Buscando…' : 'Realizar búsqueda'}
-        </button>
       </form>
+
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setModalEnConstruccion('Programar búsqueda')}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+        >
+          <CalendarClock className="w-4 h-4" />
+          Programar búsqueda
+        </button>
+        <button
+          onClick={() => setModalEnConstruccion('Consulta masiva')}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+        >
+          <UploadCloud className="w-4 h-4" />
+          Consulta masiva
+        </button>
+      </div>
+
+      {resultados === null && (
+        <div className="bg-white p-10 rounded-2xl border border-dashed border-slate-200 text-center">
+          <ShieldAlert className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-400 text-sm">
+            Ingresa un nombre, apellido o documento para empezar a buscar.
+          </p>
+        </div>
+      )}
 
       {resultados !== null && (
         <div className="space-y-4">
           {resultados.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-center text-slate-500 text-sm">
+            <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-center text-brand-muted text-sm">
               No se encontraron coincidencias para los criterios ingresados.
             </div>
           ) : (
             resultados.map((persona) => (
-              <div
+              <button
                 key={persona.entidadId}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+                onClick={() => setPersonaDetalle(persona)}
+                className="w-full text-left bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:border-brand-amber/40 transition"
               >
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-800">
-                      {persona.nombreCompleto}
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-11 h-11 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
+                    {iniciales(persona.nombreCompleto) || '·'}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <h2 className="text-base font-semibold text-brand-ink">
+                        {persona.nombreCompleto}
+                      </h2>
+                      <span className="text-xs font-medium text-brand-muted shrink-0">
+                        {persona.manchas.length} registro
+                        {persona.manchas.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-brand-muted mt-0.5">
                       {persona.tipoDocumento ?? 'Documento'}: {persona.documento}
                       {persona.pais ? ` · ${persona.pais}` : ''}
                       {' · '}
                       {persona.tipoEntidad === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural'}
                     </p>
-                  </div>
-                  <span className="text-xs font-medium text-slate-400">
-                    {persona.manchas.length} registro{persona.manchas.length === 1 ? '' : 's'}
-                  </span>
-                </div>
 
-                <div className="mt-4 space-y-3">
-                  {persona.manchas.map((mancha) => (
-                    <div
-                      key={mancha.id}
-                      className="border border-slate-100 rounded-xl p-4 bg-slate-50/50"
-                    >
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <span
-                          className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                            TIPO_LISTA_STYLES[mancha.tipoListaCodigo ?? ''] ??
-                            'bg-slate-100 text-slate-700 border-slate-200'
-                          }`}
-                        >
-                          {mancha.tipoListaNombre ?? mancha.tipoListaCodigo}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {formatearFecha(mancha.fechaRegistro)}
-                          {mancha.fechaHasta ? ` – ${formatearFecha(mancha.fechaHasta)}` : ''}
-                        </span>
-                      </div>
-
-                      {mancha.cargo || mancha.institucion ? (
-                        <p className="text-sm text-slate-700">
-                          {[mancha.cargo, mancha.institucion].filter(Boolean).join(' — ')}
-                          {mancha.periodoDesde && mancha.periodoHasta
-                            ? ` (periodo: ${mancha.periodoDesde} – ${mancha.periodoHasta})`
-                            : ''}
+                    <div className="mt-4 space-y-3">
+                      {persona.manchas.slice(0, 1).map((mancha) => (
+                        <ManchaCard key={mancha.id} mancha={mancha} />
+                      ))}
+                      {persona.manchas.length > 1 && (
+                        <p className="text-xs text-brand-navy font-medium">
+                          Ver {persona.manchas.length - 1} registro
+                          {persona.manchas.length - 1 === 1 ? '' : 's'} más →
                         </p>
-                      ) : (
-                        <p className="text-sm text-slate-700">{mancha.descripcion}</p>
-                      )}
-
-                      {mancha.link && (
-                        <a
-                          href={mancha.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-block text-xs text-blue-600 hover:underline"
-                        >
-                          Ver fuente
-                        </a>
                       )}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
       )}
-    </div>
+
+      <HistorialBusquedas onVerDetalle={abrirDetallePorId} recargarClave={recargarHistorial} />
+
+      {personaDetalle && (
+        <DetalleEntidadModal persona={personaDetalle} onClose={() => setPersonaDetalle(null)} />
+      )}
+
+      {modalEnConstruccion && (
+        <TrabajandoEnElloModal
+          titulo={modalEnConstruccion}
+          onClose={() => setModalEnConstruccion(null)}
+        />
+      )}
+    </main>
   );
 }

@@ -3,21 +3,32 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
+/* Paleta de marca (misma identidad del Project Canvas del proyecto) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-brand-navy: #12253d;
+  --color-brand-navy-2: #1b3654;
+  --color-brand-paper: #eaeef3;
+  --color-brand-ink: #1a1f27;
+  --color-brand-muted: #5b6572;
+  --color-brand-amber: #c98a2c;
+  --color-brand-amber-soft: #f6e8cf;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+  La app todavia no tiene un tema oscuro real (ningun componente adapta sus
+  colores). Dejar que el navegador aplique prefers-color-scheme aqui solo
+  invierte --foreground/--background sin que los componentes lo sepan, y el
+  texto de los inputs termina heredando un color casi blanco sobre fondos
+  que siguen siendo blancos. Por eso se fuerza color-scheme: light arriba.
+*/
 
 body {
   background: var(--background);

@@ -40,7 +40,7 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     descripcion: 'Evaluación y debida diligencia de clientes',
     href: '/scoring',
     icono: Gauge,
-    disponible: false,
+    disponible: true,
   },
   {
     codigo: 'matriz-riesgos',

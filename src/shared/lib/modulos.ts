@@ -48,7 +48,7 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     descripcion: 'Heatmaps de probabilidad e impacto',
     href: '/matriz-riesgos',
     icono: LayoutGrid,
-    disponible: false,
+    disponible: true,
   },
   {
     codigo: 'operaciones',

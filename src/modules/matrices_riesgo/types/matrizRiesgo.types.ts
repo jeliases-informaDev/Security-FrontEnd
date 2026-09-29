@@ -169,51 +169,31 @@ export interface CalcularRiesgoResidualResponse {
 // ============================================================
 
 export interface GuardarMatrizRiesgoRequest {
+  id?: number;
 
   tipoEmpresa?: TipoEmpresa;
-
   titulo?: string;
-
   areaId?: number;
-
   procesoId?: number;
-
   detalleRiesgo?: string;
-
   factor?: FactorRiesgo;
-
   probabilidad?: NivelProbabilidad;
-
   impactoEstimado?: number;
 
-
   controlDescripcion?: string;
-
   controlDocumento?: string;
-
   controlAreaId?: number;
 
   periodicidad?: PeriodicidadControl;
-
   operatividad?: OperatividadControl;
-
   tipoControl?: TipoControl;
-
   supervision?: NivelSupervision;
-
-  frecuenciaOportuna?:
-    RespuestaControl;
-
-  seguimientoAdecuado?:
-    RespuestaControl;
-
+  frecuenciaOportuna?: RespuestaControl;
+  seguimientoAdecuado?: RespuestaControl;
 
   planAccion?: string;
-
   areaResponsableId?: number;
-
   fechaInicio?: string;
-
   fechaCierre?: string;
 }
 

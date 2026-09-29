@@ -15,7 +15,7 @@ import type {
 } from "../types/matrizRiesgo.types";
 
 const BASE_URL =
-  "/api/matrices";
+  "/matrices";
 
 
 // ============================================================

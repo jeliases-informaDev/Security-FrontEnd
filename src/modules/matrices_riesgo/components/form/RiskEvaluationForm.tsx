@@ -30,6 +30,7 @@ import type {
   RespuestaControl,
   TipoControl,
   TipoEmpresa,
+  HeatmapResultadoRiesgo,
 } from "../../types/matrizRiesgo.types";
 
 import { CatalogManagerModal } from "../catalog/CatalogManagerModal";
@@ -108,11 +109,24 @@ const initialTratamiento: TratamientoState = {
   fechaCierre: "",
 };
 
+interface RiskEvaluationFormProps {
+  onRiesgoInherenteChange?: (
+    resultado: HeatmapResultadoRiesgo | null
+  ) => void;
+
+  onRiesgoResidualChange?: (
+    resultado: HeatmapResultadoRiesgo | null
+  ) => void;
+}
+
 /* ============================================================
    COMPONENT
    ============================================================ */
 
-export function RiskEvaluationForm() {
+export function RiskEvaluationForm({
+  onRiesgoInherenteChange,
+  onRiesgoResidualChange,
+}: RiskEvaluationFormProps) {
   const [currentStep, setCurrentStep] =
     useState<Step>(1);
 
@@ -290,7 +304,7 @@ export function RiskEvaluationForm() {
      RESET
      ============================================================ */
 
-  function limpiarResidual() {
+    function limpiarResidual() {
     setMitigacion(null);
 
     setProbabilidadResidual(null);
@@ -298,12 +312,16 @@ export function RiskEvaluationForm() {
     setImpactoResidual(null);
 
     setRiesgoResidual(null);
+
+    onRiesgoResidualChange?.(null);
   }
 
   function limpiarInherente() {
     setImpactoInherente(null);
 
     setRiesgoInherente(null);
+
+    onRiesgoInherenteChange?.(null);
 
     limpiarResidual();
   }
@@ -312,7 +330,7 @@ export function RiskEvaluationForm() {
      STEP 01 - INHERENTE
      ============================================================ */
 
-  async function calcularInherente() {
+    async function calcularInherente() {
     setError(null);
     setMensajeExito(null);
 
@@ -362,6 +380,22 @@ export function RiskEvaluationForm() {
         resultado.riesgoInherente
       );
 
+      onRiesgoInherenteChange?.({
+        probabilidad:
+          resultado.probabilidad,
+
+        impacto:
+          resultado.impacto,
+
+        riesgo:
+          resultado.riesgoInherente,
+      });
+
+      /*
+      * Al recalcular el inherente,
+      * cualquier residual anterior
+      * deja de ser válido.
+      */
       limpiarResidual();
     } catch {
       setError(
@@ -476,97 +510,111 @@ export function RiskEvaluationForm() {
     }
   }
 
-  async function calcularResidual() {
-    setError(null);
-    setMensajeExito(null);
+ async function calcularResidual() {
+  setError(null);
+  setMensajeExito(null);
 
-    if (
-      !controles.supervision ||
-      !controles.tipoControl ||
-      !controles.operatividad ||
-      !controles.periodicidad ||
-      !controles.frecuenciaOportuna ||
-      !controles.seguimientoAdecuado
-    ) {
-      setError(
-        "Completa todos los datos de diseño y ejecución del control."
-      );
+  if (
+    !controles.supervision ||
+    !controles.tipoControl ||
+    !controles.operatividad ||
+    !controles.periodicidad ||
+    !controles.frecuenciaOportuna ||
+    !controles.seguimientoAdecuado
+  ) {
+    setError(
+      "Completa todos los datos de diseño y ejecución del control."
+    );
 
-      return;
-    }
-
-    if (
-      !form.tipoEmpresa ||
-      !form.probabilidad ||
-      !form.impactoEstimado
-    ) {
-      setError(
-        "Faltan datos del riesgo inherente."
-      );
-
-      return;
-    }
-
-    const impacto =
-      Number(form.impactoEstimado);
-
-    try {
-      setCalculandoResidual(true);
-
-      const resultado =
-        await matrizRiesgoService
-          .calcularRiesgoResidual({
-            probabilidadInherente:
-              form.probabilidad,
-
-            impactoEstimado:
-              impacto,
-
-            tipoEmpresa:
-              form.tipoEmpresa,
-
-            supervision:
-              controles.supervision,
-
-            tipoControl:
-              controles.tipoControl,
-
-            operatividad:
-              controles.operatividad,
-
-            periodicidad:
-              controles.periodicidad,
-
-            frecuenciaOportuna:
-              controles.frecuenciaOportuna,
-
-            seguimientoAdecuado:
-              controles.seguimientoAdecuado,
-          });
-
-      setMitigacion(
-        resultado.mitigacion
-      );
-
-      setProbabilidadResidual(
-        resultado.probabilidadResidual
-      );
-
-      setImpactoResidual(
-        resultado.impactoResidual
-      );
-
-      setRiesgoResidual(
-        resultado.riesgoResidual
-      );
-    } catch {
-      setError(
-        "No fue posible calcular el riesgo residual."
-      );
-    } finally {
-      setCalculandoResidual(false);
-    }
+    return;
   }
+
+  if (
+    !form.tipoEmpresa ||
+    !form.probabilidad ||
+    !form.impactoEstimado
+  ) {
+    setError(
+      "Faltan datos del riesgo inherente."
+    );
+
+    return;
+  }
+
+  const impacto =
+    Number(form.impactoEstimado);
+
+  try {
+    setCalculandoResidual(true);
+
+    const resultado =
+      await matrizRiesgoService
+        .calcularRiesgoResidual({
+          probabilidadInherente:
+            form.probabilidad,
+
+          impactoEstimado:
+            impacto,
+
+          tipoEmpresa:
+            form.tipoEmpresa,
+
+          supervision:
+            controles.supervision,
+
+          tipoControl:
+            controles.tipoControl,
+
+          operatividad:
+            controles.operatividad,
+
+          periodicidad:
+            controles.periodicidad,
+
+          frecuenciaOportuna:
+            controles.frecuenciaOportuna,
+
+          seguimientoAdecuado:
+            controles.seguimientoAdecuado,
+        });
+
+    setMitigacion(
+      resultado.mitigacion
+    );
+
+    setProbabilidadResidual(
+      resultado.probabilidadResidual
+    );
+
+    setImpactoResidual(
+      resultado.impactoResidual
+    );
+
+    setRiesgoResidual(
+      resultado.riesgoResidual
+    );
+
+    // Comunicar el resultado residual al Workspace
+    // para poder marcarlo en el Heatmap.
+    onRiesgoResidualChange?.({
+      probabilidad:
+        resultado.probabilidadResidual,
+
+      impacto:
+        resultado.impactoResidual,
+
+      riesgo:
+        resultado.riesgoResidual,
+    });
+
+  } catch {
+    setError(
+      "No fue posible calcular el riesgo residual."
+    );
+  } finally {
+    setCalculandoResidual(false);
+  }
+}
 
   function continuarAResidual() {
     if (!riesgoResidual) {

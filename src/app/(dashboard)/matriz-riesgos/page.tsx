@@ -1,5 +1,5 @@
-import { RiskEvaluationForm } from "@/modules/matrices_riesgo/components/form/RiskEvaluationForm";
+import { RiskMatrixWorkspace } from '@/modules/matrices_riesgo/components/RiskMatrixWorkspace';
 
 export default function MatrizRiesgosPage() {
-  return <RiskEvaluationForm />;
+  return <RiskMatrixWorkspace />;
 }

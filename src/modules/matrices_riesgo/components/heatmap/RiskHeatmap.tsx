@@ -388,128 +388,74 @@ export function RiskHeatmap({
                         columnIndex
                       ) => {
                         const celda =
-                          obtenerCelda(
-                            probabilidad.codigo,
-                            impacto.codigo
-                          );
+                        obtenerCelda(
+                          probabilidad.codigo,
+                          impacto.codigo
+                        );
 
-                        if (!celda) {
-                          return (
-                            <div
-                              key={`${probabilidad.codigo}-${impacto.codigo}`}
-                              style={{
-                                gridColumn:
-                                  columnIndex + 3,
-
-                                gridRow:
-                                  fila,
-                              }}
-                              className="border border-white bg-slate-100"
-                            />
-                          );
-                        }
-
-                        const estilo =
-                          RIESGO_ESTILOS[
-                            celda.riesgo
-                          ];
-
-                        const esInherente =
-                          coincidePosicion(
-                            probabilidad.codigo,
-                            impacto.codigo,
-                            seleccion?.inherente
-                          );
-
-                        const esResidual =
-                          coincidePosicion(
-                            probabilidad.codigo,
-                            impacto.codigo,
-                            seleccion?.residual
-                          );
-
+                      if (!celda) {
                         return (
                           <div
                             key={`${probabilidad.codigo}-${impacto.codigo}`}
                             style={{
-                              gridColumn:
-                                columnIndex + 3,
-
-                              gridRow:
-                                fila,
-
-                              backgroundColor:
-                                estilo.fondo,
-
-                              color:
-                                estilo.texto,
+                              gridColumn: columnIndex + 3,
+                              gridRow: fila,
                             }}
-                            title={`${formatearTexto(
-                              probabilidad.codigo
-                            )} × ${formatearTexto(
-                              impacto.codigo
-                            )}`}
-                            className="relative flex flex-col items-center justify-center border border-white text-center"
-                          >
-
-                            {/* COORDENADA */}
-
-                            <span
-                              className="text-[12px] font-semibold"
-                              style={{
-                                color:
-                                  'rgba(0,0,0,0.55)',
-                              }}
-                            >
-                              P
-                              {
-                                probabilidad.nivel
-                              }
-
-                              {' × I'}
-
-                              {
-                                impacto.nivel
-                              }
-                            </span>
-
-                            {/* NIVEL */}
-
-                            <span className="mt-2 text-[16px] font-bold">
-                              {
-                                estilo.etiqueta
-                              }
-                            </span>
-
-                            {/* MARCADORES */}
-
-                            {(esInherente ||
-                              esResidual) && (
-                              <div className="absolute bottom-2 right-2 flex gap-1.5">
-
-                                {esInherente && (
-                                  <span
-                                    title="Riesgo inherente"
-                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B4589] text-[10px] font-bold text-white shadow"
-                                  >
-                                    I
-                                  </span>
-                                )}
-
-                                {esResidual && (
-                                  <span
-                                    title="Riesgo residual"
-                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[10px] font-bold text-[#1B4589] shadow"
-                                  >
-                                    R
-                                  </span>
-                                )}
-
-                              </div>
-                            )}
-
-                          </div>
+                            className="border border-white bg-slate-100"
+                          />
                         );
+                      }
+
+                      const estilo =
+                        RIESGO_ESTILOS[celda.riesgo];
+
+                      const esInherente =
+                        coincidePosicion(
+                          probabilidad.codigo,
+                          impacto.codigo,
+                          seleccion?.inherente
+                        );
+
+                      const esResidual =
+                        coincidePosicion(
+                          probabilidad.codigo,
+                          impacto.codigo,
+                          seleccion?.residual
+                        );
+
+                      return (
+                        <div
+                          key={`${probabilidad.codigo}-${impacto.codigo}`}
+                          style={{
+                            gridColumn: columnIndex + 3,
+                            gridRow: fila,
+                            backgroundColor: estilo.fondo,
+                          }}
+                          className="relative flex items-center justify-center border border-white text-center"
+                        >
+                          {(esInherente || esResidual) && (
+                            <div className="absolute flex gap-1.5">
+                              {esInherente && (
+                                <span
+                                  title="Riesgo inherente"
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B4589] text-[10px] font-bold text-white shadow"
+                                >
+                                  I
+                                </span>
+                              )}
+
+                              {esResidual && (
+                                <span
+                                  title="Riesgo residual"
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[10px] font-bold text-[#1B4589] shadow"
+                                >
+                                  R
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
                       }
                     )}
 

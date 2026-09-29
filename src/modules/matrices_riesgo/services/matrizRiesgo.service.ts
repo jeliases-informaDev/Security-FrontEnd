@@ -114,17 +114,12 @@ async function listarProcesosPorArea(
 // HEATMAP
 // ============================================================
 
-async function obtenerHeatmap():
-  Promise<HeatmapMatrizResponse> {
+export async function obtenerHeatmap(): Promise<HeatmapMatrizResponse> {
+  const response = await apiClient.get<HeatmapMatrizResponse>(
+    `${BASE_URL}/heatmap`
+  );
 
-  const { data } =
-    await apiClient.get<
-      HeatmapMatrizResponse
-    >(
-      `${BASE_URL}/heatmap`
-    );
-
-  return data;
+  return response.data;
 }
 
 

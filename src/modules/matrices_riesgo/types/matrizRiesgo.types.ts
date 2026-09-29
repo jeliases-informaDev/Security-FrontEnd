@@ -83,6 +83,10 @@ export interface CrearCatalogoMatrizRequest {
 // HEATMAP
 // ============================================================
 
+// ============================================================
+// HEATMAP
+// ============================================================
+
 export interface HeatmapProbabilidad {
   codigo: NivelProbabilidad;
   nivel: number;
@@ -104,6 +108,17 @@ export interface HeatmapMatrizResponse {
   probabilidades: HeatmapProbabilidad[];
   impactos: HeatmapImpacto[];
   celdas: HeatmapCelda[];
+}
+
+export interface HeatmapResultadoRiesgo {
+  probabilidad: NivelProbabilidad;
+  impacto: NivelImpacto;
+  riesgo: NivelRiesgo;
+}
+
+export interface HeatmapSeleccion {
+  inherente?: HeatmapResultadoRiesgo | null;
+  residual?: HeatmapResultadoRiesgo | null;
 }
 
 
@@ -135,13 +150,17 @@ export interface CalcularRiesgoResidualRequest {
 
   impactoEstimado: number;
 
-  supervision: NivelSupervision;
+  supervision:
+    NivelSupervision;
 
-  tipoControl: TipoControl;
+  tipoControl:
+    TipoControl;
 
-  operatividad: OperatividadControl;
+  operatividad:
+    OperatividadControl;
 
-  periodicidad: PeriodicidadControl;
+  periodicidad:
+    PeriodicidadControl;
 
   frecuenciaOportuna:
     RespuestaControl;
@@ -203,7 +222,6 @@ export interface GuardarMatrizRiesgoRequest {
 // ============================================================
 
 export interface MatrizRiesgoRegistroResponse {
-
   id: number;
 
   estado: EstadoAnalisis;
@@ -236,14 +254,15 @@ export interface MatrizRiesgoRegistroResponse {
 // ============================================================
 
 export interface MatrizRiesgoResumen {
-
   id: number;
 
   titulo: string;
 
-  area?: string | null;
+  area?:
+    string | null;
 
-  proceso?: string | null;
+  proceso?:
+    string | null;
 
   riesgoInherente?:
     NivelRiesgo | null;
@@ -251,7 +270,8 @@ export interface MatrizRiesgoResumen {
   riesgoResidual?:
     NivelRiesgo | null;
 
-  estado: EstadoAnalisis;
+  estado:
+    EstadoAnalisis;
 
   fechaCreacion?:
     string | null;
@@ -266,7 +286,6 @@ export interface MatrizRiesgoResumen {
 // ============================================================
 
 export interface MatrizRiesgoDetalle {
-
   id: number;
 
   tipoEmpresa?:
@@ -275,13 +294,11 @@ export interface MatrizRiesgoDetalle {
   titulo?:
     string | null;
 
-
   areaId?:
     number | null;
 
   area?:
     string | null;
-
 
   procesoId?:
     number | null;
@@ -289,13 +306,11 @@ export interface MatrizRiesgoDetalle {
   proceso?:
     string | null;
 
-
   detalleRiesgo?:
     string | null;
 
   factor?:
     FactorRiesgo | null;
-
 
   probabilidad?:
     NivelProbabilidad | null;
@@ -309,7 +324,6 @@ export interface MatrizRiesgoDetalle {
   riesgoInherente?:
     NivelRiesgo | null;
 
-
   controlDescripcion?:
     string | null;
 
@@ -321,7 +335,6 @@ export interface MatrizRiesgoDetalle {
 
   controlArea?:
     string | null;
-
 
   periodicidad?:
     PeriodicidadControl | null;
@@ -335,17 +348,14 @@ export interface MatrizRiesgoDetalle {
   supervision?:
     NivelSupervision | null;
 
-
   frecuenciaOportuna?:
     boolean | null;
 
   seguimientoAdecuado?:
     boolean | null;
 
-
   mitigacion?:
     number | null;
-
 
   probabilidadResidual?:
     NivelProbabilidad | null;
@@ -356,10 +366,8 @@ export interface MatrizRiesgoDetalle {
   riesgoResidual?:
     NivelRiesgo | null;
 
-
   planAccion?:
     string | null;
-
 
   areaResponsableId?:
     number | null;
@@ -367,17 +375,14 @@ export interface MatrizRiesgoDetalle {
   areaResponsable?:
     string | null;
 
-
   fechaInicio?:
     string | null;
 
   fechaCierre?:
     string | null;
 
-
   estado:
     EstadoAnalisis;
-
 
   fechaCreacion?:
     string | null;

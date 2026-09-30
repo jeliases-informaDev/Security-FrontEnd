@@ -259,6 +259,10 @@ async function descargarPdf(
       `${BASE_URL}/analisis/${id}/pdf`,
       {
         responseType: "blob",
+
+        headers: {
+          Accept: "application/pdf",
+        },
       }
     );
 

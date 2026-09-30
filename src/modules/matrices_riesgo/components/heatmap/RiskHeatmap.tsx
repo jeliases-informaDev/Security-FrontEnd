@@ -1,13 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
 import {
   AlertTriangle,
+  Download,
   Loader2,
   RefreshCw,
 } from 'lucide-react';
 
-import { matrizRiesgoService } from '../../services/matrizRiesgo.service';
+import {
+  matrizRiesgoService,
+} from '../../services/matrizRiesgo.service';
 
 import type {
   HeatmapMatrizResponse,
@@ -17,9 +24,19 @@ import type {
   NivelRiesgo,
 } from '../../types/matrizRiesgo.types';
 
+/* ============================================================
+   PROPS
+   ============================================================ */
+
 interface RiskHeatmapProps {
   seleccion?: HeatmapSeleccion | null;
+
+  analisisId?: number | null;
 }
+
+/* ============================================================
+   ESTILOS DE RIESGO
+   ============================================================ */
 
 const RIESGO_ESTILOS: Record<
   NivelRiesgo,
@@ -60,7 +77,13 @@ const RIESGO_ESTILOS: Record<
   },
 };
 
-function formatearTexto(valor: string) {
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function formatearTexto(
+  valor: string
+) {
   return valor
     .toLowerCase()
     .split('_')
@@ -76,8 +99,11 @@ function coincidePosicion(
   probabilidad: NivelProbabilidad,
   impacto: NivelImpacto,
   posicion?: {
-    probabilidad: NivelProbabilidad;
-    impacto: NivelImpacto;
+    probabilidad:
+      NivelProbabilidad;
+
+    impacto:
+      NivelImpacto;
   } | null
 ) {
   if (!posicion) {
@@ -85,22 +111,72 @@ function coincidePosicion(
   }
 
   return (
-    posicion.probabilidad === probabilidad &&
-    posicion.impacto === impacto
+    posicion.probabilidad ===
+      probabilidad &&
+    posicion.impacto ===
+      impacto
   );
 }
 
+/* ============================================================
+   COMPONENT
+   ============================================================ */
+
 export function RiskHeatmap({
   seleccion,
+  analisisId,
 }: RiskHeatmapProps) {
-  const [heatmap, setHeatmap] =
-    useState<HeatmapMatrizResponse | null>(null);
+  const [
+    heatmap,
+    setHeatmap,
+  ] =
+    useState<HeatmapMatrizResponse | null>(
+      null
+    );
 
-  const [cargando, setCargando] =
+  const [
+    cargando,
+    setCargando,
+  ] =
     useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  /*
+   * Error utilizado únicamente
+   * para la carga del Heatmap.
+   */
+  const [
+    error,
+    setError,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  /*
+   * Estados independientes
+   * para la descarga del PDF.
+   *
+   * No reutilizamos "error"
+   * porque un error de PDF no debe
+   * ocultar toda la matriz.
+   */
+  const [
+    descargandoPdf,
+    setDescargandoPdf,
+  ] =
+    useState(false);
+
+  const [
+    errorPdf,
+    setErrorPdf,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  /* ============================================================
+     CARGAR HEATMAP
+     ============================================================ */
 
   async function cargarHeatmap() {
     try {
@@ -108,9 +184,12 @@ export function RiskHeatmap({
       setError(null);
 
       const data =
-        await matrizRiesgoService.obtenerHeatmap();
+        await matrizRiesgoService
+          .obtenerHeatmap();
 
-      setHeatmap(data);
+      setHeatmap(
+        data
+      );
     } catch (err) {
       console.error(
         'Error cargando heatmap:',
@@ -129,16 +208,106 @@ export function RiskHeatmap({
     void cargarHeatmap();
   }, []);
 
+  /* ============================================================
+     DESCARGAR PDF
+     ============================================================ */
+
+  async function descargarPdf() {
+    if (
+      analisisId === null ||
+      analisisId === undefined
+    ) {
+      return;
+    }
+
+    try {
+      setDescargandoPdf(
+        true
+      );
+
+      setErrorPdf(
+        null
+      );
+
+      const pdf =
+        await matrizRiesgoService
+          .descargarPdf(
+            analisisId
+          );
+
+      const url =
+        window.URL
+          .createObjectURL(
+            pdf
+          );
+
+      const enlace =
+        document.createElement(
+          'a'
+        );
+
+      enlace.href =
+        url;
+
+      enlace.download =
+        `matriz-riesgo-${analisisId}.pdf`;
+
+      document.body.appendChild(
+        enlace
+      );
+
+      enlace.click();
+
+      enlace.remove();
+
+      window.setTimeout(
+        () => {
+          window.URL
+            .revokeObjectURL(
+              url
+            );
+        },
+        1000
+      );
+    } catch (err) {
+      console.error(
+        'Error descargando PDF:',
+        err
+      );
+
+      setErrorPdf(
+        'No fue posible descargar el PDF de la evaluación.'
+      );
+    } finally {
+      setDescargandoPdf(
+        false
+      );
+    }
+  }
+
+  /* ============================================================
+     BUSCAR CELDA
+     ============================================================ */
+
   function obtenerCelda(
-    probabilidad: NivelProbabilidad,
-    impacto: NivelImpacto
+    probabilidad:
+      NivelProbabilidad,
+
+    impacto:
+      NivelImpacto
   ) {
     return heatmap?.celdas.find(
       (celda) =>
-        celda.probabilidad === probabilidad &&
-        celda.impacto === impacto
+        celda.probabilidad ===
+          probabilidad &&
+        celda.impacto ===
+          impacto
     );
   }
+
+  /* ============================================================
+     LOADING
+     ============================================================ */
 
   if (cargando) {
     return (
@@ -154,7 +323,14 @@ export function RiskHeatmap({
     );
   }
 
-  if (error || !heatmap) {
+  /* ============================================================
+     ERROR HEATMAP
+     ============================================================ */
+
+  if (
+    error ||
+    !heatmap
+  ) {
     return (
       <div className="border border-red-200 bg-red-50 p-8">
         <div className="flex items-start gap-3">
@@ -177,6 +353,7 @@ export function RiskHeatmap({
               className="mt-4 inline-flex items-center gap-2 border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
             >
               <RefreshCw className="h-4 w-4" />
+
               Reintentar
             </button>
           </div>
@@ -185,19 +362,29 @@ export function RiskHeatmap({
     );
   }
 
+  /* ============================================================
+     ORDENAR EJES
+     ============================================================ */
+
   const probabilidades = [
     ...heatmap.probabilidades,
   ].sort(
     (a, b) =>
-      b.nivel - a.nivel
+      b.nivel -
+      a.nivel
   );
 
   const impactos = [
     ...heatmap.impactos,
   ].sort(
     (a, b) =>
-      a.nivel - b.nivel
+      a.nivel -
+      b.nivel
   );
+
+  /* ============================================================
+     UI
+     ============================================================ */
 
   return (
     <section className="mx-auto w-full max-w-[1280px] bg-white px-5 py-6 lg:px-8">
@@ -207,27 +394,77 @@ export function RiskHeatmap({
          ===================================================== */}
 
       <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B4589]">
-          Mapa de exposición
-        </p>
 
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#231F20]">
-          Matriz de probabilidad e impacto
-        </h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-        <p className="mt-2 text-sm text-slate-500">
-          Identifica la posición del riesgo según
-          su probabilidad e impacto.
-        </p>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B4589]">
+              Mapa de exposición
+            </p>
+
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#231F20]">
+              Matriz de probabilidad e impacto
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Identifica la posición del riesgo según
+              su probabilidad e impacto.
+            </p>
+          </div>
+
+          {/* ===============================================
+              DESCARGAR PDF
+             =============================================== */}
+
+          {analisisId !== null &&
+            analisisId !== undefined && (
+              <button
+                type="button"
+                onClick={() =>
+                  void descargarPdf()
+                }
+                disabled={
+                  descargandoPdf
+                }
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-bold text-[#1B4589] transition hover:border-[#1B4589] hover:bg-[#E8ECF3] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {descargandoPdf ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+
+                {descargandoPdf
+                  ? 'Descargando...'
+                  : 'Descargar PDF'}
+              </button>
+            )}
+
+        </div>
+
+        {/* ERROR PDF */}
+
+        {errorPdf && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+
+            {errorPdf}
+          </div>
+        )}
+
       </div>
 
       {/* =====================================================
           RESULTADOS
          ===================================================== */}
 
-      {(seleccion?.inherente ||
-        seleccion?.residual) && (
+      {(
+        seleccion?.inherente ||
+        seleccion?.residual
+      ) && (
         <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[#E8ECF3] py-4">
+
+          {/* RIESGO INHERENTE */}
 
           {seleccion?.inherente && (
             <div className="flex items-center gap-3">
@@ -243,26 +480,35 @@ export function RiskHeatmap({
 
                 <p className="text-sm font-semibold text-[#231F20]">
                   {formatearTexto(
-                    seleccion.inherente.probabilidad
+                    seleccion
+                      .inherente
+                      .probabilidad
                   )}
 
                   {' · '}
 
                   {formatearTexto(
-                    seleccion.inherente.impacto
+                    seleccion
+                      .inherente
+                      .impacto
                   )}
 
                   {' · '}
 
                   {
                     RIESGO_ESTILOS[
-                      seleccion.inherente.riesgo
+                      seleccion
+                        .inherente
+                        .riesgo
                     ].etiqueta
                   }
                 </p>
               </div>
+
             </div>
           )}
+
+          {/* RIESGO RESIDUAL */}
 
           {seleccion?.residual && (
             <div className="flex items-center gap-3">
@@ -278,24 +524,31 @@ export function RiskHeatmap({
 
                 <p className="text-sm font-semibold text-[#231F20]">
                   {formatearTexto(
-                    seleccion.residual.probabilidad
+                    seleccion
+                      .residual
+                      .probabilidad
                   )}
 
                   {' · '}
 
                   {formatearTexto(
-                    seleccion.residual.impacto
+                    seleccion
+                      .residual
+                      .impacto
                   )}
 
                   {' · '}
 
                   {
                     RIESGO_ESTILOS[
-                      seleccion.residual.riesgo
+                      seleccion
+                        .residual
+                        .riesgo
                     ].etiqueta
                   }
                 </p>
               </div>
+
             </div>
           )}
 
@@ -328,15 +581,20 @@ export function RiskHeatmap({
             <div
               style={{
                 gridColumn: 1,
-                gridRow: '1 / span 5',
+
+                gridRow:
+                  '1 / span 5',
               }}
               className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
             >
               <span
                 className="text-sm font-bold uppercase tracking-[0.12em] text-[#1B4589]"
                 style={{
-                  writingMode: 'vertical-rl',
-                  transform: 'rotate(180deg)',
+                  writingMode:
+                    'vertical-rl',
+
+                  transform:
+                    'rotate(180deg)',
                 }}
               >
                 Probabilidad
@@ -357,7 +615,9 @@ export function RiskHeatmap({
 
                 return (
                   <div
-                    key={probabilidad.codigo}
+                    key={
+                      probabilidad.codigo
+                    }
                     className="contents"
                   >
 
@@ -365,8 +625,11 @@ export function RiskHeatmap({
 
                     <div
                       style={{
-                        gridColumn: 2,
-                        gridRow: fila,
+                        gridColumn:
+                          2,
+
+                        gridRow:
+                          fila,
                       }}
                       title={
                         probabilidad.descripcion
@@ -388,74 +651,103 @@ export function RiskHeatmap({
                         columnIndex
                       ) => {
                         const celda =
-                        obtenerCelda(
-                          probabilidad.codigo,
-                          impacto.codigo
-                        );
+                          obtenerCelda(
+                            probabilidad.codigo,
+                            impacto.codigo
+                          );
 
-                      if (!celda) {
+                        if (!celda) {
+                          return (
+                            <div
+                              key={`${probabilidad.codigo}-${impacto.codigo}`}
+                              style={{
+                                gridColumn:
+                                  columnIndex +
+                                  3,
+
+                                gridRow:
+                                  fila,
+                              }}
+                              className="border border-white bg-slate-100"
+                            />
+                          );
+                        }
+
+                        const estilo =
+                          RIESGO_ESTILOS[
+                            celda.riesgo
+                          ];
+
+                        const esInherente =
+                          coincidePosicion(
+                            probabilidad.codigo,
+                            impacto.codigo,
+                            seleccion
+                              ?.inherente
+                          );
+
+                        const esResidual =
+                          coincidePosicion(
+                            probabilidad.codigo,
+                            impacto.codigo,
+                            seleccion
+                              ?.residual
+                          );
+
                         return (
                           <div
                             key={`${probabilidad.codigo}-${impacto.codigo}`}
                             style={{
-                              gridColumn: columnIndex + 3,
-                              gridRow: fila,
+                              gridColumn:
+                                columnIndex +
+                                3,
+
+                              gridRow:
+                                fila,
+
+                              backgroundColor:
+                                estilo.fondo,
                             }}
-                            className="border border-white bg-slate-100"
-                          />
+                            className="relative flex items-center justify-center border border-white text-center"
+                          >
+                            {/* =====================================
+                                INDICADORES I / R
+
+                                Dentro de la celda no mostramos:
+                                - P × I
+                                - nombre del riesgo
+
+                                Solo mostramos los marcadores.
+                               ===================================== */}
+
+                            {(
+                              esInherente ||
+                              esResidual
+                            ) && (
+                              <div className="absolute inset-0 flex items-center justify-center gap-1.5">
+
+                                {esInherente && (
+                                  <span
+                                    title="Riesgo inherente"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B4589] text-[10px] font-bold text-white shadow"
+                                  >
+                                    I
+                                  </span>
+                                )}
+
+                                {esResidual && (
+                                  <span
+                                    title="Riesgo residual"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[10px] font-bold text-[#1B4589] shadow"
+                                  >
+                                    R
+                                  </span>
+                                )}
+
+                              </div>
+                            )}
+                          </div>
                         );
-                      }
-
-                      const estilo =
-                        RIESGO_ESTILOS[celda.riesgo];
-
-                      const esInherente =
-                        coincidePosicion(
-                          probabilidad.codigo,
-                          impacto.codigo,
-                          seleccion?.inherente
-                        );
-
-                      const esResidual =
-                        coincidePosicion(
-                          probabilidad.codigo,
-                          impacto.codigo,
-                          seleccion?.residual
-                        );
-
-                      return (
-                        <div
-                          key={`${probabilidad.codigo}-${impacto.codigo}`}
-                          style={{
-                            gridColumn: columnIndex + 3,
-                            gridRow: fila,
-                            backgroundColor: estilo.fondo,
-                          }}
-                          className="relative flex items-center justify-center border border-white text-center"
-                        >
-                          {(esInherente || esResidual) && (
-                            <div className="absolute flex gap-1.5">
-                              {esInherente && (
-                                <span
-                                  title="Riesgo inherente"
-                                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B4589] text-[10px] font-bold text-white shadow"
-                                >
-                                  I
-                                </span>
-                              )}
-
-                              {esResidual && (
-                                <span
-                                  title="Riesgo residual"
-                                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[10px] font-bold text-[#1B4589] shadow"
-                                >
-                                  R
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
                       }
                     )}
 
@@ -474,12 +766,15 @@ export function RiskHeatmap({
                 index
               ) => (
                 <div
-                  key={impacto.codigo}
+                  key={
+                    impacto.codigo
+                  }
                   style={{
                     gridColumn:
                       index + 3,
 
-                    gridRow: 6,
+                    gridRow:
+                      6,
                   }}
                   className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-2 text-center"
                 >
@@ -501,7 +796,8 @@ export function RiskHeatmap({
                 gridColumn:
                   '3 / span 5',
 
-                gridRow: 7,
+                gridRow:
+                  7,
               }}
               className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
             >
@@ -525,7 +821,9 @@ export function RiskHeatmap({
             RIESGO_ESTILOS
           ) as [
             NivelRiesgo,
-            (typeof RIESGO_ESTILOS)[NivelRiesgo]
+            (
+              typeof RIESGO_ESTILOS
+            )[NivelRiesgo],
           ][]
         ).map(
           ([
@@ -533,7 +831,9 @@ export function RiskHeatmap({
             estilo,
           ]) => (
             <div
-              key={riesgo}
+              key={
+                riesgo
+              }
               className="flex items-center gap-2"
             >
               <span
@@ -553,6 +853,8 @@ export function RiskHeatmap({
           )
         )}
 
+        {/* LEYENDA INHERENTE */}
+
         <div className="ml-2 flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1B4589] text-[9px] font-bold text-white">
             I
@@ -562,6 +864,8 @@ export function RiskHeatmap({
             Riesgo inherente
           </span>
         </div>
+
+        {/* LEYENDA RESIDUAL */}
 
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[9px] font-bold text-[#1B4589]">

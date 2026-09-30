@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Building2,
   Calculator,
+  Download,
   Loader2,
   Save,
   Settings2,
@@ -117,6 +118,10 @@ interface RiskEvaluationFormProps {
   onRiesgoResidualChange?: (
     resultado: HeatmapResultadoRiesgo | null
   ) => void;
+
+  onAnalisisRegistrado?: (
+    id: number
+  ) => void;
 }
 
 /* ============================================================
@@ -126,6 +131,7 @@ interface RiskEvaluationFormProps {
 export function RiskEvaluationForm({
   onRiesgoInherenteChange,
   onRiesgoResidualChange,
+  onAnalisisRegistrado,
 }: RiskEvaluationFormProps) {
   const [currentStep, setCurrentStep] =
     useState<Step>(1);
@@ -176,7 +182,17 @@ export function RiskEvaluationForm({
     useState<string | null>(null);
 
   const [analisisId, setAnalisisId] =
-    useState<number | null>(null);
+  useState<number | null>(null);
+
+  const [
+    analisisRegistradoId,
+    setAnalisisRegistradoId,
+  ] = useState<number | null>(null);
+
+  const [
+    descargandoPdf,
+    setDescargandoPdf,
+  ] = useState(false);
 
   const [
     impactoInherente,
@@ -730,6 +746,9 @@ export function RiskEvaluationForm({
      ============================================================ */
 
   async function guardarBorrador() {
+     if (analisisRegistradoId !== null) {
+        return;
+      }
     try {
       setGuardando(true);
       setError(null);
@@ -819,6 +838,10 @@ export function RiskEvaluationForm({
   }
 
   async function registrarEvaluacion() {
+    if (analisisRegistradoId !== null) {
+      return;
+    }
+
     setError(null);
     setMensajeExito(null);
 
@@ -839,6 +862,14 @@ export function RiskEvaluationForm({
         resultado.id
       );
 
+      setAnalisisRegistradoId(
+        resultado.id
+      );
+
+      onAnalisisRegistrado?.(
+        resultado.id
+      );
+
       setMensajeExito(
         `Evaluación registrada correctamente. ID ${resultado.id}.`
       );
@@ -846,12 +877,62 @@ export function RiskEvaluationForm({
       scrollTop();
     } catch {
       setError(
-        "No fue posible registrar la evaluación. Verifica los campos obligatorios."
+        'No fue posible registrar la evaluación. Verifica los campos obligatorios.'
       );
     } finally {
       setRegistrando(false);
     }
+}
+
+  /* ============================================================
+   DESCARGAR PDF
+   ============================================================ */
+
+async function descargarPdfEvaluacion() {
+  if (!analisisRegistradoId) {
+    setError(
+      "Primero debes registrar la evaluación antes de descargar el PDF."
+    );
+
+    return;
   }
+
+  try {
+    setDescargandoPdf(true);
+    setError(null);
+
+    const pdf =
+      await matrizRiesgoService.descargarPdf(
+        analisisRegistradoId
+      );
+
+    const url =
+      window.URL.createObjectURL(pdf);
+
+    const enlace =
+      document.createElement("a");
+
+    enlace.href = url;
+    enlace.download =
+      `matriz-riesgo-${analisisRegistradoId}.pdf`;
+
+    document.body.appendChild(enlace);
+
+    enlace.click();
+
+    enlace.remove();
+
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
+  } catch {
+    setError(
+      "No fue posible descargar el PDF de la evaluación."
+    );
+  } finally {
+    setDescargandoPdf(false);
+  }
+}
 
   /* ============================================================
      UI
@@ -903,7 +984,10 @@ export function RiskEvaluationForm({
               onClick={() =>
                 void guardarBorrador()
               }
-              disabled={guardando}
+              disabled={
+                guardando ||
+                analisisRegistradoId !== null
+              }
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:border-[#1B4589] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {guardando ? (
@@ -2280,31 +2364,62 @@ export function RiskEvaluationForm({
                   Volver a riesgo residual
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    void registrarEvaluacion()
-                  }
-                  disabled={
-                    registrando
-                  }
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {registrando ? (
-                    <Loader2
-                      size={17}
-                      className="animate-spin"
-                    />
-                  ) : (
-                    <ShieldCheck
-                      size={17}
-                    />
-                  )}
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    {analisisRegistradoId && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void descargarPdfEvaluacion()
+                        }
+                        disabled={descargandoPdf}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#C6D0E2] bg-white px-6 py-3.5 text-sm font-bold text-[#1B4589] transition hover:bg-[#E8ECF3] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {descargandoPdf ? (
+                          <Loader2
+                            size={17}
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <Download
+                            size={17}
+                          />
+                        )}
 
-                  {registrando
-                    ? "Registrando..."
-                    : "Registrar evaluación"}
-                </button>
+                        {descargandoPdf
+                          ? "Descargando..."
+                          : "Descargar PDF"}
+                      </button>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                          void registrarEvaluacion()
+                        }
+                        disabled={
+                          registrando ||
+                          analisisRegistradoId !== null
+                        }
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {registrando ? (
+                          <Loader2
+                            size={17}
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <ShieldCheck
+                            size={17}
+                          />
+                        )}
+
+                        {registrando
+                          ? 'Registrando...'
+                          : analisisRegistradoId !== null
+                            ? 'Evaluación registrada'
+                            : 'Registrar evaluación'}
+                      </button>
+                </div>
               </div>
             </section>
           )}

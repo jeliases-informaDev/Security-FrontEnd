@@ -111,12 +111,18 @@ const initialTratamiento: TratamientoState = {
 };
 
 interface RiskEvaluationFormProps {
+  analisisInicialId?: number | null;
+
   onRiesgoInherenteChange?: (
     resultado: HeatmapResultadoRiesgo | null
   ) => void;
 
   onRiesgoResidualChange?: (
     resultado: HeatmapResultadoRiesgo | null
+  ) => void;
+
+  onAnalisisGuardado?: (
+    id: number
   ) => void;
 
   onAnalisisRegistrado?: (
@@ -129,8 +135,10 @@ interface RiskEvaluationFormProps {
    ============================================================ */
 
 export function RiskEvaluationForm({
+  analisisInicialId,
   onRiesgoInherenteChange,
   onRiesgoResidualChange,
+  onAnalisisGuardado,
   onAnalisisRegistrado,
 }: RiskEvaluationFormProps) {
   const [currentStep, setCurrentStep] =
@@ -155,6 +163,11 @@ export function RiskEvaluationForm({
 
   const [cargandoAreas, setCargandoAreas] =
     useState(true);
+
+  const [
+    cargandoAnalisisInicial,
+    setCargandoAnalisisInicial,
+  ] = useState(false);
 
   const [
     cargandoProcesos,
@@ -182,7 +195,7 @@ export function RiskEvaluationForm({
     useState<string | null>(null);
 
   const [analisisId, setAnalisisId] =
-  useState<number | null>(null);
+    useState<number | null>(null);
 
   const [
     analisisRegistradoId,
@@ -238,6 +251,16 @@ export function RiskEvaluationForm({
     void cargarAreas();
   }, []);
 
+  useEffect(() => {
+    if (!analisisInicialId) {
+      return;
+    }
+
+    void cargarAnalisisInicial(
+      analisisInicialId
+    );
+  }, [analisisInicialId]);
+
   async function cargarAreas() {
     try {
       setCargandoAreas(true);
@@ -252,6 +275,308 @@ export function RiskEvaluationForm({
       );
     } finally {
       setCargandoAreas(false);
+    }
+  }
+
+  async function cargarAnalisisInicial(
+    id: number
+  ) {
+    try {
+      setCargandoAnalisisInicial(true);
+      setError(null);
+      setMensajeExito(null);
+
+      const detalle =
+        await matrizRiesgoService
+          .obtenerAnalisis(id);
+
+      /*
+      * Solo permitimos continuar
+      * evaluaciones en edición.
+      */
+      if (
+        detalle.estado !== "EDITANDO"
+      ) {
+        setError(
+          "La evaluación seleccionada ya no se encuentra en estado borrador."
+        );
+
+        return;
+      }
+
+
+      /* ========================================================
+        CARGAR PROCESOS DEL ÁREA
+        ======================================================== */
+
+      if (detalle.areaId) {
+        try {
+          setCargandoProcesos(true);
+
+          const procesosArea =
+            await matrizRiesgoService
+              .listarProcesosPorArea(
+                detalle.areaId
+              );
+
+          setProcesos(
+            procesosArea
+          );
+        } catch {
+          setProcesos([]);
+        } finally {
+          setCargandoProcesos(false);
+        }
+      } else {
+        setProcesos([]);
+      }
+
+
+      /* ========================================================
+        PASO 01 - RIESGO INHERENTE
+        ======================================================== */
+
+      setForm({
+        tipoEmpresa:
+          detalle.tipoEmpresa ?? "",
+
+        titulo:
+          detalle.titulo ?? "",
+
+        areaId:
+          detalle.areaId ?? "",
+
+        procesoId:
+          detalle.procesoId ?? "",
+
+        detalleRiesgo:
+          detalle.detalleRiesgo ?? "",
+
+        factor:
+          detalle.factor ?? "",
+
+        probabilidad:
+          detalle.probabilidad ?? "",
+
+        impactoEstimado:
+          detalle.impactoEstimado != null
+            ? String(
+                detalle.impactoEstimado
+              )
+            : "",
+      });
+
+
+      /* ========================================================
+        PASO 02 - CONTROLES
+        ======================================================== */
+
+      setControles({
+        controlDescripcion:
+          detalle.controlDescripcion ??
+          "",
+
+        controlDocumento:
+          detalle.controlDocumento ??
+          "",
+
+        controlAreaId:
+          detalle.controlAreaId ?? "",
+
+        supervision:
+          detalle.supervision ?? "",
+
+        tipoControl:
+          detalle.tipoControl ?? "",
+
+        operatividad:
+          detalle.operatividad ?? "",
+
+        periodicidad:
+          detalle.periodicidad ?? "",
+
+        frecuenciaOportuna:
+          detalle.frecuenciaOportuna ==
+          null
+            ? ""
+            : detalle.frecuenciaOportuna
+              ? "SI"
+              : "NO",
+
+        seguimientoAdecuado:
+          detalle.seguimientoAdecuado ==
+          null
+            ? ""
+            : detalle.seguimientoAdecuado
+              ? "SI"
+              : "NO",
+      });
+
+
+      /* ========================================================
+        PASO 04 - TRATAMIENTO
+        ======================================================== */
+
+      setTratamiento({
+        planAccion:
+          detalle.planAccion ?? "",
+
+        areaResponsableId:
+          detalle.areaResponsableId ??
+          "",
+
+        fechaInicio:
+          detalle.fechaInicio ?? "",
+
+        fechaCierre:
+          detalle.fechaCierre ?? "",
+      });
+
+
+      /* ========================================================
+        ID DEL BORRADOR
+        ======================================================== */
+
+      setAnalisisId(
+        detalle.id
+      );
+
+      /*
+      * Sigue siendo borrador.
+      * Todavía no es una evaluación
+      * formalmente registrada.
+      */
+      setAnalisisRegistradoId(
+        null
+      );
+
+
+      /* ========================================================
+        RESULTADO INHERENTE
+        ======================================================== */
+
+      setImpactoInherente(
+        detalle.impactoInherente ??
+          null
+      );
+
+      setRiesgoInherente(
+        detalle.riesgoInherente ??
+          null
+      );
+
+      if (
+        detalle.probabilidad &&
+        detalle.impactoInherente &&
+        detalle.riesgoInherente
+      ) {
+        onRiesgoInherenteChange?.({
+          probabilidad:
+            detalle.probabilidad,
+
+          impacto:
+            detalle.impactoInherente,
+
+          riesgo:
+            detalle.riesgoInherente,
+        });
+      } else {
+        onRiesgoInherenteChange?.(
+          null
+        );
+      }
+
+
+      /* ========================================================
+        RESULTADO RESIDUAL
+        ======================================================== */
+
+      setMitigacion(
+        detalle.mitigacion ?? null
+      );
+
+      setProbabilidadResidual(
+        detalle.probabilidadResidual ??
+          null
+      );
+
+      setImpactoResidual(
+        detalle.impactoResidual ??
+          null
+      );
+
+      setRiesgoResidual(
+        detalle.riesgoResidual ??
+          null
+      );
+
+      if (
+        detalle.probabilidadResidual &&
+        detalle.impactoResidual &&
+        detalle.riesgoResidual
+      ) {
+        onRiesgoResidualChange?.({
+          probabilidad:
+            detalle.probabilidadResidual,
+
+          impacto:
+            detalle.impactoResidual,
+
+          riesgo:
+            detalle.riesgoResidual,
+        });
+      } else {
+        onRiesgoResidualChange?.(
+          null
+        );
+      }
+
+
+      /* ========================================================
+        DETERMINAR PASO AL QUE REGRESAMOS
+        ======================================================== */
+
+      if (
+        detalle.planAccion ||
+        detalle.areaResponsableId ||
+        detalle.fechaInicio ||
+        detalle.fechaCierre
+      ) {
+        setCurrentStep(4);
+
+      } else if (
+        detalle.riesgoResidual
+      ) {
+        setCurrentStep(3);
+
+      } else if (
+        detalle.riesgoInherente
+      ) {
+        setCurrentStep(2);
+
+      } else {
+        setCurrentStep(1);
+      }
+
+
+      setMensajeExito(
+        "Borrador cargado correctamente. Puedes continuar la evaluación."
+      );
+
+    } catch (error) {
+      console.error(
+        "Error cargando borrador:",
+        error
+      );
+
+      setError(
+        "No fue posible cargar el borrador seleccionado."
+      );
+
+    } finally {
+      setCargandoAnalisisInicial(
+        false
+      );
     }
   }
 
@@ -746,26 +1071,41 @@ export function RiskEvaluationForm({
      ============================================================ */
 
   async function guardarBorrador() {
-     if (analisisRegistradoId !== null) {
-        return;
-      }
+    if (analisisRegistradoId !== null) {
+      return;
+    }
+
     try {
       setGuardando(true);
       setError(null);
       setMensajeExito(null);
 
-      const resultado =
-        await matrizRiesgoService
-          .guardarBorrador(
-            construirRequest()
-          );
+      const request =
+        construirRequest();
+
+      const resultado = analisisId
+        ? await matrizRiesgoService
+            .actualizarAnalisis(
+              analisisId,
+              request
+            )
+        : await matrizRiesgoService
+            .guardarBorrador(
+              request
+            );
 
       setAnalisisId(
         resultado.id
       );
 
+      onAnalisisGuardado?.(
+        resultado.id
+      );
+
       setMensajeExito(
-        `Borrador guardado correctamente. ID ${resultado.id}.`
+        analisisId
+          ? "Borrador actualizado correctamente."
+          : `Borrador guardado correctamente. ID ${resultado.id}.`
       );
     } catch {
       setError(
@@ -938,6 +1278,20 @@ async function descargarPdfEvaluacion() {
      UI
      ============================================================ */
 
+  if (cargandoAnalisisInicial) {
+    return (
+      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <Loader2 className="h-7 w-7 animate-spin" />
+
+          <p className="text-sm font-medium">
+            Cargando borrador...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F9FC] px-5 py-7 lg:px-8">
       <div className="mx-auto max-w-[1500px]">
@@ -954,13 +1308,15 @@ async function descargarPdfEvaluacion() {
             </div>
 
             <h1 className="text-3xl font-bold tracking-tight text-[#231F20] lg:text-4xl">
-              Nueva evaluación
+              {analisisInicialId
+                ? "Continuar evaluación"
+                : "Nueva evaluación"}
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Identifica la exposición,
-              evalúa los controles y define
-              el tratamiento del riesgo.
+              {analisisInicialId
+                ? "Continúa completando el borrador guardado hasta registrar la evaluación."
+                : "Identifica la exposición, evalúa los controles y define el tratamiento del riesgo."}
             </p>
           </div>
 

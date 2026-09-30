@@ -83,10 +83,6 @@ export interface CrearCatalogoMatrizRequest {
 // HEATMAP
 // ============================================================
 
-// ============================================================
-// HEATMAP
-// ============================================================
-
 export interface HeatmapProbabilidad {
   codigo: NivelProbabilidad;
   nivel: number;
@@ -191,28 +187,45 @@ export interface GuardarMatrizRiesgoRequest {
   id?: number;
 
   tipoEmpresa?: TipoEmpresa;
+
   titulo?: string;
+
   areaId?: number;
+
   procesoId?: number;
+
   detalleRiesgo?: string;
+
   factor?: FactorRiesgo;
+
   probabilidad?: NivelProbabilidad;
+
   impactoEstimado?: number;
 
   controlDescripcion?: string;
+
   controlDocumento?: string;
+
   controlAreaId?: number;
 
   periodicidad?: PeriodicidadControl;
+
   operatividad?: OperatividadControl;
+
   tipoControl?: TipoControl;
+
   supervision?: NivelSupervision;
+
   frecuenciaOportuna?: RespuestaControl;
+
   seguimientoAdecuado?: RespuestaControl;
 
   planAccion?: string;
+
   areaResponsableId?: number;
+
   fechaInicio?: string;
+
   fechaCierre?: string;
 }
 
@@ -224,7 +237,8 @@ export interface GuardarMatrizRiesgoRequest {
 export interface MatrizRiesgoRegistroResponse {
   id: number;
 
-  estado: EstadoAnalisis;
+  estado:
+    EstadoAnalisis;
 
   impactoInherente?:
     NivelImpacto | null;
@@ -250,33 +264,61 @@ export interface MatrizRiesgoRegistroResponse {
 
 
 // ============================================================
-// LISTADO
+// LISTADO / DASHBOARD
 // ============================================================
 
 export interface MatrizRiesgoResumen {
+  /*
+   * Se utiliza internamente para:
+   * - Ver análisis
+   * - Ver matriz
+   * - Descargar PDF
+   * - Continuar borrador
+   *
+   * No es necesario mostrarlo en la tabla.
+   */
   id: number;
 
-  titulo: string;
-
-  area?:
+  titulo:
     string | null;
 
-  proceso?:
+  area:
     string | null;
 
-  riesgoInherente?:
+  proceso:
+    string | null;
+
+  /*
+   * Riesgo inherente
+   */
+  probabilidad:
+    NivelProbabilidad | null;
+
+  impactoInherente:
+    NivelImpacto | null;
+
+  riesgoInherente:
     NivelRiesgo | null;
 
-  riesgoResidual?:
+  /*
+   * Riesgo residual
+   */
+  probabilidadResidual:
+    NivelProbabilidad | null;
+
+  impactoResidual:
+    NivelImpacto | null;
+
+  riesgoResidual:
     NivelRiesgo | null;
 
   estado:
     EstadoAnalisis;
 
-  fechaCreacion?:
-    string | null;
+  fechaCreacion:
+    string;
 
-  fechaActualizacion?:
+  fechaCierre:
     string | null;
 }
 
@@ -348,6 +390,10 @@ export interface MatrizRiesgoDetalle {
   supervision?:
     NivelSupervision | null;
 
+  /*
+   * El backend devuelve boolean
+   * en el endpoint de detalle.
+   */
   frecuenciaOportuna?:
     boolean | null;
 

@@ -115,8 +115,8 @@ export function RiskMatrixWorkspace() {
 
 
   const mostrarNuevaEvaluacion =
-    estadoEvaluacionActiva !==
-    'nueva';
+    estadoEvaluacionActiva ===
+    'registrada';
 
 
   /* ============================================================
@@ -517,21 +517,42 @@ export function RiskMatrixWorkspace() {
           onAnalisisGuardado={(
             id
           ) => {
+
             /*
-             * El formulario ya tiene internamente
-             * este mismo ID.
-             *
-             * No lo pasamos a analisisInicialId
-             * porque eso provocaría una recarga
-             * innecesaria del borrador.
-             */
+            * La evaluación ya existe como
+            * borrador.
+            */
             setEstadoEvaluacionActiva(
               'borrador'
             );
 
+
+            /*
+            * Un borrador todavía no habilita
+            * PDF en el Heatmap.
+            */
             setHeatmapAnalisisId(
               null
             );
+
+
+            /*
+            * Al guardar el borrador regresamos
+            * automáticamente al Resumen.
+            *
+            * RiskDashboard se vuelve a montar
+            * y consulta nuevamente el historial,
+            * por lo que el borrador aparecerá allí.
+            */
+            setVista(
+              'resumen'
+            );
+
+
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth',
+            });
           }}
 
           onAnalisisRegistrado={(

@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthProvider, useAuth } from '@/modules/auth/hooks/AuthProvider';
+import { IndiraChatWidget } from '@/modules/indira/components/IndiraChatWidget';
 import { DashboardHeader } from '@/shared/ui/DashboardHeader';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-brand-paper">
       <DashboardHeader usuario={usuario} onLogout={logout} />
       {children}
+      <IndiraChatWidget />
     </div>
   );
 }

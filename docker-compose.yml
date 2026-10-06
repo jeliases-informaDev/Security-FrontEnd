@@ -1,0 +1,29 @@
+# Security-FrontEnd: la web lista para usar con un solo comando (no hace falta instalar Node).
+#
+#   docker compose up -d --build     levanta la web en http://localhost:3000
+#   docker compose down              apaga
+#
+# La web necesita el backend corriendo (repositorio Security-Backend, puerto 8081 por defecto).
+# Es un build de produccion: arranca rapido pero NO recarga al editar codigo.
+# Para programar el frontend usa  npm run dev  (ver README.md).
+#
+# Los puertos se pueden cambiar en un archivo ".env" (ver .env.example); no es obligatorio.
+
+name: security-web
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        # La llama el NAVEGADOR (en tu maquina), por eso es localhost y el puerto publicado del backend.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8081/api}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/login > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s

@@ -1,101 +1,87 @@
 # 🛡️ Security - Web Platform (Frontend)
 
-Este repositorio contiene la plataforma web administrativa del ecosistema Security. Está construida con **Next.js (App Router), React y TypeScript**, y se encarga de consumir la API del backend para gestionar de forma visual la seguridad, los riesgos y las operaciones.
+Plataforma web administrativa del ecosistema Security. **Next.js (App Router), React y TypeScript.** Consume la API del backend (repositorio **Security-Backend**) para gestionar seguridad, riesgos y operaciones.
 
-## 🏗️ Arquitectura del Proyecto
-
-El proyecto sigue una estructura altamente modular para mantener la interfaz escalable y ordenada, separando estrictamente el enrutamiento de la lógica de negocio. 
+## 🏗️ Arquitectura del proyecto
 
 ```text
 src/
 ├── app/                    # Enrutamiento de Next.js (App Router)
 │   ├── (auth)/             # Rutas públicas (Ej. /login)
-│   ├── (dashboard)/        # Rutas privadas (Requieren autenticación)
-│   │   ├── cursos/
-│   │   ├── denuncias/
-│   │   ├── listas-negativas/
-│   │   ├── matriz-riesgos/
-│   │   ├── operaciones/
-│   │   ├── overview/
-│   │   └── scoring/
-│   ├── globals.css         # Estilos globales de Tailwind/CSS
+│   ├── (dashboard)/        # Rutas privadas (requieren autenticación)
+│   │   ├── cursos/ denuncias/ listas-negativas/ matriz-riesgos/
+│   │   └── operaciones/ overview/ scoring/
+│   ├── globals.css
 │   └── layout.tsx & page.tsx
 ├── modules/                # Componentes y lógica de negocio por dominio
-│   ├── cursos/
-│   ├── debida_diligencia/
-│   ├── denuncias/
-│   ├── listas_negativas/
-│   ├── matrices_riesgo/
-│   ├── motor_reglas/
-│   ├── operaciones/
-│   └── scoring/
-└── shared/                 # Código reutilizable en toda la aplicación
-    ├── api/                # Clientes Axios/Fetch (Ej. apiClient.ts)
-    └── lib/                # Utilidades y funciones de soporte
-
+│   └── cursos/ debida_diligencia/ denuncias/ listas_negativas/
+│       matrices_riesgo/ motor_reglas/ operaciones/ scoring/
+└── shared/                 # Código reutilizable
+    ├── api/                # Clientes HTTP (apiClient.ts)
+    └── lib/                # Utilidades
 ```
-Regla de oro para el equipo: La carpeta app/ solo debe utilizarse para declarar las rutas (page.tsx) y la estructura visual base (layout.tsx). Todos los componentes pesados, formularios, interfaces y lógica de estado deben programarse dentro de su respectivo dominio en la carpeta modules/.
 
-🛑 ALTO: Requisitos Previos (Instalaciones necesarias)
-Para que este proyecto funcione en tu computadora, debes tener instalado lo siguiente:
+**Regla de oro:** `app/` solo declara rutas (`page.tsx`) y estructura visual base (`layout.tsx`). Los componentes pesados, formularios, interfaces y estado van en su dominio dentro de `modules/`.
 
-Node.js (v18 o superior): Descárgalo desde nodejs.org. Esto instalará automáticamente npm.
+---
 
-Visual Studio Code: El editor recomendado para trabajar con React.
+## ✅ Antes de empezar: necesitas el backend
 
-🛠️ Paso a paso para levantar el proyecto localmente
-Paso 1:
+La web no funciona sola: todo (incluido el login) lo pide al backend en `http://localhost:8081`. Levántalo desde su repositorio (**Security-Backend**, su README lo explica en 3 comandos):
 
-Clonar el proyecto
-Abre tu terminal y descarga el código fuente:
+```bash
+git clone https://github.com/jeliases-informaDev/Security-Backend.git
+cd Security-Backend
+docker compose up -d --build
+```
 
-Bash
-git clone [https://github.com/jeliases-informaDev/Security-FrontEnd.git](https://github.com/jeliases-informaDev/Security-FrontEnd.git)
-cd security-web
+Cuando esté listo, entras a la web con **`superadmin` / `Admin12345!`**. (Si tu equipo tiene un backend compartido, puedes apuntar a él: ver "Configuración".)
 
+## 🛠️ Programar el frontend (recomendado, con recarga en caliente)
 
-Paso 2:
+Requisitos: **Node.js 20 o superior** (https://nodejs.org).
 
-Instalar las dependencias
-A diferencia del backend, aquí sí usamos Node. Ejecuta este comando para descargar todas las librerías (React, Next, utilidades visuales) definidas en el package.json:
-
-Bash
+```bash
+git clone https://github.com/jeliases-informaDev/Security-FrontEnd.git
+cd Security-FrontEnd
+copy .env.example .env.local        # Mac/Linux: cp   (ya apunta a http://localhost:8081/api)
 npm install
-(Este paso creará una carpeta llamada node_modules que pesa bastante; no te preocupes, está ignorada en Git y no se subirá).
-
-Paso 3:
-
-Configurar variables de entorno (Opcional por ahora)
-Crea un archivo llamado .env.local en la raíz del proyecto (al mismo nivel que el package.json). Aquí definiremos la ruta para conectar con el backend de Kotlin:
-
-Fragmento de código
-NEXT_PUBLIC_API_URL=http://localhost:8081
-
-Paso 4: 
-
-evantar el servidor de desarrollo
-Una vez finalizada la instalación de paquetes, arranca el proyecto con este comando:
-
-Bash
 npm run dev
+```
 
+Abre http://localhost:3000.
 
-✅ ¿Cómo sé que funcionó?
-La consola te indicará que el servidor compiló exitosamente. Abre tu navegador web y entra a http://localhost:3000. Verás la pantalla inicial de la plataforma.
+## 🐳 Alternativa: la web ya compilada con Docker (sin Node)
 
-🤝 Flujo de Trabajo para el Equipo (Git Flow)
-Para evitar sobrescribir el trabajo de otros compañeros, seguiremos estas reglas estrictas:
+Para ver la web sin instalar Node ni programar (build de producción, no recarga al editar):
 
-Nunca programes ni hagas commits en la rama main.
+```bash
+docker compose up -d --build        # http://localhost:3000
+docker compose down                 # apagar
+```
 
-Antes de empezar tu día, actualiza tu código: git pull origin main.
+## ⚙️ Configuración (opcional)
 
-Crea una rama para la pantalla o componente que vayas a hacer: git checkout -b feature/pantalla-denuncias o fix/boton-login.
+| Variable | Dónde | Por defecto | Nota |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `.env.local` (npm) o `.env` (Docker) | `http://localhost:8081/api` | URL del backend **incluyendo `/api`**. Se incrusta al compilar: si la cambias, reinicia `npm run dev` o reconstruye con `docker compose up -d --build`. |
+| `WEB_PORT` | `.env` (Docker) | `3000` | Puerto de la web en tu PC. |
 
-Haz tus cambios y súbelos a tu rama:
+> ⚠️ **CORS:** el backend solo acepta peticiones desde `http://localhost:3000`. Si usas otro puerto (porque el 3000 está ocupado), el login fallará con error de red: define `CORS_ALLOWED_ORIGINS=http://localhost:<tu puerto>` en el `.env` del backend y reinícialo.
 
-Bash
-git add .
-git commit -m "feat: agrega diseño base del dashboard de operaciones"
-git push origin feature/pantalla-denuncias
-En GitHub, crea un Pull Request (PR) para unir tu código con la rama principal después de una revisión.
+## 🔧 Problemas comunes
+
+| Síntoma | Solución |
+|---|---|
+| El login dice error de red / no responde | El backend no está corriendo o aún arranca (1–2 min la primera vez). Comprueba http://localhost:8081/actuator/health: debe decir `UP`. |
+| Login falla desde otro puerto (3001…) | CORS: ver la nota de arriba. |
+| `port is already allocated` (Docker) | Cambia `WEB_PORT` en `.env`. |
+| Usuario o clave "inválidos" con `superadmin` | Usuario y clave deben tener 8–12 caracteres; revisa que el backend se levantó con su compose (crea ese usuario en la base nueva). |
+
+## 🤝 Flujo de trabajo del equipo (Git Flow)
+
+1. Nunca programes ni hagas commits en `main`.
+2. Antes de empezar: `git pull origin main`.
+3. Crea una rama por tarea: `git checkout -b feature/pantalla-denuncias` (o `fix/boton-login`).
+4. Sube tus cambios: `git add . && git commit -m "feat: ..." && git push origin feature/pantalla-denuncias`.
+5. Abre un Pull Request en GitHub para revisión.

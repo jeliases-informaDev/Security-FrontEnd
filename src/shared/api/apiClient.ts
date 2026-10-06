@@ -4,7 +4,7 @@ import axios from 'axios';
 // 1. Instancia Base Segura
 // Deshabilitamos el rastreo de credenciales por defecto hasta que sea estrictamente necesario (XSS prevention)
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api',
   timeout: 10000, // Previene ataques de agotamiento de recursos (Slowloris)
   headers: {
     'Content-Type': 'application/json',

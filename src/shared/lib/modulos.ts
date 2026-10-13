@@ -32,7 +32,7 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     descripcion: 'Reportes anónimos y seguimiento de casos',
     href: '/denuncias',
     icono: MessageSquareWarning,
-    disponible: false,
+    disponible: true,
   },
   {
     codigo: 'scoring',

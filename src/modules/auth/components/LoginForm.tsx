@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Eye, EyeOff } from 'lucide-react';
 import { authService } from '@/modules/auth/services/authService';
+import { botonPrimario, campo, campoError, etiqueta, mensajeError } from '@/shared/ui/estilos';
 
 const loginSchema = z.object({
   usuario: z.string().min(1, 'El usuario es obligatorio'),
@@ -17,6 +19,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [verClave, setVerClave] = useState(false);
+
+  // Si ya hay una sesión abierta, no hace falta volver a entrar.
+  useEffect(() => {
+    if (authService.isAuthenticated()) router.replace('/overview');
+  }, [router]);
 
   const {
     register,
@@ -40,52 +48,55 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="usuario" className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label htmlFor="usuario" className={etiqueta}>
           Usuario
         </label>
         <input
           id="usuario"
           type="text"
           autoComplete="username"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="lavado_pru"
+          autoFocus
+          aria-invalid={Boolean(errors.usuario)}
+          className={`${campo} ${errors.usuario ? campoError : ''}`}
           {...register('usuario')}
         />
-        {errors.usuario && (
-          <p className="mt-1.5 text-xs text-red-600">{errors.usuario.message}</p>
-        )}
+        {errors.usuario && <p className={mensajeError}>{errors.usuario.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="clave" className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label htmlFor="clave" className={etiqueta}>
           Contraseña
         </label>
-        <input
-          id="clave"
-          type="password"
-          autoComplete="current-password"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="••••••••"
-          {...register('clave')}
-        />
-        {errors.clave && (
-          <p className="mt-1.5 text-xs text-red-600">{errors.clave.message}</p>
-        )}
+        <div className="relative">
+          <input
+            id="clave"
+            type={verClave ? 'text' : 'password'}
+            autoComplete="current-password"
+            aria-invalid={Boolean(errors.clave)}
+            className={`${campo} pr-10 ${errors.clave ? campoError : ''}`}
+            {...register('clave')}
+          />
+          <button
+            type="button"
+            onClick={() => setVerClave((visible) => !visible)}
+            aria-label={verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-400 transition hover:text-slate-700"
+          >
+            {verClave ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {errors.clave && <p className={mensajeError}>{errors.clave.message}</p>}
       </div>
 
       {errorServidor && (
-        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
           {errorServidor}
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full px-8 py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <button type="submit" disabled={isSubmitting} className={`${botonPrimario} w-full`}>
         {isSubmitting ? 'Ingresando…' : 'Ingresar'}
       </button>
     </form>

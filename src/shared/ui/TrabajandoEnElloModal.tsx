@@ -14,7 +14,7 @@ export function TrabajandoEnElloModal({ titulo, onClose }: TrabajandoEnElloModal
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center relative"
+        className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button

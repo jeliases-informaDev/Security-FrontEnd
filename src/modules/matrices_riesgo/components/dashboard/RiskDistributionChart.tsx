@@ -259,13 +259,13 @@ export function RiskDistributionChart({
   // ==========================================================
 
   return (
-    <section className="h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="h-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
       {/* HEADER */}
 
       <div>
 
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B4589]">
+        <p className="text-xs font-bold text-[#1B4589]">
           Distribución
         </p>
 
@@ -307,7 +307,7 @@ export function RiskDistributionChart({
               {total}
             </span>
 
-            <span className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mt-1 text-xs font-semibold text-slate-400">
               Evaluaciones
             </span>
 

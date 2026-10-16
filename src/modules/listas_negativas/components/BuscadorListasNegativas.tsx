@@ -14,6 +14,7 @@ import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
 import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
 import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
 import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
+import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 
 // Formato real de cada documento peruano: largo exacto/maximo y los caracteres que acepta,
 // para restringir la escritura y no dejar pasar valores con el formato incorrecto.
@@ -122,18 +123,15 @@ export function BuscadorListasNegativas() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-ink tracking-tight">Listas Negativas</h1>
-        <p className="text-brand-muted text-sm mt-1">
-          Busca coincidencias en PEP y en el catálogo real de listas restrictivas, de LA/FT,
-          sanciones administrativas y noticias.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        titulo="Listas Negativas"
+        descripcion="Busca coincidencias en PEP y en el catálogo real de listas restrictivas, de LA/FT, sanciones administrativas y noticias."
+      />
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-4"
+        className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="lg:col-span-2">
@@ -273,7 +271,7 @@ export function BuscadorListasNegativas() {
       </div>
 
       {resultados === null && (
-        <div className="bg-white p-10 rounded-2xl border border-dashed border-slate-200 text-center">
+        <div className="bg-white p-10 rounded-xl border border-dashed border-slate-200 text-center">
           <ShieldAlert className="w-8 h-8 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 text-sm">
             Ingresa un nombre, apellido o documento para empezar a buscar.
@@ -284,7 +282,7 @@ export function BuscadorListasNegativas() {
       {resultados !== null && (
         <div className="space-y-4">
           {resultados.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-center text-brand-muted text-sm">
+            <div className="bg-white p-8 rounded-xl border border-slate-100 text-center text-brand-muted text-sm">
               No se encontraron coincidencias para los criterios ingresados.
             </div>
           ) : (
@@ -292,7 +290,7 @@ export function BuscadorListasNegativas() {
               <button
                 key={persona.entidadId}
                 onClick={() => setPersonaDetalle(persona)}
-                className="w-full text-left bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:border-brand-amber/40 transition"
+                className="w-full text-left bg-white p-5 sm:p-6 rounded-xl border border-slate-100 hover:border-brand-amber/40 transition"
               >
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-11 h-11 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
@@ -347,6 +345,6 @@ export function BuscadorListasNegativas() {
           onClose={() => setModalEnConstruccion(null)}
         />
       )}
-    </main>
+    </PageShell>
   );
 }

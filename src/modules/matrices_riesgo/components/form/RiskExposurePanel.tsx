@@ -67,17 +67,17 @@ export function RiskExposurePanel({
   riesgoResidual,
 }: Props) {
   return (
-    <aside className="relative overflow-hidden rounded-[28px] border border-[#C6D0E2] bg-white p-6">
+    <aside className="relative overflow-hidden rounded-xl border border-[#C6D0E2] bg-white p-6">
       <div className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-[#E8ECF3]" />
 
       <div className="relative">
         <div className="mb-7 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B4589] text-white">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B4589] text-white">
             <Activity size={20} />
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+            <p className="text-xs font-bold text-[#547AA7]">
               Exposición actual
             </p>
             <h3 className="text-lg font-bold text-[#231F20]">
@@ -86,8 +86,8 @@ export function RiskExposurePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#E8ECF3]/70 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#547AA7]">
+        <div className="rounded-xl bg-[#E8ECF3]/70 p-5">
+          <p className="text-xs font-semibold text-[#547AA7]">
             Riesgo inherente
           </p>
 
@@ -134,9 +134,9 @@ export function RiskExposurePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-dashed border-[#C6D0E2] p-5">
+        <div className="rounded-xl border border-dashed border-[#C6D0E2] p-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#547AA7]">
+            <p className="text-xs font-semibold text-[#547AA7]">
               Mitigación
             </p>
 
@@ -148,7 +148,7 @@ export function RiskExposurePanel({
           </div>
 
           <div className="mt-4 border-t border-[#E8ECF3] pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#547AA7]">
+            <p className="text-xs font-semibold text-[#547AA7]">
               Riesgo residual
             </p>
 

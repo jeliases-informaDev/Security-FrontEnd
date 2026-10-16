@@ -7,6 +7,7 @@ import {
   ResultadoBusquedaResponse,
 } from '@/modules/listas_negativas/services/listasNegativasService';
 import { scoringService, CatalogosScoring, ScoringResult } from '@/modules/scoring/services/scoringService';
+import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 
 const CATEGORIA_STYLES: Record<string, string> = {
   'Riesgo Muy Bajo': 'bg-green-50 text-green-700 border-green-200',
@@ -102,16 +103,15 @@ export function EvaluarScoring() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-ink tracking-tight">Scoring de Riesgo</h1>
-        <p className="text-brand-muted text-sm mt-1">
-          Evaluación de riesgo LA/FT por ocupación, zona geográfica y volumen transaccional.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        titulo="Scoring de Riesgo"
+        descripcion="Evaluación de riesgo LA/FT por ocupación, zona geográfica y volumen transaccional."
+      />
 
+      <div className="max-w-3xl">
       {!entidadSeleccionada && (
-        <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-6">
+        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-6">
           <label className="block text-xs font-medium text-brand-muted mb-1.5">
             Buscar cliente por documento
           </label>
@@ -136,7 +136,7 @@ export function EvaluarScoring() {
             </button>
           </div>
           <p className="text-xs text-brand-muted mt-2">
-            Busca primero en Listas Negativas si el cliente es nuevo — acá solo se evalúan entidades ya
+            Busca primero en Listas Negativas si el cliente es nuevo: aquí solo se evalúan entidades ya
             registradas.
           </p>
 
@@ -169,7 +169,7 @@ export function EvaluarScoring() {
       )}
 
       {entidadSeleccionada && !resultado && (
-        <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-6">
+        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
@@ -268,7 +268,7 @@ export function EvaluarScoring() {
       )}
 
       {resultado && (
-        <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <div>
               <p className="text-sm font-semibold text-brand-ink">{resultado.nombreCompleto}</p>
@@ -323,6 +323,7 @@ export function EvaluarScoring() {
           Cargando catálogos…
         </div>
       )}
-    </main>
+      </div>
+    </PageShell>
   );
 }

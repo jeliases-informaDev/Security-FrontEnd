@@ -377,7 +377,7 @@ export function RiskAggregateHeatmap({
   if (cargando) {
 
     return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
+      <div className="flex min-h-[360px] items-center justify-center rounded-xl border border-slate-200 bg-white">
 
         <div className="flex flex-col items-center gap-3 text-slate-500">
 
@@ -404,7 +404,7 @@ export function RiskAggregateHeatmap({
   ) {
 
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-8">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-8">
 
         <div className="flex items-start gap-3">
 
@@ -446,7 +446,7 @@ export function RiskAggregateHeatmap({
   // ==========================================================
 
   return (
-    <section className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="w-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
       {/* =====================================================
           CABECERA
@@ -456,7 +456,7 @@ export function RiskAggregateHeatmap({
 
         <div>
 
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B4589]">
+          <p className="text-xs font-bold text-[#1B4589]">
             Resumen de exposición
           </p>
 
@@ -551,7 +551,7 @@ export function RiskAggregateHeatmap({
             >
 
               <span
-                className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#1B4589]"
+                className="text-[11px] font-bold text-[#1B4589]"
                 style={{
                   writingMode:
                     "vertical-rl",
@@ -757,7 +757,7 @@ export function RiskAggregateHeatmap({
               className="mt-1.5 flex items-center justify-center bg-[#6B7C96]"
             >
 
-              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white">
+              <span className="text-xs font-bold text-white">
                 Impacto
               </span>
 

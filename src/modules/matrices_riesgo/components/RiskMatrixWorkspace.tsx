@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { RiskDashboard } from './dashboard/RiskDashboard';
 import { RiskEvaluationForm } from './form/RiskEvaluationForm';
 import { RiskHeatmap } from './heatmap/RiskHeatmap';
@@ -330,137 +331,56 @@ export function RiskMatrixWorkspace() {
   }
 
 
+  const pestanas = [
+    { vista: 'resumen' as const, nombre: 'Resumen', Icono: LayoutDashboard },
+    { vista: 'evaluacion' as const, nombre: 'Evaluación', Icono: ClipboardList },
+    { vista: 'heatmap' as const, nombre: 'Heatmap', Icono: Grid3X3 },
+  ];
+
   return (
-    <div className="space-y-6">
-
-      {/* =====================================================
-          HEADER GENERAL
-         ===================================================== */}
-
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B4589]">
-            Matrices de Riesgo
-          </p>
-
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-            Gestión y evaluación de riesgos
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Consulta, registra y analiza las
-            evaluaciones de riesgo de la organización.
-          </p>
-        </div>
-
-
-        {/* =================================================
-            ACCIONES
-           ================================================= */}
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-
-          {/* ===============================================
-              CAMBIO DE VISTA
-             =============================================== */}
-
-          <div className="inline-flex rounded-xl bg-slate-100 p-1">
-
-            {/* RESUMEN */}
-
+    <PageShell>
+      <PageHeader
+        titulo="Matrices de riesgo"
+        descripcion="Consulta, registra y analiza las evaluaciones de riesgo de la organización."
+        sinLinea
+        acciones={
+          // Solo aparece después de guardar un borrador, continuar uno guardado o registrar una evaluación.
+          mostrarNuevaEvaluacion ? (
             <button
               type="button"
-              onClick={() =>
-                setVista(
-                  'resumen'
-                )
-              }
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                vista === 'resumen'
-                  ? 'bg-white text-[#1B4589] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-
-              Resumen
-            </button>
-
-
-            {/* EVALUACIÓN */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setVista(
-                  'evaluacion'
-                )
-              }
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                vista === 'evaluacion'
-                  ? 'bg-white text-[#1B4589] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <ClipboardList className="h-4 w-4" />
-
-              Evaluación
-            </button>
-
-
-            {/* HEATMAP */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setVista(
-                  'heatmap'
-                )
-              }
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                vista === 'heatmap'
-                  ? 'bg-white text-[#1B4589] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Grid3X3 className="h-4 w-4" />
-
-              Heatmap
-            </button>
-
-          </div>
-
-
-          {/* ===============================================
-              NUEVA EVALUACIÓN
-
-              Solo aparece después de:
-              - guardar un borrador;
-              - continuar un borrador guardado;
-              - registrar una evaluación.
-             =============================================== */}
-
-          {mostrarNuevaEvaluacion && (
-            <button
-              type="button"
-              onClick={() =>
-                setModalNuevaEvaluacionAbierto(
-                  true
-                )
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163A74]"
+              onClick={() => setModalNuevaEvaluacionAbierto(true)}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1B4589] px-4 text-sm font-semibold text-white transition hover:bg-[#163A74]"
             >
               <Plus className="h-4 w-4" />
-
               Nueva evaluación
             </button>
-          )}
+          ) : null
+        }
+      />
 
-        </div>
+      <nav aria-label="Vistas de matrices de riesgo" className="mb-6 flex gap-1 overflow-x-auto border-b border-slate-300/70">
+        {pestanas.map(({ vista: destino, nombre, Icono }) => {
+          const activa = vista === destino;
+          return (
+            <button
+              key={destino}
+              type="button"
+              onClick={() => setVista(destino)}
+              aria-current={activa ? 'page' : undefined}
+              className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm transition ${
+                activa
+                  ? 'border-brand-navy font-medium text-brand-navy'
+                  : 'border-transparent text-brand-muted hover:border-slate-400 hover:text-brand-ink'
+              }`}
+            >
+              <Icono className="h-4 w-4" aria-hidden="true" />
+              {nombre}
+            </button>
+          );
+        })}
+      </nav>
 
-      </div>
-
+      <div className="space-y-6">
 
       {/* =====================================================
           RESUMEN
@@ -628,7 +548,7 @@ export function RiskMatrixWorkspace() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-nueva-evaluacion"
-            className="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+            className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
           >
 
             {/* HEADER */}
@@ -637,12 +557,12 @@ export function RiskMatrixWorkspace() {
 
               <div className="flex items-start gap-4">
 
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#547AA7]">
+                  <p className="text-xs font-bold text-[#547AA7]">
                     Matrices de riesgo
                   </p>
 
@@ -697,7 +617,7 @@ export function RiskMatrixWorkspace() {
               )}
 
 
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
 
                 <p className="text-sm text-slate-600">
                   Al continuar, el formulario actual se
@@ -746,6 +666,7 @@ export function RiskMatrixWorkspace() {
 
       )}
 
-    </div>
+      </div>
+    </PageShell>
   );
 }

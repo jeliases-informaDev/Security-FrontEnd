@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Plus, X } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import {
@@ -9,6 +10,7 @@ import {
   type OperacionItem,
   type UsuarioOperacion,
 } from '@/modules/operaciones/services/operacionesService';
+import { esAdministrador } from '@/shared/lib/modulos';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
 import { botonPrimario } from '@/shared/ui/estilos';
 import { CambiarResponsableModal } from './CambiarResponsableModal';
@@ -127,7 +129,19 @@ export function OperacionesWorkspace() {
       {sinEmpresa && (
         <Panel className="px-6 py-12 text-center">
           <p className="font-medium text-brand-ink">Tu usuario no tiene una empresa asignada.</p>
-          <p className="mt-1 text-sm text-brand-muted">Pídele a un administrador que la configure para poder ver y registrar operaciones.</p>
+          <p className="mt-1 text-sm text-brand-muted">
+            {esAdministrador(usuario) ? (
+              <>
+                Asígnatela en{' '}
+                <Link href="/administracion" className="font-medium text-brand-navy underline underline-offset-2">
+                  Administración
+                </Link>{' '}
+                (Cuentas, Editar) para poder ver y registrar operaciones.
+              </>
+            ) : (
+              'Pídele a un administrador que te la asigne para poder ver y registrar operaciones.'
+            )}
+          </p>
         </Panel>
       )}
 

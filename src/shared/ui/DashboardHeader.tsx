@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LogOut, MessageCircle, ShieldCheck } from 'lucide-react';
 import type { Ref } from 'react';
 import type { UsuarioLoginResponse } from '@/modules/auth/services/authService';
-import { MODULOS_DASHBOARD } from '@/shared/lib/modulos';
+import { modulosVisibles } from '@/shared/lib/modulos';
 
 interface DashboardHeaderProps {
   usuario: UsuarioLoginResponse;
@@ -79,7 +79,7 @@ export function DashboardHeader({ usuario, onLogout, indiraAbierta, onAlternarIn
 
       <nav className="border-t border-white/10 bg-brand-navy-2" aria-label="Módulos">
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 sm:px-6">
-          {MODULOS_DASHBOARD.map((modulo) => {
+          {modulosVisibles(usuario).map((modulo) => {
             const activo = pathname === modulo.href;
 
             if (!modulo.disponible) {

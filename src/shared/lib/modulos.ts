@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   Receipt,
   GraduationCap,
+  Settings2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -15,6 +16,8 @@ export interface ModuloDashboard {
   href: string;
   icono: LucideIcon;
   disponible: boolean;
+  /** Solo lo ven (y lo pueden usar) las cuentas con rol de administrador. */
+  soloAdministrador?: boolean;
 }
 
 export const MODULOS_DASHBOARD: ModuloDashboard[] = [
@@ -66,4 +69,23 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     icono: GraduationCap,
     disponible: false,
   },
+  {
+    codigo: 'administracion',
+    nombre: 'Administración',
+    descripcion: 'Cuentas de acceso y empresas',
+    href: '/administracion',
+    icono: Settings2,
+    disponible: true,
+    soloAdministrador: true,
+  },
 ];
+
+/** ¿La cuenta es administradora? Se mira el código del rol y su nombre, como en el resto de la web. */
+export function esAdministrador(usuario: { codigo?: string; rol?: string } | null | undefined): boolean {
+  return [usuario?.codigo, usuario?.rol].some((valor) => valor?.trim().toUpperCase() === 'ADMINISTRADOR');
+}
+
+/** Módulos que le corresponden a la cuenta (los de administración solo los ve un administrador). */
+export function modulosVisibles(usuario: { codigo?: string; rol?: string } | null | undefined): ModuloDashboard[] {
+  return MODULOS_DASHBOARD.filter((modulo) => !modulo.soloAdministrador || esAdministrador(usuario));
+}

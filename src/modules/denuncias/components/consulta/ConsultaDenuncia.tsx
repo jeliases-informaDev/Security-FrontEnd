@@ -31,7 +31,7 @@ import type {
 // ============================================================
 
 const inputClass =
-  "w-full rounded-2xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50";
+  "w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50";
 
 const labelClass =
   "mb-2 block text-sm font-semibold text-[#231F20]";
@@ -264,17 +264,17 @@ export function ConsultaDenuncia() {
           FORMULARIO DE CONSULTA
       ====================================================== */}
 
-      <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+      <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
 
         <div className="flex items-start gap-4">
 
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
             <Search size={22} />
           </div>
 
           <div>
 
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+            <p className="text-xs font-bold text-[#547AA7]">
               Seguimiento
             </p>
 
@@ -299,7 +299,7 @@ export function ConsultaDenuncia() {
 
           {error && (
 
-            <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+            <div className="mb-6 rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
               {error}
             </div>
 
@@ -373,7 +373,7 @@ export function ConsultaDenuncia() {
                 items-center
                 justify-center
                 gap-2
-                rounded-2xl
+                rounded-xl
                 bg-[#1B4589]
                 px-6 py-3.5
                 text-sm
@@ -421,19 +421,19 @@ export function ConsultaDenuncia() {
         <>
           {/* RESUMEN */}
 
-          <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
 
               <div className="flex items-start gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                   <ShieldCheck size={22} />
                 </div>
 
                 <div>
 
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+                  <p className="text-xs font-bold text-[#547AA7]">
                     Denuncia encontrada
                   </p>
 
@@ -463,8 +463,6 @@ export function ConsultaDenuncia() {
                   px-4 py-2
                   text-xs
                   font-bold
-                  uppercase
-                  tracking-wide
                   ${estadoBadgeClass(
                     resultado.estado
                   )}
@@ -482,9 +480,9 @@ export function ConsultaDenuncia() {
 
               {/* CAUSA */}
 
-              <div className="rounded-2xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
 
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Causa
                 </p>
 
@@ -499,9 +497,9 @@ export function ConsultaDenuncia() {
 
               {/* RELACIÓN */}
 
-              <div className="rounded-2xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
 
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Relación
                 </p>
 
@@ -516,9 +514,9 @@ export function ConsultaDenuncia() {
 
               {/* ACTUALIZACIÓN */}
 
-              <div className="rounded-2xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
 
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Última actualización
                 </p>
 
@@ -535,7 +533,7 @@ export function ConsultaDenuncia() {
 
             {/* DESCRIPCIÓN */}
 
-            <div className="mt-5 rounded-2xl border border-[#E8ECF3] bg-white p-5">
+            <div className="mt-5 rounded-xl border border-[#E8ECF3] bg-white p-5">
 
               <div className="flex items-start gap-3">
 
@@ -567,17 +565,17 @@ export function ConsultaDenuncia() {
               HISTORIAL
           ================================================== */}
 
-          <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
 
             <div className="flex items-start gap-4">
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                 <Clock3 size={22} />
               </div>
 
               <div>
 
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Seguimiento
                 </p>
 
@@ -599,7 +597,7 @@ export function ConsultaDenuncia() {
 
               {resultado.historial.length === 0 ? (
 
-                <div className="rounded-2xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-8 text-center">
+                <div className="rounded-xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-8 text-center">
 
                   <Clock3
                     size={25}
@@ -704,7 +702,7 @@ export function ConsultaDenuncia() {
             <button
               type="button"
               onClick={nuevaConsulta}
-              className="rounded-2xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+              className="rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
             >
               Realizar otra consulta
             </button>

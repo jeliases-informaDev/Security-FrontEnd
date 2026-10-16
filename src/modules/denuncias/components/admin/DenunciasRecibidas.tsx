@@ -479,13 +479,13 @@ export function DenunciasRecibidas() {
           CABECERA
       ===================================================== */}
 
-      <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-7">
+      <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-7">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
           <div>
 
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+            <p className="text-xs font-bold text-[#547AA7]">
               Gestión
             </p>
 
@@ -514,7 +514,7 @@ export function DenunciasRecibidas() {
               items-center
               justify-center
               gap-2
-              rounded-2xl
+              rounded-xl
               border border-[#E8ECF3]
               bg-white
               px-4 py-3
@@ -549,7 +549,7 @@ export function DenunciasRecibidas() {
           FILTROS
       ===================================================== */}
 
-      <section className="rounded-[24px] border border-[#E8ECF3] bg-white p-4">
+      <section className="rounded-xl border border-[#E8ECF3] bg-white p-4">
 
         <div className="flex flex-wrap gap-2">
 
@@ -605,7 +605,7 @@ export function DenunciasRecibidas() {
 
       {error && (
 
-        <div className="rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
           {error}
         </div>
 
@@ -622,7 +622,7 @@ export function DenunciasRecibidas() {
             LISTA
         =================================================== */}
 
-        <section className="overflow-hidden rounded-[28px] border border-[#E8ECF3] bg-white">
+        <section className="overflow-hidden rounded-xl border border-[#E8ECF3] bg-white">
 
           <div className="border-b border-[#E8ECF3] px-5 py-4">
 
@@ -724,8 +724,6 @@ export function DenunciasRecibidas() {
                                 px-2.5 py-1
                                 text-[10px]
                                 font-bold
-                                uppercase
-                                tracking-wide
                                 ${claseEstado(
                                   denuncia.estado
                                 )}
@@ -788,7 +786,7 @@ export function DenunciasRecibidas() {
             DETALLE
         =================================================== */}
 
-        <section className="min-h-[500px] rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-7">
+        <section className="min-h-[500px] rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-7">
 
           {cargandoDetalle ? (
 
@@ -889,7 +887,7 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Descripción
                 </p>
 
@@ -904,9 +902,9 @@ export function DenunciasRecibidas() {
 
               <div className="grid gap-4 md:grid-cols-2">
 
-                <div className="rounded-2xl bg-[#F7F9FC] p-5">
+                <div className="rounded-xl bg-[#F7F9FC] p-5">
 
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#547AA7]">
+                  <p className="text-xs font-bold text-[#547AA7]">
                     Receptor
                   </p>
 
@@ -919,7 +917,7 @@ export function DenunciasRecibidas() {
                 </div>
 
 
-                <div className="rounded-2xl bg-[#F7F9FC] p-5">
+                <div className="rounded-xl bg-[#F7F9FC] p-5">
 
                   <div className="flex items-center gap-2">
 
@@ -928,7 +926,7 @@ export function DenunciasRecibidas() {
                       className="text-[#1B4589]"
                     />
 
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#547AA7]">
+                    <p className="text-xs font-bold text-[#547AA7]">
                       Denunciante
                     </p>
 
@@ -981,7 +979,7 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Involucrados
                 </p>
 
@@ -1003,7 +1001,7 @@ export function DenunciasRecibidas() {
                           key={
                             persona.id
                           }
-                          className="rounded-2xl border border-[#E8ECF3] p-4"
+                          className="rounded-xl border border-[#E8ECF3] p-4"
                         >
 
                           <p className="font-semibold text-[#231F20]">
@@ -1044,7 +1042,7 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Documentación adjunta
                 </p>
 
@@ -1066,7 +1064,7 @@ export function DenunciasRecibidas() {
                           key={
                             archivo.id
                           }
-                          className="flex flex-col gap-3 rounded-2xl border border-[#E8ECF3] p-4 sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-3 rounded-xl border border-[#E8ECF3] p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
 
                           <div className="flex min-w-0 items-center gap-3">
@@ -1161,7 +1159,7 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Historial
                 </p>
 
@@ -1175,7 +1173,7 @@ export function DenunciasRecibidas() {
                         key={
                           evento.id
                         }
-                        className="rounded-2xl bg-[#F7F9FC] p-4"
+                        className="rounded-xl bg-[#F7F9FC] p-4"
                       >
 
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1233,7 +1231,7 @@ export function DenunciasRecibidas() {
                 detalle.estado
               ) && (
 
-                <div className="rounded-[22px] border border-[#DCE5F1] bg-[#F7F9FC] p-5">
+                <div className="rounded-xl border border-[#DCE5F1] bg-[#F7F9FC] p-5">
 
                   <p className="text-sm font-bold text-[#231F20]">
                     Actualizar estado
@@ -1268,7 +1266,7 @@ export function DenunciasRecibidas() {
                       mt-4
                       w-full
                       resize-none
-                      rounded-2xl
+                      rounded-xl
                       border border-[#DCE5F1]
                       bg-white
                       px-4 py-3
@@ -1299,7 +1297,7 @@ export function DenunciasRecibidas() {
                         items-center
                         justify-center
                         gap-2
-                        rounded-2xl
+                        rounded-xl
                         bg-[#1B4589]
                         px-5 py-3
                         text-sm

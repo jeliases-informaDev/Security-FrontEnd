@@ -19,7 +19,7 @@ function Dato({ label, valor }: { label: string; valor: string | null | undefine
   if (!valor) return null;
   return (
     <div>
-      <p className="text-[11px] font-medium text-brand-muted uppercase tracking-wide">{label}</p>
+      <p className="text-[11px] font-medium text-brand-muted">{label}</p>
       <p className="text-sm text-brand-ink mt-0.5">{valor}</p>
     </div>
   );
@@ -132,7 +132,7 @@ export function DetalleEntidadModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">

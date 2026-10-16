@@ -206,10 +206,10 @@ function StatCard({
   icono,
 }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+          <p className="text-xs font-semibold text-slate-500">
             {titulo}
           </p>
 
@@ -563,7 +563,7 @@ export function RiskDashboard({
 
   if (cargando) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
+      <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-slate-200 bg-white">
         <div className="flex flex-col items-center gap-3 text-slate-500">
           <Loader2 className="h-7 w-7 animate-spin" />
 
@@ -582,7 +582,7 @@ export function RiskDashboard({
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" />
 
@@ -701,7 +701,7 @@ export function RiskDashboard({
             HISTORIAL
            ==================================================== */}
 
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
           {/* HEADER HISTORIAL */}
 
@@ -750,31 +750,31 @@ export function RiskDashboard({
 
                     <tr className="border-b border-slate-200">
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Evaluación
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Área / Proceso
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Creación
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Riesgo inherente
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Riesgo residual
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
                         Estado
                       </th>
 
-                      <th className="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-3.5 text-right text-xs font-semibold text-slate-500">
                         Acciones
                       </th>
 
@@ -1191,14 +1191,14 @@ export function RiskDashboard({
 
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[2px]">
 
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-2xl">
 
             {/* HEADER MODAL */}
 
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
 
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B4589]">
+                <p className="text-xs font-bold text-[#1B4589]">
                   Detalle de evaluación
                 </p>
 
@@ -1245,7 +1245,7 @@ export function RiskDashboard({
 
                 {/* INFORMACIÓN GENERAL */}
 
-                <section className="rounded-2xl border border-slate-200 p-5">
+                <section className="rounded-xl border border-slate-200 p-5">
 
                   <h3 className="font-bold text-slate-900">
                     Información general
@@ -1321,7 +1321,7 @@ export function RiskDashboard({
 
                 {/* EXPOSICIÓN */}
 
-                <section className="rounded-2xl border border-slate-200 p-5">
+                <section className="rounded-xl border border-slate-200 p-5">
 
                   <h3 className="font-bold text-slate-900">
                     Evaluación del riesgo
@@ -1405,7 +1405,7 @@ export function RiskDashboard({
 
                 {/* CONTROL */}
 
-                <section className="rounded-2xl border border-slate-200 p-5">
+                <section className="rounded-xl border border-slate-200 p-5">
 
                   <h3 className="font-bold text-slate-900">
                     Control
@@ -1474,7 +1474,7 @@ export function RiskDashboard({
 
                 {/* TRATAMIENTO */}
 
-                <section className="rounded-2xl border border-slate-200 p-5">
+                <section className="rounded-xl border border-slate-200 p-5">
 
                   <h3 className="font-bold text-slate-900">
                     Tratamiento

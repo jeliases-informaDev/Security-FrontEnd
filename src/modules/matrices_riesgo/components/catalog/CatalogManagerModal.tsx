@@ -221,10 +221,10 @@ export function CatalogManagerModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-[#E8ECF3] bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#E8ECF3] bg-white shadow-2xl">
         <header className="flex items-start justify-between border-b border-[#E8ECF3] px-6 py-6 md:px-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#547AA7]">
+            <p className="text-xs font-bold text-[#547AA7]">
               Configuración
             </p>
 
@@ -251,21 +251,21 @@ export function CatalogManagerModal({
 
         <div className="space-y-6 p-6 md:p-8">
           {error && (
-            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
               {success}
             </div>
           )}
 
           <div className="grid gap-5 md:grid-cols-2">
-            <section className="rounded-3xl border border-[#E8ECF3] bg-white p-5">
+            <section className="rounded-xl border border-[#E8ECF3] bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                   <Layers3 size={20} />
                 </div>
 
@@ -301,7 +301,7 @@ export function CatalogManagerModal({
                     }
                   }}
                   placeholder="Ej. Tecnología"
-                  className="min-w-0 flex-1 rounded-2xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                  className="min-w-0 flex-1 rounded-xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
                 />
 
                 <button
@@ -327,9 +327,9 @@ export function CatalogManagerModal({
               </div>
             </section>
 
-            <section className="rounded-3xl border border-[#E8ECF3] bg-white p-5">
+            <section className="rounded-xl border border-[#E8ECF3] bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                   <Workflow size={20} />
                 </div>
 
@@ -365,7 +365,7 @@ export function CatalogManagerModal({
                     }
                   }}
                   placeholder="Ej. Gestión de accesos"
-                  className="min-w-0 flex-1 rounded-2xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                  className="min-w-0 flex-1 rounded-xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
                 />
 
                 <button
@@ -393,9 +393,9 @@ export function CatalogManagerModal({
             </section>
           </div>
 
-          <section className="rounded-3xl border border-[#C6D0E2] bg-[#E8ECF3]/50 p-6">
+          <section className="rounded-xl border border-[#C6D0E2] bg-[#E8ECF3]/50 p-6">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#1B4589] shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1B4589] shadow-sm">
                 <Link2 size={19} />
               </div>
 
@@ -435,7 +435,7 @@ export function CatalogManagerModal({
                           e.target.value
                         )
                       }
-                      className="w-full rounded-2xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                      className="w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
                     >
                       <option value="">
                         Seleccionar área
@@ -464,7 +464,7 @@ export function CatalogManagerModal({
                           e.target.value
                         )
                       }
-                      className="w-full rounded-2xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                      className="w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
                     >
                       <option value="">
                         Seleccionar proceso
@@ -501,7 +501,7 @@ export function CatalogManagerModal({
                       !areaId ||
                       !procesoId
                     }
-                    className="inline-flex items-center gap-2 rounded-2xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {accion ===
                     "VINCULO" ? (

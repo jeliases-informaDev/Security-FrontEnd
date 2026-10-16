@@ -143,7 +143,7 @@ export function HistorialBusquedas({ onVerDetalle, recargarClave }: HistorialBus
         <h2 className="text-sm font-semibold text-brand-ink">Mis búsquedas recientes</h2>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-slate-100">
           <label className="flex items-center gap-2 text-xs text-brand-muted">
             Mostrar
@@ -179,7 +179,7 @@ export function HistorialBusquedas({ onVerDetalle, recargarClave }: HistorialBus
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] font-medium text-brand-muted uppercase tracking-wide border-b border-slate-100">
+              <tr className="text-left text-[11px] font-medium text-brand-muted border-b border-slate-100">
                 <th className="px-5 py-2.5">
                   <button
                     onClick={() => alternarOrden('nombre')}

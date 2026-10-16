@@ -398,7 +398,7 @@ export function RiskHeatmap({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B4589]">
+            <p className="text-xs font-bold text-[#1B4589]">
               Mapa de exposición
             </p>
 
@@ -474,7 +474,7 @@ export function RiskHeatmap({
               </span>
 
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#547AA7]">
+                <p className="text-[10px] font-bold text-[#547AA7]">
                   Riesgo inherente
                 </p>
 
@@ -518,7 +518,7 @@ export function RiskHeatmap({
               </span>
 
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#547AA7]">
+                <p className="text-[10px] font-bold text-[#547AA7]">
                   Riesgo residual
                 </p>
 
@@ -588,7 +588,7 @@ export function RiskHeatmap({
               className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
             >
               <span
-                className="text-sm font-bold uppercase tracking-[0.12em] text-[#1B4589]"
+                className="text-sm font-bold text-[#1B4589]"
                 style={{
                   writingMode:
                     'vertical-rl',
@@ -801,7 +801,7 @@ export function RiskHeatmap({
               }}
               className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
             >
-              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#1B4589]">
+              <span className="text-sm font-bold text-[#1B4589]">
                 Impacto
               </span>
             </div>

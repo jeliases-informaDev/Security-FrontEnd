@@ -77,7 +77,7 @@ export function StyledSelect({
             min-h-[52px]
             w-full
             items-center
-            rounded-2xl
+            rounded-xl
             border
             bg-white
             px-4
@@ -178,7 +178,7 @@ export function StyledSelect({
             w-[var(--button-width)]
             overflow-y-auto
 
-            rounded-2xl
+            rounded-xl
             border
             border-[#E1E7F0]
             bg-white

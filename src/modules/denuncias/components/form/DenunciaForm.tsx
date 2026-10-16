@@ -36,7 +36,7 @@ import { StyledSelect } from "@/shared/ui/StyledSelect";
    UI
    ============================================================ */
 const inputClass =
-  "w-full rounded-2xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+  "w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 const labelClass =
   "mb-2 block text-sm font-semibold text-[#231F20]";
 const MAX_DOCUMENTOS = 5;
@@ -761,22 +761,22 @@ export function DenunciaForm() {
             MENSAJE DE ERROR
         ====================================================== */}
         {error && (
-          <div className="rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
             {error}
           </div>
         )}
         {/* ======================================================
             INFORMACIÓN DE LA DENUNCIA
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <div className="mb-8 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
               <FileText
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+              <p className="text-xs font-bold text-[#547AA7]">
                 Información principal
               </p>
               <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -840,15 +840,15 @@ export function DenunciaForm() {
         {/* ======================================================
             RECEPTOR
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <div className="mb-8 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
               <UserRound
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+              <p className="text-xs font-bold text-[#547AA7]">
                 Receptor
               </p>
               <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -904,7 +904,7 @@ export function DenunciaForm() {
               />
             </div>
           )}
-          <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-2xl border border-[#E8ECF3] bg-[#F7F9FC] px-4 py-4">
+          <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] px-4 py-4">
             <input
               type="checkbox"
               checked={proponerOtroReceptor}
@@ -929,15 +929,15 @@ export function DenunciaForm() {
         {/* ======================================================
             DOCUMENTACIÓN
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
               <FileText
                 size={22}
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+              <p className="text-xs font-bold text-[#547AA7]">
                 Evidencias
               </p>
               <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -959,7 +959,7 @@ export function DenunciaForm() {
                   flex-col
                   items-center
                   justify-center
-                  rounded-3xl
+                  rounded-xl
                   border border-dashed
                   border-[#C6D0E2]
                   bg-[#F7F9FC]
@@ -1001,7 +1001,7 @@ export function DenunciaForm() {
               </label>
               {/* ERROR */}
               {errorDocumentos && (
-                <div className="mt-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+                <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
                   <p className="text-sm text-red-700">
                     {errorDocumentos}
                   </p>
@@ -1025,7 +1025,7 @@ export function DenunciaForm() {
                     ) => (
                       <div
                         key={`${archivo.name}-${archivo.size}-${archivo.lastModified}`}
-                        className="flex items-center gap-3 rounded-2xl border border-[#E8ECF3] bg-white px-4 py-3"
+                        className="flex items-center gap-3 rounded-xl border border-[#E8ECF3] bg-white px-4 py-3"
                       >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                           <FileText
@@ -1070,16 +1070,16 @@ export function DenunciaForm() {
         {/* ======================================================
             INVOLUCRADOS
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <div className="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                 <Users
                   size={22}
                 />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+                <p className="text-xs font-bold text-[#547AA7]">
                   Involucrados
                 </p>
                 <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -1094,7 +1094,7 @@ export function DenunciaForm() {
             <button
               type="button"
               onClick={abrirModalInvolucrado}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74]"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74]"
             >
               <Plus
                 size={17}
@@ -1103,7 +1103,7 @@ export function DenunciaForm() {
             </button>
           </div>
           {involucrados.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-10 text-center">
+            <div className="rounded-xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-10 text-center">
               <Users
                 size={27}
                 className="mx-auto text-slate-400"
@@ -1116,11 +1116,11 @@ export function DenunciaForm() {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-[#E8ECF3]">
+            <div className="overflow-hidden rounded-xl border border-[#E8ECF3]">
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead className="bg-[#F7F9FC]">
-                    <tr className="text-left text-xs font-bold uppercase tracking-wider text-[#547AA7]">
+                    <tr className="text-left text-xs font-bold text-[#547AA7]">
                       <th className="px-5 py-4">
                         Tipo
                       </th>
@@ -1201,15 +1201,15 @@ export function DenunciaForm() {
         {/* ======================================================
             DENUNCIANTE
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <div className="mb-7 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
               <ShieldCheck
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#547AA7]">
+              <p className="text-xs font-bold text-[#547AA7]">
                 Confidencialidad
               </p>
               <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -1221,7 +1221,7 @@ export function DenunciaForm() {
               </p>
             </div>
           </div>
-          <label className="mb-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
+          <label className="mb-6 flex cursor-pointer items-start gap-3 rounded-xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
             <input
               type="checkbox"
               checked={anonima}
@@ -1314,7 +1314,7 @@ export function DenunciaForm() {
         {/* ======================================================
             TÉRMINOS Y ENVÍO
         ====================================================== */}
-        <section className="rounded-[28px] border border-[#E8ECF3] bg-white p-6 lg:p-8">
+        <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -1340,7 +1340,7 @@ export function DenunciaForm() {
             <button
               type="submit"
               disabled={enviando}
-              className="inline-flex min-w-40 items-center justify-center gap-2 rounded-2xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-w-40 items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {enviando ? (
                 <Loader2
@@ -1380,7 +1380,7 @@ export function DenunciaForm() {
                 max-w-xl
                 flex-col
                 overflow-hidden
-                rounded-[28px]
+                rounded-xl
                 border border-[#E8ECF3]
                 bg-white
                 shadow-2xl
@@ -1390,11 +1390,11 @@ export function DenunciaForm() {
               {/* CONTENIDO CON SCROLL */}
               <div className="overflow-y-auto px-5 py-5 text-center sm:px-7 sm:py-6">
                 {/* ICONO */}
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                   <CheckCircle2 size={27} />
                 </div>
                 {/* CABECERA */}
-                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#547AA7]">
+                <p className="mt-4 text-[11px] font-bold text-[#547AA7]">
                   Canal de denuncias
                 </p>
                 <h2 className="mt-1.5 text-2xl font-bold text-[#231F20] sm:text-3xl">
@@ -1405,11 +1405,11 @@ export function DenunciaForm() {
                   el PIN para consultar posteriormente su estado.
                 </p>
                 {/* IDENTIFICADOR */}
-                <div className="mt-5 rounded-2xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <div className="mt-5 rounded-xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
+                  <p className="text-[11px] font-bold text-[#547AA7]">
                     Identificador
                   </p>
-                  <p className="mt-1.5 break-all text-xl font-bold tracking-wide text-[#1B4589] sm:text-2xl">
+                  <p className="mt-1.5 break-all text-xl font-bold text-[#1B4589] sm:text-2xl">
                     {denunciaRegistrada.codigoSeguimiento}
                   </p>
                   <button
@@ -1432,11 +1432,11 @@ export function DenunciaForm() {
                   </button>
                 </div>
                 {/* PIN */}
-                <div className="mt-3 rounded-2xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#547AA7]">
+                <div className="mt-3 rounded-xl border border-[#C6D0E2] bg-[#F7F9FC] px-5 py-4">
+                  <p className="text-[11px] font-bold text-[#547AA7]">
                     PIN
                   </p>
-                  <p className="mt-1.5 break-all text-xl font-bold tracking-wide text-[#1B4589] sm:text-2xl">
+                  <p className="mt-1.5 break-all text-xl font-bold text-[#1B4589] sm:text-2xl">
                     {denunciaRegistrada.pin}
                   </p>
                   <button
@@ -1462,7 +1462,7 @@ export function DenunciaForm() {
                 {documentos.length > 0 && (
                   <div className="mt-4">
                     {documentosSubidos ? (
-                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left">
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left">
                         <p className="text-sm font-bold text-emerald-900">
                           Documentación cargada
                         </p>
@@ -1475,7 +1475,7 @@ export function DenunciaForm() {
                         </p>
                       </div>
                     ) : advertenciaDocumentos ? (
-                      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
                         <p className="text-sm font-bold text-amber-900">
                           Denuncia registrada
                         </p>
@@ -1491,7 +1491,7 @@ export function DenunciaForm() {
                   </div>
                 )}
                 {/* ADVERTENCIA */}
-                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
                   <p className="text-sm font-bold text-amber-900">
                     Guarda estos datos
                   </p>
@@ -1513,7 +1513,7 @@ export function DenunciaForm() {
                     inline-flex
                     items-center
                     justify-center
-                    rounded-2xl
+                    rounded-xl
                     border border-[#C6D0E2]
                     bg-white
                     px-5 py-2.5
@@ -1536,7 +1536,7 @@ export function DenunciaForm() {
                     flex w-full
                     items-center
                     justify-center
-                    rounded-2xl
+                    rounded-xl
                     bg-[#1B4589]
                     px-6 py-3
                     text-sm
@@ -1557,11 +1557,11 @@ export function DenunciaForm() {
       ======================================================== */}
       {modalInvolucradoAbierto && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-[#E8ECF3] bg-white shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#E8ECF3] bg-white shadow-2xl">
             {/* HEADER */}
             <header className="flex items-start justify-between border-b border-[#E8ECF3] px-6 py-6 md:px-8">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
                   {tipoPersona ===
                   "PERSONA_JURIDICA" ? (
                     <Building2
@@ -1574,7 +1574,7 @@ export function DenunciaForm() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#547AA7]">
+                  <p className="text-xs font-bold text-[#547AA7]">
                     Involucrados
                   </p>
                   <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
@@ -1687,7 +1687,7 @@ export function DenunciaForm() {
               <button
                 type="button"
                 onClick={cerrarModalInvolucrado}
-                className="inline-flex items-center justify-center rounded-2xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+                className="inline-flex items-center justify-center rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
               >
                 Cancelar
               </button>
@@ -1698,7 +1698,7 @@ export function DenunciaForm() {
                   !nombreRazonSocial.trim() ||
                   !cargoInvolucrado.trim()
                 }
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus
                   size={17}

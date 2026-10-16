@@ -56,7 +56,7 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     descripcion: 'Bitácora transaccional y alertas UIF',
     href: '/operaciones',
     icono: Receipt,
-    disponible: false,
+    disponible: true,
   },
   {
     codigo: 'cursos',

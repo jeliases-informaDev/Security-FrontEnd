@@ -18,13 +18,15 @@ interface OperacionesListaProps {
   empresa: string;
   /** Cambia cada vez que hay que volver a pedir la lista (después de guardar o de cambiar un responsable). */
   version: number;
+  /** Responsables cambiados en esta sesión (por id de registro), para cuando el listado no los trae. */
+  asignados: Record<number, string>;
   onEditar: (id: number) => void;
   onCambiarResponsable: (operacion: OperacionItem) => void;
   onDescargarPdf: (operacion: OperacionItem) => void;
   onNuevo: () => void;
 }
 
-export function OperacionesLista({ empresa, version, onEditar, onCambiarResponsable, onDescargarPdf, onNuevo }: OperacionesListaProps) {
+export function OperacionesLista({ empresa, version, asignados, onEditar, onCambiarResponsable, onDescargarPdf, onNuevo }: OperacionesListaProps) {
   const [pagina, setPagina] = useState(0);
   const [reintento, setReintento] = useState(0);
   // El resultado guarda a qué pedido corresponde: si no coincide con el pedido actual, todavía se está cargando.
@@ -113,10 +115,12 @@ export function OperacionesLista({ empresa, version, onEditar, onCambiarResponsa
                 <td className="px-3 py-3 text-brand-muted">{fila.oficina ?? '—'}</td>
                 <td className="px-3 py-3 tabular-nums text-brand-muted">{formatoFecha(fila.fecha)}</td>
                 <td className="whitespace-nowrap px-3 py-3">
-                  {fila.responsable ? (
-                    <span className="text-brand-ink">{fila.responsable.nombreCompleto}</span>
+                  {fila.responsable?.nombreCompleto || asignados[fila.id] ? (
+                    <span className="text-brand-ink">{fila.responsable?.nombreCompleto || asignados[fila.id]}</span>
                   ) : (
-                    <span className="text-slate-500">Sin asignar</span>
+                    <span className="text-slate-400" title="El listado no informa el responsable de este registro">
+                      —
+                    </span>
                   )}
                 </td>
                 <td className="px-5 py-3">

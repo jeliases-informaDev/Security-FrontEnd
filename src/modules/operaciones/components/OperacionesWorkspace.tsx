@@ -26,6 +26,8 @@ export function OperacionesWorkspace() {
   const [version, setVersion] = useState(0);
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [cambiandoResponsable, setCambiandoResponsable] = useState<OperacionItem | null>(null);
+  // El listado del backend todavía no informa el responsable de cada registro: se recuerdan los que se cambian en esta sesión.
+  const [asignados, setAsignados] = useState<Record<number, string>>({});
 
   // Los registros pertenecen a la empresa del usuario: primero se averigua cuál es.
   useEffect(() => {
@@ -133,6 +135,7 @@ export function OperacionesWorkspace() {
         <OperacionesLista
           empresa={datosUsuario.empresa}
           version={version}
+          asignados={asignados}
           onNuevo={() => setVista({ tipo: 'nuevo' })}
           onEditar={(id) => {
             setAviso(null);
@@ -165,9 +168,11 @@ export function OperacionesWorkspace() {
           operacion={cambiandoResponsable}
           empresa={datosUsuario.empresa}
           onCerrar={() => setCambiandoResponsable(null)}
-          onGuardado={() => {
+          onGuardado={(nombreCompleto) => {
+            const { id, numeroRegistro } = cambiandoResponsable;
+            setAsignados((actuales) => ({ ...actuales, [id]: nombreCompleto }));
             setCambiandoResponsable(null);
-            setAviso({ tipo: 'ok', texto: 'Se cambió el responsable del registro.' });
+            setAviso({ tipo: 'ok', texto: `El responsable del registro ${numeroRegistro ?? id} ahora es ${nombreCompleto}.` });
             setVersion((actual) => actual + 1);
           }}
         />

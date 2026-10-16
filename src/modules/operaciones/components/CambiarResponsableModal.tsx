@@ -14,7 +14,8 @@ interface CambiarResponsableModalProps {
   operacion: OperacionItem;
   empresa: string;
   onCerrar: () => void;
-  onGuardado: () => void;
+  /** Recibe el nombre del usuario que quedó como responsable. */
+  onGuardado: (nombreCompleto: string) => void;
 }
 
 /** Cambia a qué usuario de la empresa se le asigna el registro. Solo se ofrecen usuarios activos de la misma empresa. */
@@ -57,8 +58,9 @@ export function CambiarResponsableModal({ operacion, empresa, onCerrar, onGuarda
     setGuardando(true);
     setError(null);
     try {
-      await operacionesService.cambiarResponsable(operacion.id, Number(seleccionado));
-      onGuardado();
+      const cambio = await operacionesService.cambiarResponsable(operacion.id, Number(seleccionado));
+      const elegido = (usuarios ?? []).find((usuario) => String(usuario.id) === seleccionado);
+      onGuardado(cambio?.nombreCompleto || elegido?.nombreCompleto || elegido?.usuario || 'el usuario elegido');
     } catch (err) {
       setError(mensajeDeErrorOperaciones(err, 'No se pudo cambiar el responsable. Actualiza la lista e inténtalo de nuevo.'));
       setGuardando(false);

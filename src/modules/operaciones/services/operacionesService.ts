@@ -25,6 +25,13 @@ export interface OperacionItem {
   responsable?: ResponsableOperacion | null;
 }
 
+/** Respuesta de cambiar a qué usuario pertenece un registro. */
+export interface CambioResponsable {
+  id: number;
+  usuarioId: number;
+  nombreCompleto: string;
+}
+
 export interface PaginaOperaciones {
   content: OperacionItem[];
   totalPages: number;
@@ -193,8 +200,9 @@ export const operacionesService = {
     return data;
   },
 
-  async cambiarResponsable(id: number, usuarioId: number): Promise<void> {
-    await apiClient.patch(`/operaciones/${id}/usuario`, { usuarioId });
+  async cambiarResponsable(id: number, usuarioId: number): Promise<CambioResponsable> {
+    const { data } = await apiClient.patch<CambioResponsable>(`/operaciones/${id}/usuario`, { usuarioId });
+    return data;
   },
 
   async descargarPdf(id: number): Promise<Blob> {

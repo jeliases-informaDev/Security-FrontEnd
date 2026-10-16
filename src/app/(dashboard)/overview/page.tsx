@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
-import { MODULOS_DASHBOARD } from '@/shared/lib/modulos';
+import { modulosVisibles } from '@/shared/lib/modulos';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
 
 export default function OverviewPage() {
@@ -19,7 +19,7 @@ export default function OverviewPage() {
 
       <Panel>
         <ul className="divide-y divide-slate-200">
-          {MODULOS_DASHBOARD.map((modulo) => {
+          {modulosVisibles(usuario).map((modulo) => {
             const Icono = modulo.icono;
 
             if (!modulo.disponible) {

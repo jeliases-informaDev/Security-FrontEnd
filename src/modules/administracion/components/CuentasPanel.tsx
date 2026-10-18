@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Check, Copy, KeyRound, Plus, Search, SearchX, UserRound, Users } from 'lucide-react';
+import { Check, Copy, KeyRound, MailPlus, Plus, Search, SearchX, UploadCloud, UserRound, Users } from 'lucide-react';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
 import { Modal } from '@/shared/ui/Modal';
 import { Panel } from '@/shared/ui/PageShell';
@@ -9,6 +9,7 @@ import { Avatar, Boton, Esqueleto, EstadoVacio, Etiqueta, Paginacion } from '@/s
 import { AvisoBanner, type Aviso } from './AvisoBanner';
 import { EditarCuentaModal } from './EditarCuentaModal';
 import { NuevaCuentaForm } from './NuevaCuentaForm';
+import { CargaMasivaPanel } from './CargaMasivaPanel';
 
 const POR_PAGINA = 15;
 const SIN_EMPRESA = '__sin_empresa__';
@@ -16,7 +17,7 @@ const SIN_EMPRESA = '__sin_empresa__';
 // Para buscar sin importar mayúsculas ni tildes.
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-type Vista = { tipo: 'lista' } | { tipo: 'nueva' } | { tipo: 'creada'; cuenta: Cuenta; clave: string };
+type Vista = { tipo: 'lista' } | { tipo: 'nueva' } | { tipo: 'masiva' } | { tipo: 'creada'; cuenta: Cuenta; clave: string };
 
 interface CuentasPanelProps {
   cuentas: Cuenta[] | null;
@@ -80,6 +81,19 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
     }
   };
 
+  const invitar = async (cuenta: Cuenta) => {
+    setProcesando(cuenta.id);
+    setAviso(null);
+    try {
+      const respuesta = await administracionService.invitar(cuenta.id);
+      setAviso({ tipo: respuesta.enviada ? 'ok' : 'info', texto: respuesta.mensaje });
+    } catch (err) {
+      setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo enviar la invitación. Inténtalo de nuevo.') });
+    } finally {
+      setProcesando(null);
+    }
+  };
+
   const copiarAcceso = async (cuenta: Cuenta, clave: string) => {
     const texto = `Plataforma: ${window.location.origin}\nUsuario: ${cuenta.usuario}\nClave: ${clave}`;
     try {
@@ -103,6 +117,17 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
           onRecargar();
         }}
         onIrAEmpresas={onIrAEmpresas}
+      />
+    );
+  }
+
+  if (vista.tipo === 'masiva') {
+    return (
+      <CargaMasivaPanel
+        empresas={empresas}
+        roles={roles}
+        onVolver={() => setVista({ tipo: 'lista' })}
+        onCreadas={onRecargar}
       />
     );
   }
@@ -175,6 +200,9 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             ))}
           </select>
         </div>
+        <Boton variante="secundario" icono={UploadCloud} onClick={() => { setAviso(null); setVista({ tipo: 'masiva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
+          Carga masiva
+        </Boton>
         <Boton icono={Plus} onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
           Nueva cuenta
         </Boton>
@@ -249,6 +277,11 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
                       <td>
                         <div className="flex items-center justify-end gap-1">
                           <button type="button" onClick={() => setEditando(cuenta)} className="btn btn-ghost btn-sm whitespace-nowrap">Editar</button>
+                          {cuenta.activo && (
+                            <button type="button" onClick={() => invitar(cuenta)} disabled={procesando === cuenta.id} title="Enviar el correo con el enlace para crear su contraseña" className="btn btn-ghost btn-sm whitespace-nowrap">
+                              <MailPlus className="h-4 w-4" aria-hidden="true" /> Invitar
+                            </button>
+                          )}
                           {cuenta.activo ? (
                             <button
                               type="button"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,7 @@ import { authService } from '@/modules/auth/services/authService';
 import { botonPrimario, campo, campoError, etiqueta, mensajeError } from '@/shared/ui/estilos';
 
 const loginSchema = z.object({
-  usuario: z.string().min(1, 'Escribe tu usuario'),
+  usuario: z.string().min(1, 'Escribe tu correo o usuario'),
   clave: z.string().min(1, 'Escribe tu contraseña'),
 });
 
@@ -50,7 +51,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit, () => setFocus(errors.usuario ? 'usuario' : 'clave'))} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="usuario" className={etiqueta}>Usuario</label>
+        <label htmlFor="usuario" className={etiqueta}>Correo o usuario</label>
         <input
           id="usuario"
           type="text"
@@ -89,6 +90,9 @@ export function LoginForm() {
           </button>
         </div>
         {errors.clave && <p id="clave-error" className={mensajeError}>{errors.clave.message}</p>}
+        <p className="mt-2 text-right text-sm">
+          <Link href="/recuperar-clave" className="font-medium text-brand-ink hover:underline">¿Olvidaste tu contraseña?</Link>
+        </p>
       </div>
 
       {errorServidor && (

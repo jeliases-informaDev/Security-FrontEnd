@@ -6,6 +6,10 @@ import { apiClient } from '@/shared/api/apiClient';
 
 export interface Empresa {
   id: number;
+  /** Identificador público y estable de la empresa */
+  uuid: string | null;
+  /** Sigla única: va delante del usuario interno de cada cuenta (hcyo.jperez) */
+  sigla: string | null;
   nombre: string;
   ruc: string | null;
   activa: boolean;
@@ -23,6 +27,43 @@ export interface Cuenta {
   rolCodigo: string | null;
   rolNombre: string | null;
   activo: boolean;
+}
+
+export interface CuentaMasiva {
+  nombres: string;
+  apePat: string;
+  apeMat?: string;
+  correo: string;
+  cargo?: string;
+  rolCodigo: string;
+}
+
+export interface FilaCargaMasiva {
+  fila: number;
+  correo: string;
+  nombreCompleto: string;
+  estado: 'ok' | 'creada' | 'error';
+  mensaje: string | null;
+  usuario: string | null;
+  invitacionEnviada: boolean;
+  claveTemporal: string | null;
+}
+
+export interface CargaMasivaRespuesta {
+  empresa: string;
+  sigla: string;
+  soloValidar: boolean;
+  total: number;
+  listas: number;
+  creadas: number;
+  conError: number;
+  invitacionesPorCorreo: boolean;
+  filas: FilaCargaMasiva[];
+}
+
+export interface InvitacionRespuesta {
+  enviada: boolean;
+  mensaje: string;
 }
 
 export interface Rol {
@@ -52,8 +93,20 @@ export const administracionService = {
     return data;
   },
 
-  async crearEmpresa(nombre: string, ruc: string | null): Promise<Empresa> {
-    const { data } = await apiClient.post<Empresa>('/empresas', { nombre, ruc });
+  async crearEmpresa(nombre: string, ruc: string | null, sigla: string | null = null): Promise<Empresa> {
+    const { data } = await apiClient.post<Empresa>('/empresas', { nombre, ruc, sigla });
+    return data;
+  },
+
+  /** Alta por lotes; con soloValidar solo revisa. Se crea todo o nada. */
+  async cargaMasiva(solicitud: { empresa: string; soloValidar: boolean; cuentas: CuentaMasiva[] }): Promise<CargaMasivaRespuesta> {
+    const { data } = await apiClient.post<CargaMasivaRespuesta>('/usuarios/carga-masiva', solicitud);
+    return data;
+  },
+
+  /** Manda (o vuelve a mandar) el correo con el enlace para crear la contraseña. */
+  async invitar(id: number): Promise<InvitacionRespuesta> {
+    const { data } = await apiClient.post<InvitacionRespuesta>(`/usuarios/${id}/invitar`);
     return data;
   },
 

@@ -10,6 +10,7 @@ import { AvisoBanner, type Aviso } from './AvisoBanner';
 import { EditarRucModal } from './EditarRucModal';
 
 const RUC = /^\d{11}$/;
+const SIGLA = /^[A-Z0-9]{2,8}$/;
 
 interface EmpresasPanelProps {
   empresas: Empresa[] | null;
@@ -21,6 +22,8 @@ interface EmpresasPanelProps {
 export function EmpresasPanel({ empresas, cargando, error, onRecargar }: EmpresasPanelProps) {
   const [nombre, setNombre] = useState('');
   const [ruc, setRuc] = useState('');
+  const [sigla, setSigla] = useState('');
+  const [errorSigla, setErrorSigla] = useState<string | null>(null);
   const [errorNombre, setErrorNombre] = useState<string | null>(null);
   const [errorRuc, setErrorRuc] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -34,15 +37,18 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
     const rucLimpio = ruc.trim();
     setErrorNombre(nombreLimpio === '' ? 'Escribe el nombre de la empresa.' : null);
     setErrorRuc(rucLimpio !== '' && !RUC.test(rucLimpio) ? 'El RUC debe tener 11 dígitos.' : null);
-    if (nombreLimpio === '' || (rucLimpio !== '' && !RUC.test(rucLimpio))) return;
+    const siglaLimpia = sigla.trim().toUpperCase();
+    setErrorSigla(siglaLimpia !== '' && !SIGLA.test(siglaLimpia) ? 'De 2 a 8 letras o números.' : null);
+    if (nombreLimpio === '' || (rucLimpio !== '' && !RUC.test(rucLimpio)) || (siglaLimpia !== '' && !SIGLA.test(siglaLimpia))) return;
 
     setGuardando(true);
     setAviso(null);
     try {
-      const creada = await administracionService.crearEmpresa(nombreLimpio, rucLimpio === '' ? null : rucLimpio);
+      const creada = await administracionService.crearEmpresa(nombreLimpio, rucLimpio === '' ? null : rucLimpio, siglaLimpia === '' ? null : siglaLimpia);
       setNombre('');
       setRuc('');
-      setAviso({ tipo: 'ok', texto: `Se agregó la empresa ${creada.nombre}. Ya puedes elegirla al crear cuentas.` });
+      setSigla('');
+      setAviso({ tipo: 'ok', texto: `Se agregó la empresa ${creada.nombre} con la sigla ${creada.sigla ?? '—'}. Ya puedes elegirla al crear cuentas.` });
       onRecargar();
     } catch (err) {
       setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo agregar la empresa. Inténtalo de nuevo.') });
@@ -75,7 +81,7 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
       {aviso && <AvisoBanner aviso={aviso} onCerrar={() => setAviso(null)} />}
 
       <Panel titulo="Agregar una empresa" descripcion="Las cuentas se asignan a una empresa y solo ven sus propios registros." relleno>
-        <form onSubmit={agregar} noValidate className="grid grid-cols-1 items-start gap-4 sm:grid-cols-[2fr_1fr_auto]">
+        <form onSubmit={agregar} noValidate className="grid grid-cols-1 items-start gap-4 sm:grid-cols-[2fr_1fr_1fr_auto]">
           <div>
             <label htmlFor="empresa-nombre" className="label">Nombre</label>
             <input
@@ -107,10 +113,25 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
             />
             {errorRuc && <p role="alert" className="error-text">{errorRuc}</p>}
           </div>
+          <div>
+            <label htmlFor="empresa-sigla" className="label">Sigla (opcional)</label>
+            <input
+              id="empresa-sigla"
+              name="sigla"
+              value={sigla}
+              onChange={(evento) => setSigla(evento.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Se propone sola…"
+              aria-invalid={Boolean(errorSigla)}
+              className={`input font-mono uppercase ${errorSigla ? 'input-error' : ''}`}
+            />
+            {errorSigla && <p role="alert" className="error-text">{errorSigla}</p>}
+          </div>
           <Boton type="submit" icono={Plus} cargando={guardando} className="sm:mt-7">{guardando ? 'Agregando…' : 'Agregar'}</Boton>
         </form>
         <p className="hint mt-3">
-          El nombre no se puede cambiar después. Si te equivocas al escribirlo, agrega la empresa correcta, pasa las cuentas a ella y desactiva la anterior.
+          El nombre y la sigla no se pueden cambiar después. La sigla (2 a 8 letras) va delante del usuario interno de cada cuenta, por ejemplo <span className="font-mono">hcyo.jperez</span>; si te equivocas, agrega la empresa correcta, pasa las cuentas a ella y desactiva la anterior.
         </p>
       </Panel>
 
@@ -133,6 +154,7 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
               <thead>
                 <tr>
                   <th scope="col">Empresa</th>
+                  <th scope="col">Sigla</th>
                   <th scope="col">RUC</th>
                   <th scope="col" className="text-right">Cuentas</th>
                   <th scope="col">Estado</th>
@@ -150,6 +172,7 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
                         {empresa.nombre}
                       </div>
                     </td>
+                    <td className="font-mono text-[13px] text-ink" title={empresa.uuid ?? undefined}>{empresa.sigla ?? '—'}</td>
                     <td className="font-mono text-[13px] text-muted">{empresa.ruc ?? '—'}</td>
                     <td className="text-right tabular-nums text-ink">{empresa.cuentas}</td>
                     <td>

@@ -85,10 +85,10 @@ function claseEstado(
       return "bg-blue-50 text-blue-700 border-blue-100";
 
     case "EN_PROCESO":
-      return "bg-amber-50 text-amber-700 border-amber-100";
+      return "bg-warn-soft text-warn border-warn/20";
 
     case "CERRADO":
-      return "bg-emerald-50 text-emerald-700 border-emerald-100";
+      return "bg-ok-soft text-ok border-ok/20";
   }
 }
 
@@ -485,15 +485,15 @@ export function DenunciasRecibidas() {
 
           <div>
 
-            <p className="text-xs font-bold text-muted">
+            <p className="eyebrow">
               Gestión
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold text-ink">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
               Denuncias recibidas
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
               Revisa las denuncias asignadas, consulta su información,
               descarga documentación y registra los avances de atención.
             </p>
@@ -605,7 +605,7 @@ export function DenunciasRecibidas() {
 
       {error && (
 
-        <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="rounded-xl border border-bad/20 bg-bad-soft px-5 py-4 text-sm text-bad">
           {error}
         </div>
 
@@ -630,7 +630,7 @@ export function DenunciasRecibidas() {
               Denuncias
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted">
               {denuncias.length} resultado(s)
             </p>
 
@@ -654,14 +654,14 @@ export function DenunciasRecibidas() {
 
               <ShieldCheck
                 size={34}
-                className="mx-auto text-slate-300"
+                className="mx-auto text-faint"
               />
 
               <p className="mt-4 text-sm font-semibold text-ink">
                 No hay denuncias
               </p>
 
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-muted">
                 No existen registros para el filtro seleccionado.
               </p>
 
@@ -742,12 +742,12 @@ export function DenunciasRecibidas() {
                           </p>
 
 
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
                             {denuncia.descripcion}
                           </p>
 
 
-                          <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
+                          <div className="mt-3 flex items-center gap-2 text-[11px] text-faint">
 
                             <Clock3
                               size={13}
@@ -764,7 +764,7 @@ export function DenunciasRecibidas() {
 
                         <ChevronRight
                           size={19}
-                          className="mt-1 shrink-0 text-slate-300"
+                          className="mt-1 shrink-0 text-faint"
                         />
 
                       </div>
@@ -805,14 +805,14 @@ export function DenunciasRecibidas() {
 
               <FileText
                 size={42}
-                className="text-slate-300"
+                className="text-faint"
               />
 
               <p className="mt-4 font-bold text-ink">
                 Selecciona una denuncia
               </p>
 
-              <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-sm text-sm leading-6 text-muted">
                 Elige un registro del listado para consultar su información completa.
               </p>
 
@@ -859,7 +859,7 @@ export function DenunciasRecibidas() {
                   </h3>
 
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-muted">
                     Relación: {detalle.relacionEmpresa}
                   </p>
 
@@ -868,7 +868,7 @@ export function DenunciasRecibidas() {
 
                 <div className="text-left md:text-right">
 
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-faint">
                     Registrada
                   </p>
 
@@ -887,11 +887,11 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Descripción
                 </p>
 
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-600">
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted">
                   {detalle.descripcion}
                 </p>
 
@@ -904,7 +904,7 @@ export function DenunciasRecibidas() {
 
                 <div className="rounded-xl bg-surface-2 p-5">
 
-                  <p className="text-xs font-bold text-muted">
+                  <p className="eyebrow">
                     Receptor
                   </p>
 
@@ -926,7 +926,7 @@ export function DenunciasRecibidas() {
                       className="text-brand"
                     />
 
-                    <p className="text-xs font-bold text-muted">
+                    <p className="eyebrow">
                       Denunciante
                     </p>
 
@@ -941,7 +941,7 @@ export function DenunciasRecibidas() {
 
                   ) : (
 
-                    <div className="mt-3 space-y-1 text-sm text-slate-600">
+                    <div className="mt-3 space-y-1 text-sm text-muted">
 
                       <p>
                         {detalle.nombreDenunciante ||
@@ -979,14 +979,14 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Involucrados
                 </p>
 
 
                 {detalle.involucrados.length === 0 ? (
 
-                  <p className="mt-3 text-sm text-slate-400">
+                  <p className="mt-3 text-sm text-faint">
                     No se registraron involucrados.
                   </p>
 
@@ -1008,20 +1008,20 @@ export function DenunciasRecibidas() {
                             {persona.nombreRazonSocial}
                           </p>
 
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-muted">
                             {persona.tipoPersona}
                             {" · "}
                             {persona.rolIncidente}
                           </p>
 
                           {persona.documento && (
-                            <p className="mt-2 text-xs text-slate-500">
+                            <p className="mt-2 text-xs text-muted">
                               Documento: {persona.documento}
                             </p>
                           )}
 
                           {persona.cargo && (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-muted">
                               Cargo: {persona.cargo}
                             </p>
                           )}
@@ -1042,14 +1042,14 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Documentación adjunta
                 </p>
 
 
                 {detalle.archivos.length === 0 ? (
 
-                  <p className="mt-3 text-sm text-slate-400">
+                  <p className="mt-3 text-sm text-faint">
                     La denuncia no tiene documentos adjuntos.
                   </p>
 
@@ -1084,7 +1084,7 @@ export function DenunciasRecibidas() {
                                 {archivo.nombreOriginal}
                               </p>
 
-                              <p className="mt-1 text-xs text-slate-400">
+                              <p className="mt-1 text-xs text-faint">
                                 {formatearTamano(
                                   archivo.tamanoBytes
                                 )}
@@ -1159,7 +1159,7 @@ export function DenunciasRecibidas() {
 
               <div>
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Historial
                 </p>
 
@@ -1189,7 +1189,7 @@ export function DenunciasRecibidas() {
                             )}
                           </p>
 
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-faint">
                             {formatearFecha(
                               evento.fechaCreacion
                             )}
@@ -1200,7 +1200,7 @@ export function DenunciasRecibidas() {
 
                         {evento.comentario && (
 
-                          <p className="mt-2 text-sm leading-6 text-slate-600">
+                          <p className="mt-2 text-sm leading-6 text-muted">
                             {evento.comentario}
                           </p>
 
@@ -1237,7 +1237,7 @@ export function DenunciasRecibidas() {
                     Actualizar estado
                   </p>
 
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-muted">
                     El siguiente estado será{" "}
                     <strong>
                       {etiquetaEstado(
@@ -1274,7 +1274,7 @@ export function DenunciasRecibidas() {
                       text-ink
                       outline-none
                       transition
-                      placeholder:text-slate-400
+                      placeholder:text-faint
                       focus:border-muted
                       focus:ring-2
                       focus:ring-muted/10

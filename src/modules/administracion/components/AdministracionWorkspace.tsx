@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, UsersRound } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Settings2, ShieldOff } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { useRecurso } from '@/modules/administracion/hooks/useRecurso';
 import { administracionService } from '@/modules/administracion/services/administracionService';
 import { esAdministrador } from '@/shared/lib/modulos';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
+import { EstadoVacio, Pestanas } from '@/shared/ui/kit';
 import { CuentasPanel } from './CuentasPanel';
 import { EmpresasPanel } from './EmpresasPanel';
 
@@ -28,36 +28,19 @@ function Contenido({ usuarioActual }: { usuarioActual: string }) {
     empresas.recargar();
   };
 
-  const pestanas: { id: Pestana; nombre: string; icono: LucideIcon; total?: number }[] = [
-    { id: 'cuentas', nombre: 'Cuentas', icono: UsersRound, total: cuentas.datos?.length },
-    { id: 'empresas', nombre: 'Empresas', icono: Building2, total: empresas.datos?.length },
-  ];
-
   return (
     <PageShell>
-      <PageHeader titulo="Administración" sinLinea descripcion={DESCRIPCION} />
+      <PageHeader antetitulo="Plataforma" icono={Settings2} titulo="Administración" sinLinea descripcion={DESCRIPCION} />
 
-      <nav aria-label="Secciones de administración" className="mb-6 flex gap-1 overflow-x-auto border-b border-slate-300/70">
-        {pestanas.map((item) => {
-          const Icono = item.icono;
-          const activa = pestana === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setPestana(item.id)}
-              aria-current={activa ? 'page' : undefined}
-              className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm transition ${
-                activa ? 'border-brand-navy font-medium text-brand-navy' : 'border-transparent text-brand-muted hover:border-slate-400 hover:text-brand-ink'
-              }`}
-            >
-              <Icono className="h-4 w-4" aria-hidden="true" />
-              {item.nombre}
-              {item.total !== undefined && <span className="text-xs font-normal tabular-nums text-brand-muted">{item.total}</span>}
-            </button>
-          );
-        })}
-      </nav>
+      <Pestanas
+        ariaLabel="Secciones de administración"
+        valor={pestana}
+        onCambiar={setPestana}
+        opciones={[
+          { valor: 'cuentas', etiqueta: 'Cuentas', conteo: cuentas.datos?.length },
+          { valor: 'empresas', etiqueta: 'Empresas', conteo: empresas.datos?.length },
+        ]}
+      />
 
       {pestana === 'cuentas' && (
         <CuentasPanel
@@ -89,10 +72,9 @@ export function AdministracionWorkspace() {
   if (!esAdministrador(usuario)) {
     return (
       <PageShell>
-        <PageHeader titulo="Administración" />
-        <Panel className="px-6 py-12 text-center">
-          <p className="font-medium text-brand-ink">Esta sección es solo para administradores.</p>
-          <p className="mt-1 text-sm text-brand-muted">Si necesitas una cuenta nueva o cambiar la empresa de una, pídeselo a un administrador.</p>
+        <PageHeader antetitulo="Plataforma" icono={Settings2} titulo="Administración" />
+        <Panel>
+          <EstadoVacio icono={ShieldOff} titulo="Esta sección es solo para administradores" texto="Si necesitas una cuenta nueva o cambiar la empresa de una, pídeselo a un administrador." />
         </Panel>
       </PageShell>
     );

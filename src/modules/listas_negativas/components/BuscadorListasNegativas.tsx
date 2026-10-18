@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud } from 'lucide-react';
+import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud, ChevronRight, SearchX } from 'lucide-react';
 import {
   listasNegativasService,
   ResultadoBusquedaResponse,
@@ -14,9 +14,10 @@ import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
 import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
 import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
 import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
-import { PageHeader, PageShell } from '@/shared/ui/PageShell';
+import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
+import { Avatar, Aviso, Boton, EstadoVacio } from '@/shared/ui/kit';
 
-// Formato real de cada documento peruano: largo exacto/maximo y los caracteres que acepta,
+// Formato real de cada documento peruano: largo exacto/máximo y los caracteres que acepta,
 // para restringir la escritura y no dejar pasar valores con el formato incorrecto.
 const FORMATO_DOCUMENTO: Record<
   TipoDocumentoCodigo,
@@ -25,13 +26,7 @@ const FORMATO_DOCUMENTO: Record<
   DNI: { label: 'DNI', maxLength: 8, pattern: /^\d{8}$/, soloDigitos: true, ejemplo: '12345678' },
   RUC: { label: 'RUC', maxLength: 11, pattern: /^\d{11}$/, soloDigitos: true, ejemplo: '20123456789' },
   CE: { label: 'CE', maxLength: 12, pattern: /^[A-Za-z0-9]{6,12}$/, soloDigitos: false, ejemplo: '001234567' },
-  PASAPORTE: {
-    label: 'Pasaporte',
-    maxLength: 12,
-    pattern: /^[A-Za-z0-9]{5,12}$/,
-    soloDigitos: false,
-    ejemplo: 'AB123456',
-  },
+  PASAPORTE: { label: 'Pasaporte', maxLength: 12, pattern: /^[A-Za-z0-9]{5,12}$/, soloDigitos: false, ejemplo: 'AB123456' },
 };
 
 const busquedaSchema = z
@@ -43,10 +38,7 @@ const busquedaSchema = z
     documento: z.string().optional(),
   })
   .refine(
-    (values) =>
-      [values.nombres, values.apellidoPaterno, values.apellidoMaterno, values.documento].some(
-        (v) => v && v.trim().length > 0
-      ),
+    (values) => [values.nombres, values.apellidoPaterno, values.apellidoMaterno, values.documento].some((v) => v && v.trim().length > 0),
     { message: 'Ingresa al menos un criterio de búsqueda', path: ['nombres'] }
   )
   .refine(
@@ -60,19 +52,14 @@ const busquedaSchema = z
 
 type BusquedaFormValues = z.infer<typeof busquedaSchema>;
 
-const inputClass =
-  'w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition';
-
-const selectClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition appearance-none';
-
-function iniciales(nombre: string): string {
-  return nombre
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join('');
+/** Campo de texto con un icono a la izquierda. */
+function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" aria-hidden="true" />
+      {children}
+    </div>
+  );
 }
 
 export function BuscadorListasNegativas() {
@@ -88,10 +75,7 @@ export function BuscadorListasNegativas() {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<BusquedaFormValues>({
-    resolver: zodResolver(busquedaSchema),
-    defaultValues: { tipoDocumento: '' },
-  });
+  } = useForm<BusquedaFormValues>({ resolver: zodResolver(busquedaSchema), defaultValues: { tipoDocumento: '' } });
 
   const tipoDocumentoSeleccionado = watch('tipoDocumento') as TipoDocumentoCodigo | '' | undefined;
   const formatoActivo = tipoDocumentoSeleccionado ? FORMATO_DOCUMENTO[tipoDocumentoSeleccionado] : null;
@@ -101,13 +85,11 @@ export function BuscadorListasNegativas() {
     try {
       const data = await listasNegativasService.buscar(values);
       setResultados(data);
-      if (data.length > 0) {
-        setRecargarHistorial((n) => n + 1);
-      }
+      if (data.length > 0) setRecargarHistorial((n) => n + 1);
     } catch (err: unknown) {
       const mensaje =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'No se pudo completar la búsqueda. Verifica que el backend esté disponible.';
+        'No se pudo completar la búsqueda. Inténtalo de nuevo en un momento.';
       setErrorServidor(mensaje);
       setResultados(null);
     }
@@ -125,226 +107,152 @@ export function BuscadorListasNegativas() {
   return (
     <PageShell>
       <PageHeader
+        antetitulo="Debida diligencia"
+        icono={Search}
         titulo="Listas Negativas"
         descripcion="Busca coincidencias en PEP y en el catálogo real de listas restrictivas, de LA/FT, sanciones administrativas y noticias."
+        acciones={
+          <>
+            <Boton variante="secundario" icono={CalendarClock} onClick={() => setModalEnConstruccion('Programar búsqueda')}>Programar búsqueda</Boton>
+            <Boton variante="secundario" icono={UploadCloud} onClick={() => setModalEnConstruccion('Consulta masiva')}>Consulta masiva</Boton>
+          </>
+        }
       />
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-4"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="lg:col-span-2">
-            <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              Nombres / Razón Social
-            </label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                className={inputClass}
-                placeholder="Ej. Juan Carlos"
-                {...register('nombres')}
-              />
+      <Panel className="aparece mb-6" relleno>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="lg:col-span-2">
+              <label htmlFor="ln-nombres" className="label">Nombres / Razón social</label>
+              <CampoIcono icono={Search}>
+                <input id="ln-nombres" type="text" className="input pl-10" placeholder="Ej. Juan Carlos" autoComplete="off" {...register('nombres')} />
+              </CampoIcono>
+            </div>
+            <div>
+              <label htmlFor="ln-paterno" className="label">Apellido paterno</label>
+              <CampoIcono icono={User}>
+                <input id="ln-paterno" type="text" className="input pl-10" placeholder="Ej. García" autoComplete="off" {...register('apellidoPaterno')} />
+              </CampoIcono>
+            </div>
+            <div>
+              <label htmlFor="ln-materno" className="label">Apellido materno</label>
+              <CampoIcono icono={User}>
+                <input id="ln-materno" type="text" className="input pl-10" placeholder="Ej. López" autoComplete="off" {...register('apellidoMaterno')} />
+              </CampoIcono>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              Apellido paterno
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                className={inputClass}
-                placeholder="Ej. Garcia"
-                {...register('apellidoPaterno')}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              Apellido materno
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                className={inputClass}
-                placeholder="Ej. Lopez"
-                {...register('apellidoMaterno')}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              Tipo de documento
-            </label>
-            <select
-              className={selectClass}
-              {...register('tipoDocumento', {
-                onChange: () => {
-                  // al cambiar el tipo, se limpia el numero para que no quede un valor
-                  // valido para el tipo anterior pero invalido para el nuevo
-                  setValue('documento', '');
-                },
-              })}
-            >
-              <option value="">Todos</option>
-              {(Object.keys(FORMATO_DOCUMENTO) as TipoDocumentoCodigo[]).map((codigo) => (
-                <option key={codigo} value={codigo}>
-                  {FORMATO_DOCUMENTO[codigo].label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1.5">
-              N° de documento
-            </label>
-            <div className="relative">
-              <IdCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                className={inputClass}
-                placeholder={formatoActivo ? `Ej. ${formatoActivo.ejemplo}` : 'DNI, CE, RUC o pasaporte'}
-                maxLength={formatoActivo?.maxLength}
-                {...register('documento', {
-                  onChange: (e) => {
-                    if (!formatoActivo) return;
-                    const crudo = e.target.value;
-                    const limpio = formatoActivo.soloDigitos
-                      ? crudo.replace(/\D/g, '')
-                      : crudo.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-                    setValue('documento', limpio.slice(0, formatoActivo.maxLength), {
-                      shouldValidate: true,
-                    });
-                  },
+          <div className="mt-4 grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label htmlFor="ln-tipo" className="label">Tipo de documento</label>
+              <select
+                id="ln-tipo"
+                className="input"
+                {...register('tipoDocumento', {
+                  // al cambiar el tipo, se limpia el número para que no quede un valor válido para el tipo anterior pero inválido para el nuevo
+                  onChange: () => setValue('documento', ''),
                 })}
-              />
+              >
+                <option value="">Todos</option>
+                {(Object.keys(FORMATO_DOCUMENTO) as TipoDocumentoCodigo[]).map((codigo) => (
+                  <option key={codigo} value={codigo}>{FORMATO_DOCUMENTO[codigo].label}</option>
+                ))}
+              </select>
             </div>
+
+            <div>
+              <label htmlFor="ln-documento" className="label">N.º de documento</label>
+              <CampoIcono icono={IdCard}>
+                <input
+                  id="ln-documento"
+                  type="text"
+                  className={`input pl-10 font-mono ${errors.documento ? 'input-error' : ''}`}
+                  placeholder={formatoActivo ? `Ej. ${formatoActivo.ejemplo}` : 'DNI, CE, RUC o pasaporte'}
+                  maxLength={formatoActivo?.maxLength}
+                  inputMode={formatoActivo?.soloDigitos ? 'numeric' : 'text'}
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-invalid={Boolean(errors.documento)}
+                  {...register('documento', {
+                    onChange: (e) => {
+                      if (!formatoActivo) return;
+                      const crudo = e.target.value;
+                      const limpio = formatoActivo.soloDigitos ? crudo.replace(/\D/g, '') : crudo.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                      setValue('documento', limpio.slice(0, formatoActivo.maxLength), { shouldValidate: true });
+                    },
+                  })}
+                />
+              </CampoIcono>
+            </div>
+
+            <Boton type="submit" icono={Search} cargando={isSubmitting} className="lg:col-start-4">
+              {isSubmitting ? 'Buscando…' : 'Realizar búsqueda'}
+            </Boton>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="lg:col-start-4 px-6 py-2.5 bg-brand-navy text-white text-sm font-semibold rounded-xl hover:bg-brand-navy-2 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Buscando…' : 'Realizar búsqueda'}
-          </button>
-        </div>
-
-        {errors.nombres && (
-          <p className="mt-3 text-xs text-red-600">{errors.nombres.message}</p>
-        )}
-        {errors.documento && (
-          <p className="mt-3 text-xs text-red-600">{errors.documento.message}</p>
-        )}
-        {errorServidor && (
-          <div className="mt-3 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-            {errorServidor}
-          </div>
-        )}
-      </form>
-
-      <div className="flex gap-3 mb-6">
-        <button
-          onClick={() => setModalEnConstruccion('Programar búsqueda')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
-        >
-          <CalendarClock className="w-4 h-4" />
-          Programar búsqueda
-        </button>
-        <button
-          onClick={() => setModalEnConstruccion('Consulta masiva')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-navy bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
-        >
-          <UploadCloud className="w-4 h-4" />
-          Consulta masiva
-        </button>
-      </div>
+          {errors.nombres && <p className="error-text mt-3">{errors.nombres.message}</p>}
+          {errors.documento && <p className="error-text mt-3">{errors.documento.message}</p>}
+          {errorServidor && <Aviso aviso={{ tipo: 'error', texto: errorServidor }} onCerrar={() => setErrorServidor(null)} className="mt-4" />}
+        </form>
+      </Panel>
 
       {resultados === null && (
-        <div className="bg-white p-10 rounded-xl border border-dashed border-slate-200 text-center">
-          <ShieldAlert className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm">
-            Ingresa un nombre, apellido o documento para empezar a buscar.
-          </p>
-        </div>
+        <Panel className="border-dashed">
+          <EstadoVacio icono={ShieldAlert} titulo="Empieza con un nombre, apellido o documento" texto="Buscamos en PEP, listas restrictivas, sanciones y noticias, y guardamos cada consulta en tu historial." />
+        </Panel>
       )}
 
       {resultados !== null && (
-        <div className="space-y-4">
+        <section aria-live="polite" className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-base font-semibold text-ink">Resultados</h2>
+            <span className="text-sm tabular-nums text-muted">{resultados.length} coincidencia{resultados.length === 1 ? '' : 's'}</span>
+          </div>
           {resultados.length === 0 ? (
-            <div className="bg-white p-8 rounded-xl border border-slate-100 text-center text-brand-muted text-sm">
-              No se encontraron coincidencias para los criterios ingresados.
-            </div>
+            <Panel>
+              <EstadoVacio icono={SearchX} titulo="Sin coincidencias" texto="Ninguna persona o empresa coincide con los criterios ingresados. Prueba con menos datos o revisa el documento." />
+            </Panel>
           ) : (
-            resultados.map((persona) => (
+            resultados.map((persona, i) => (
               <button
                 key={persona.entidadId}
                 onClick={() => setPersonaDetalle(persona)}
-                className="w-full text-left bg-white p-5 sm:p-6 rounded-xl border border-slate-100 hover:border-brand-amber/40 transition"
+                className="card card-hover aparece group w-full p-5 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20 sm:p-6"
+                style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
               >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-11 h-11 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
-                    {iniciales(persona.nombreCompleto) || '·'}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <h2 className="text-base font-semibold text-brand-ink">
-                        {persona.nombreCompleto}
-                      </h2>
-                      <span className="text-xs font-medium text-brand-muted shrink-0">
-                        {persona.manchas.length} registro
-                        {persona.manchas.length === 1 ? '' : 's'}
-                      </span>
+                <div className="flex items-start gap-4">
+                  <Avatar nombre={persona.nombreCompleto} tamano="lg" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <h3 className="text-base font-semibold text-ink">{persona.nombreCompleto}</h3>
+                      <span className="badge badge-brand">{persona.manchas.length} registro{persona.manchas.length === 1 ? '' : 's'}</span>
                     </div>
-                    <p className="text-xs text-brand-muted mt-0.5">
-                      {persona.tipoDocumento ?? 'Documento'}: {persona.documento}
+                    <p className="mt-0.5 text-xs text-muted">
+                      {persona.tipoDocumento ?? 'Documento'}: <span className="font-mono">{persona.documento}</span>
                       {persona.pais ? ` · ${persona.pais}` : ''}
                       {' · '}
                       {persona.tipoEntidad === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural'}
                     </p>
 
                     <div className="mt-4 space-y-3">
-                      {persona.manchas.slice(0, 1).map((mancha) => (
-                        <ManchaCard key={mancha.id} mancha={mancha} />
-                      ))}
-                      {persona.manchas.length > 1 && (
-                        <p className="text-xs text-brand-navy font-medium">
-                          Ver {persona.manchas.length - 1} registro
-                          {persona.manchas.length - 1 === 1 ? '' : 's'} más →
-                        </p>
-                      )}
+                      {persona.manchas.slice(0, 1).map((mancha) => <ManchaCard key={mancha.id} mancha={mancha} />)}
+                      <p className="flex items-center gap-1 text-sm font-medium text-brand-ink">
+                        {persona.manchas.length > 1 ? `Ver ${persona.manchas.length - 1} registro${persona.manchas.length - 1 === 1 ? '' : 's'} más` : 'Ver detalle'}
+                        <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </p>
                     </div>
                   </div>
                 </div>
               </button>
             ))
           )}
-        </div>
+        </section>
       )}
 
       <HistorialBusquedas onVerDetalle={abrirDetallePorId} recargarClave={recargarHistorial} />
 
-      {personaDetalle && (
-        <DetalleEntidadModal persona={personaDetalle} onClose={() => setPersonaDetalle(null)} />
-      )}
-
-      {modalEnConstruccion && (
-        <TrabajandoEnElloModal
-          titulo={modalEnConstruccion}
-          onClose={() => setModalEnConstruccion(null)}
-        />
-      )}
+      {personaDetalle && <DetalleEntidadModal persona={personaDetalle} onClose={() => setPersonaDetalle(null)} />}
+      {modalEnConstruccion && <TrabajandoEnElloModal titulo={modalEnConstruccion} onClose={() => setModalEnConstruccion(null)} />}
     </PageShell>
   );
 }

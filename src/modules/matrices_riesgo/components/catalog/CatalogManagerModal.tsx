@@ -220,19 +220,19 @@ export function CatalogManagerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm">
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-line bg-white shadow-2xl">
         <header className="flex items-start justify-between border-b border-line px-6 py-6 md:px-8">
           <div>
-            <p className="text-xs font-bold text-muted">
+            <p className="eyebrow">
               Configuración
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold text-ink">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
               Áreas y procesos
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted">
               Crea las áreas, registra sus
               procesos y define la relación
               entre ambos.
@@ -242,7 +242,7 @@ export function CatalogManagerModal({
           <button
             type="button"
             onClick={cerrarModal}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-ink"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-faint transition hover:bg-surface-2 hover:text-ink"
             aria-label="Cerrar"
           >
             <X size={20} />
@@ -265,7 +265,7 @@ export function CatalogManagerModal({
           <div className="grid gap-5 md:grid-cols-2">
             <section className="rounded-xl border border-line bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-line text-brand">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <Layers3 size={20} />
                 </div>
 
@@ -274,7 +274,7 @@ export function CatalogManagerModal({
                     Crear área
                   </h3>
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted">
                     Área responsable del riesgo
                   </p>
                 </div>
@@ -329,7 +329,7 @@ export function CatalogManagerModal({
 
             <section className="rounded-xl border border-line bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-line text-brand">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <Workflow size={20} />
                 </div>
 
@@ -338,7 +338,7 @@ export function CatalogManagerModal({
                     Crear proceso
                   </h3>
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted">
                     Proceso que será evaluado
                   </p>
                 </div>
@@ -404,7 +404,7 @@ export function CatalogManagerModal({
                   Vincular área y proceso
                 </h3>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted">
                   Define qué procesos pertenecen
                   a cada área.
                 </p>
@@ -412,7 +412,7 @@ export function CatalogManagerModal({
             </div>
 
             {cargandoCatalogos ? (
-              <div className="flex items-center justify-center py-8 text-sm text-slate-500">
+              <div className="flex items-center justify-center py-8 text-sm text-muted">
                 <Loader2
                   size={18}
                   className="mr-2 animate-spin"

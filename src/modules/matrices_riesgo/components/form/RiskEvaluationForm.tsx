@@ -2252,9 +2252,9 @@ export function RiskEvaluationForm({
 
     return (
 
-      <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-slate-200 bg-white">
+      <div className="flex min-h-[420px] items-center justify-center card">
 
-        <div className="flex flex-col items-center gap-3 text-slate-500">
+        <div className="flex flex-col items-center gap-3 text-muted">
 
           <Loader2
             className="h-7 w-7 animate-spin"
@@ -2296,7 +2296,7 @@ export function RiskEvaluationForm({
               <span className="h-2 w-2 rounded-full bg-bad" />
 
 
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Matriz de riesgo
               </p>
 
@@ -2312,7 +2312,7 @@ export function RiskEvaluationForm({
             </h1>
 
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
 
               {continuandoBorrador
                 ? "Continúa completando el borrador guardado hasta registrar la evaluación."
@@ -2410,21 +2410,21 @@ export function RiskEvaluationForm({
 
           {currentStep === 1 && (
 
-            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+            <section className="card p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   01 · Identificación
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   Riesgo inherente
                 </h2>
 
 
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-muted">
                   Describe el evento antes de considerar controles o medidas de mitigación.
                 </p>
 
@@ -2900,11 +2900,11 @@ export function RiskEvaluationForm({
 
           {currentStep === 2 && (
 
-            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+            <section className="card p-6 lg:p-8">
 
               <div className="mb-8 flex items-start gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
 
                   <SlidersHorizontal
                     size={22}
@@ -2915,17 +2915,17 @@ export function RiskEvaluationForm({
 
                 <div>
 
-                  <p className="text-xs font-bold text-muted">
+                  <p className="eyebrow">
                     02 · Evaluación
                   </p>
 
 
-                  <h2 className="mt-2 text-2xl font-bold text-ink">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                     Controles del riesgo
                   </h2>
 
 
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                     Evalúa la naturaleza, operación y seguimiento de los controles aplicados al riesgo identificado.
                   </p>
 
@@ -2948,7 +2948,7 @@ export function RiskEvaluationForm({
 
                   <div>
 
-                    <p className="text-xs font-bold text-muted">
+                    <p className="eyebrow">
                       Riesgo identificado
                     </p>
 
@@ -3370,7 +3370,7 @@ export function RiskEvaluationForm({
                     </p>
 
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted">
                       El motor de riesgo calculará la mitigación y la exposición residual.
                     </p>
 
@@ -3476,21 +3476,21 @@ export function RiskEvaluationForm({
 
           {currentStep === 3 && (
 
-            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+            <section className="card p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   03 · Resultado
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   Riesgo residual
                 </h2>
 
 
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                   Revisa cómo cambia la exposición después de aplicar los controles evaluados.
                 </p>
 
@@ -3504,12 +3504,12 @@ export function RiskEvaluationForm({
 
                 <div className="rounded-xl border border-line bg-surface-2 p-6">
 
-                  <p className="text-xs font-bold text-muted">
+                  <p className="eyebrow">
                     Antes de controles
                   </p>
 
 
-                  <h3 className="mt-2 text-lg font-bold text-ink">
+                  <h3 className="mt-2 text-lg font-semibold text-ink">
                     Riesgo inherente
                   </h3>
 
@@ -3555,7 +3555,7 @@ export function RiskEvaluationForm({
                   </p>
 
 
-                  <h3 className="mt-2 text-lg font-bold text-ink">
+                  <h3 className="mt-2 text-lg font-semibold text-ink">
                     Riesgo residual
                   </h3>
 
@@ -3603,17 +3603,17 @@ export function RiskEvaluationForm({
 
                   <div>
 
-                    <p className="text-xs font-bold text-muted">
+                    <p className="eyebrow">
                       Efectividad de controles
                     </p>
 
 
-                    <h3 className="mt-2 text-lg font-bold text-ink">
+                    <h3 className="mt-2 text-lg font-semibold text-ink">
                       Mitigación obtenida
                     </h3>
 
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted">
                       Resultado calculado por el motor de riesgo.
                     </p>
 
@@ -3810,21 +3810,21 @@ export function RiskEvaluationForm({
 
           {currentStep === 4 && (
 
-            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+            <section className="card p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   04 · Tratamiento
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   Plan de tratamiento
                 </h2>
 
 
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                   Define las acciones posteriores a la evaluación del riesgo residual.
                 </p>
 
@@ -3835,7 +3835,7 @@ export function RiskEvaluationForm({
 
               <div className="mb-7 rounded-xl border border-line-strong bg-line/40 p-5">
 
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Resultado actual
                 </p>
 
@@ -4126,12 +4126,12 @@ export function RiskEvaluationForm({
 
             <div>
 
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Acciones de evaluación
               </p>
 
 
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
 
                 {analisisRegistradoId ===
                 null
@@ -4340,7 +4340,7 @@ export function RiskEvaluationForm({
    ============================================================ */
 
 const inputClass =
-  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-faint focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-faint";
 
 
 function Field({
@@ -4437,7 +4437,7 @@ function ResultItem({
 
     <div className="flex items-center justify-between gap-4 rounded-xl bg-white px-4 py-3">
 
-      <span className="text-sm text-slate-500">
+      <span className="text-sm text-muted">
         {label}
       </span>
 

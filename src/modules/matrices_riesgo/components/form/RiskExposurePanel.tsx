@@ -53,7 +53,7 @@ function riesgoClass(riesgo?: NivelRiesgo | null) {
       return "bg-red-50 text-red-700 border-red-200";
 
     default:
-      return "bg-slate-50 text-slate-500 border-slate-200";
+      return "bg-surface-2 text-muted border-line";
   }
 }
 
@@ -77,7 +77,7 @@ export function RiskExposurePanel({
           </div>
 
           <div>
-            <p className="text-xs font-bold text-muted">
+            <p className="eyebrow">
               Exposición actual
             </p>
             <h3 className="text-lg font-bold text-ink">
@@ -109,7 +109,7 @@ export function RiskExposurePanel({
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-white p-3">
-              <p className="text-[11px] uppercase text-slate-400">
+              <p className="text-[11px] uppercase text-faint">
                 Probabilidad
               </p>
               <p className="mt-1 text-sm font-semibold text-ink">
@@ -118,7 +118,7 @@ export function RiskExposurePanel({
             </div>
 
             <div className="rounded-xl bg-white p-3">
-              <p className="text-[11px] uppercase text-slate-400">
+              <p className="text-[11px] uppercase text-faint">
                 Impacto
               </p>
               <p className="mt-1 text-sm font-semibold text-ink">
@@ -163,7 +163,7 @@ export function RiskExposurePanel({
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>
-                <p className="text-[11px] uppercase text-slate-400">
+                <p className="text-[11px] uppercase text-faint">
                   Probabilidad
                 </p>
                 <p className="mt-1 text-sm font-semibold">
@@ -172,7 +172,7 @@ export function RiskExposurePanel({
               </div>
 
               <div>
-                <p className="text-[11px] uppercase text-slate-400">
+                <p className="text-[11px] uppercase text-faint">
                   Impacto
                 </p>
                 <p className="mt-1 text-sm font-semibold">

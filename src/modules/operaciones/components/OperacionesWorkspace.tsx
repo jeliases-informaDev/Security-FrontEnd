@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, X } from 'lucide-react';
+import { Building2, Plus, Receipt } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import {
   operacionesService,
@@ -12,13 +12,12 @@ import {
 } from '@/modules/operaciones/services/operacionesService';
 import { esAdministrador } from '@/shared/lib/modulos';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
-import { botonPrimario } from '@/shared/ui/estilos';
+import { Aviso, Boton, Esqueleto, EstadoVacio, type AvisoDatos } from '@/shared/ui/kit';
 import { CambiarResponsableModal } from './CambiarResponsableModal';
 import { OperacionForm } from './OperacionForm';
 import { OperacionesLista } from './OperacionesLista';
 
 type Vista = { tipo: 'lista' } | { tipo: 'nuevo' } | { tipo: 'editar'; id: number };
-type Aviso = { tipo: 'ok' | 'error'; texto: string };
 
 export function OperacionesWorkspace() {
   const { usuario } = useAuth();
@@ -26,7 +25,7 @@ export function OperacionesWorkspace() {
   const [errorUsuario, setErrorUsuario] = useState<string | null>(null);
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
   const [version, setVersion] = useState(0);
-  const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [aviso, setAviso] = useState<AvisoDatos | null>(null);
   const [cambiandoResponsable, setCambiandoResponsable] = useState<OperacionItem | null>(null);
   // El listado del backend todavía no informa el responsable de cada registro: se recuerdan los que se cambian en esta sesión.
   const [asignados, setAsignados] = useState<Record<number, string>>({});
@@ -48,7 +47,7 @@ export function OperacionesWorkspace() {
     };
   }, [usuario]);
 
-  const volverALaLista = (nuevoAviso?: Aviso) => {
+  const volverALaLista = (nuevoAviso?: AvisoDatos) => {
     setVista({ tipo: 'lista' });
     setAviso(nuevoAviso ?? null);
     setVersion((actual) => actual + 1);
@@ -83,65 +82,44 @@ export function OperacionesWorkspace() {
   return (
     <PageShell>
       <PageHeader
+        antetitulo={listo ? datosUsuario.empresa : 'Registro de operaciones'}
+        icono={Receipt}
         titulo={titulo}
         descripcion={descripcion}
         acciones={
           vista.tipo === 'lista' && listo ? (
-            <button
-              type="button"
-              onClick={() => {
-                setAviso(null);
-                setVista({ tipo: 'nuevo' });
-              }}
-              className={botonPrimario}
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Nueva operación
-            </button>
+            <Boton icono={Plus} onClick={() => { setAviso(null); setVista({ tipo: 'nuevo' }); }}>Nueva operación</Boton>
           ) : null
         }
       />
 
-      {aviso && (
-        <div
-          role={aviso.tipo === 'error' ? 'alert' : 'status'}
-          className={`mb-5 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${
-            aviso.tipo === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-          }`}
-        >
-          <p>{aviso.texto}</p>
-          <button type="button" onClick={() => setAviso(null)} aria-label="Cerrar el aviso" className="shrink-0 opacity-70 transition hover:opacity-100">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      {aviso && <Aviso aviso={aviso} onCerrar={() => setAviso(null)} className="mb-5" />}
 
       {errorUsuario && (
-        <Panel className="px-6 py-10 text-center">
-          <p role="alert" className="text-sm text-red-700">
-            {errorUsuario}
-          </p>
+        <Panel>
+          <EstadoVacio icono={Receipt} titulo="No se pudieron cargar tus datos" texto={errorUsuario} />
         </Panel>
       )}
 
-      {!errorUsuario && datosUsuario === null && <Panel className="px-6 py-12 text-center text-sm text-brand-muted">Cargando…</Panel>}
+      {!errorUsuario && datosUsuario === null && (
+        <Panel relleno>
+          <Esqueleto lineas={5} />
+        </Panel>
+      )}
 
       {sinEmpresa && (
-        <Panel className="px-6 py-12 text-center">
-          <p className="font-medium text-brand-ink">Tu usuario no tiene una empresa asignada.</p>
-          <p className="mt-1 text-sm text-brand-muted">
-            {esAdministrador(usuario) ? (
-              <>
-                Asígnatela en{' '}
-                <Link href="/administracion" className="font-medium text-brand-navy underline underline-offset-2">
-                  Administración
-                </Link>{' '}
-                (Cuentas, Editar) para poder ver y registrar operaciones.
-              </>
-            ) : (
-              'Pídele a un administrador que te la asigne para poder ver y registrar operaciones.'
-            )}
-          </p>
+        <Panel>
+          <EstadoVacio
+            icono={Building2}
+            titulo="Tu usuario no tiene una empresa asignada"
+            texto={
+              esAdministrador(usuario) ? (
+                <>Asígnatela en <Link href="/administracion" className="font-medium text-brand-ink underline underline-offset-2">Administración</Link> (Cuentas → Editar) para poder ver y registrar operaciones.</>
+              ) : (
+                'Pídele a un administrador que te la asigne para poder ver y registrar operaciones.'
+              )
+            }
+          />
         </Panel>
       )}
 
@@ -151,10 +129,7 @@ export function OperacionesWorkspace() {
           version={version}
           asignados={asignados}
           onNuevo={() => setVista({ tipo: 'nuevo' })}
-          onEditar={(id) => {
-            setAviso(null);
-            setVista({ tipo: 'editar', id });
-          }}
+          onEditar={(id) => { setAviso(null); setVista({ tipo: 'editar', id }); }}
           onCambiarResponsable={setCambiandoResponsable}
           onDescargarPdf={descargarPdf}
         />

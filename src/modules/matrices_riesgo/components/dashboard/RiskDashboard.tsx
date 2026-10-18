@@ -174,7 +174,7 @@ function RiskBadge({
     obtenerColorRiesgo(riesgo);
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">
+    <div className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink">
       <span
         className="h-2.5 w-2.5 rounded-full"
         style={{
@@ -206,23 +206,23 @@ function StatCard({
   icono,
 }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="card p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-slate-500">
+          <p className="text-xs font-semibold text-muted">
             {titulo}
           </p>
 
-          <p className="mt-2 text-3xl font-bold text-slate-900">
+          <p className="mt-2 text-3xl font-bold text-ink">
             {valor}
           </p>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted">
             {descripcion}
           </p>
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-2 text-ink">
           {icono}
         </div>
       </div>
@@ -563,8 +563,8 @@ export function RiskDashboard({
 
   if (cargando) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-slate-200 bg-white">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
+      <div className="flex min-h-[420px] items-center justify-center card">
+        <div className="flex flex-col items-center gap-3 text-muted">
           <Loader2 className="h-7 w-7 animate-spin" />
 
           <span className="text-sm font-medium">
@@ -701,17 +701,17 @@ export function RiskDashboard({
             HISTORIAL
            ==================================================== */}
 
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden card shadow-sm">
 
           {/* HEADER HISTORIAL */}
 
-          <div className="border-b border-slate-200 px-6 py-5">
+          <div className="border-b border-line px-6 py-5">
 
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-ink">
               Historial de evaluaciones
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted">
               Revisa los análisis creados y su nivel
               de riesgo actual.
             </p>
@@ -725,13 +725,13 @@ export function RiskDashboard({
 
             <div className="px-6 py-16 text-center">
 
-              <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />
+              <ClipboardList className="mx-auto h-10 w-10 text-faint" />
 
-              <p className="mt-4 font-semibold text-slate-700">
+              <p className="mt-4 font-semibold text-ink">
                 No existen evaluaciones
               </p>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted">
                 Crea una nueva evaluación de riesgo para comenzar.
               </p>
 
@@ -746,35 +746,35 @@ export function RiskDashboard({
 
                 <table className="min-w-full">
 
-                  <thead className="bg-slate-50">
+                  <thead className="bg-surface-2">
 
-                    <tr className="border-b border-slate-200">
+                    <tr className="border-b border-line">
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Evaluación
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Área / Proceso
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Creación
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Riesgo inherente
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Riesgo residual
                       </th>
 
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-left text-xs font-semibold text-muted">
                         Estado
                       </th>
 
-                      <th className="px-6 py-3.5 text-right text-xs font-semibold text-slate-500">
+                      <th className="px-6 py-3.5 text-right text-xs font-semibold text-muted">
                         Acciones
                       </th>
 
@@ -783,27 +783,27 @@ export function RiskDashboard({
                   </thead>
 
 
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-line">
 
                     {analisisPaginados.map(
                       (item) => (
 
                         <tr
                           key={item.id}
-                          className="transition hover:bg-slate-50/70"
+                          className="transition hover:bg-surface-2/70"
                         >
 
                           {/* EVALUACIÓN */}
 
                           <td className="px-6 py-4 align-top">
 
-                            <p className="max-w-[260px] font-semibold text-slate-900">
+                            <p className="max-w-[260px] font-semibold text-ink">
                               {item.titulo?.trim()
                                 ? item.titulo
                                 : "Sin título"}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-faint">
                               Cierre:{" "}
                               {formatearFecha(
                                 item.fechaCierre
@@ -817,12 +817,12 @@ export function RiskDashboard({
 
                           <td className="px-6 py-4 align-top">
 
-                            <p className="text-sm font-medium text-slate-700">
+                            <p className="text-sm font-medium text-ink">
                               {item.area ||
                                 "Sin área"}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-muted">
                               {item.proceso ||
                                 "Sin proceso"}
                             </p>
@@ -832,7 +832,7 @@ export function RiskDashboard({
 
                           {/* FECHA CREACIÓN */}
 
-                          <td className="whitespace-nowrap px-6 py-4 align-top text-sm text-slate-600">
+                          <td className="whitespace-nowrap px-6 py-4 align-top text-sm text-muted">
 
                             {formatearFecha(
                               item.fechaCreacion
@@ -881,7 +881,7 @@ export function RiskDashboard({
                             ) : item.estado ===
                               "CERRADO" ? (
 
-                              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-200">
+                              <span className="inline-flex rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-muted ring-1 ring-inset ring-line">
                                 Cerrada
                               </span>
 
@@ -936,7 +936,7 @@ export function RiskDashboard({
                                       )
                                     }
                                     title="Ver evaluación"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-muted transition hover:border-brand hover:bg-blue-50 hover:text-brand"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </button>
@@ -955,7 +955,7 @@ export function RiskDashboard({
                                       !onVerMatriz
                                     }
                                     title="Ver matriz"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-muted transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     <Grid3X3 className="h-4 w-4" />
                                   </button>
@@ -975,7 +975,7 @@ export function RiskDashboard({
                                       item.id
                                     }
                                     title="Descargar PDF"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-muted transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     {descargandoPdfId ===
                                     item.id ? (
@@ -1012,13 +1012,13 @@ export function RiskDashboard({
                   PAGINACIÓN
                  ================================================== */}
 
-              <div className="flex flex-col gap-4 border-t border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 border-t border-line px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
 
                 {/* REGISTROS POR PÁGINA */}
 
                 <div className="flex items-center gap-3">
 
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-muted">
                     Mostrar
                   </span>
 
@@ -1033,7 +1033,7 @@ export function RiskDashboard({
                         )
                       )
                     }
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none transition focus:border-brand"
+                    className="rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink outline-none transition focus:border-brand"
                   >
                     <option value={5}>
                       5
@@ -1048,7 +1048,7 @@ export function RiskDashboard({
                     </option>
                   </select>
 
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-muted">
                     registros
                   </span>
 
@@ -1059,10 +1059,10 @@ export function RiskDashboard({
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted">
                     Mostrando{" "}
 
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-ink">
                       {analisis.length ===
                       0
                         ? 0
@@ -1072,13 +1072,13 @@ export function RiskDashboard({
 
                     {" - "}
 
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-ink">
                       {indiceFin}
                     </span>
 
                     {" de "}
 
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-ink">
                       {analisis.length}
                     </span>
                   </p>
@@ -1103,7 +1103,7 @@ export function RiskDashboard({
                         paginaActual === 1
                       }
                       title="Página anterior"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-muted transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -1135,7 +1135,7 @@ export function RiskDashboard({
                             paginaActual ===
                             pagina
                               ? "bg-brand text-white"
-                              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                              : "border border-line bg-white text-muted hover:bg-surface-2"
                           }`}
                         >
                           {pagina}
@@ -1163,7 +1163,7 @@ export function RiskDashboard({
                         totalPaginas
                       }
                       title="Página siguiente"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-muted transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -1189,20 +1189,20 @@ export function RiskDashboard({
 
       {detalleId !== null && (
 
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-[2px]">
 
           <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-2xl">
 
             {/* HEADER MODAL */}
 
-            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-white px-6 py-5">
 
               <div>
                 <p className="text-xs font-bold text-brand">
                   Detalle de evaluación
                 </p>
 
-                <h2 className="mt-1 text-xl font-bold text-slate-950">
+                <h2 className="mt-1 text-xl font-bold text-ink">
                   {detalle?.titulo ||
                     "Evaluación de riesgo"}
                 </h2>
@@ -1213,7 +1213,7 @@ export function RiskDashboard({
                 onClick={
                   cerrarDetalle
                 }
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line text-muted transition hover:bg-surface-2 hover:text-ink"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1227,7 +1227,7 @@ export function RiskDashboard({
 
               <div className="flex min-h-[350px] items-center justify-center">
 
-                <div className="flex flex-col items-center gap-3 text-slate-500">
+                <div className="flex flex-col items-center gap-3 text-muted">
 
                   <Loader2 className="h-7 w-7 animate-spin" />
 
@@ -1245,20 +1245,20 @@ export function RiskDashboard({
 
                 {/* INFORMACIÓN GENERAL */}
 
-                <section className="rounded-xl border border-slate-200 p-5">
+                <section className="card p-5">
 
-                  <h3 className="font-bold text-slate-900">
+                  <h3 className="font-bold text-ink">
                     Información general
                   </h3>
 
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Área
                       </p>
 
-                      <p className="mt-1 text-sm font-medium text-slate-800">
+                      <p className="mt-1 text-sm font-medium text-ink">
                         {detalle.area ||
                           "—"}
                       </p>
@@ -1266,11 +1266,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Proceso
                       </p>
 
-                      <p className="mt-1 text-sm font-medium text-slate-800">
+                      <p className="mt-1 text-sm font-medium text-ink">
                         {detalle.proceso ||
                           "—"}
                       </p>
@@ -1278,11 +1278,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Factor
                       </p>
 
-                      <p className="mt-1 text-sm font-medium text-slate-800">
+                      <p className="mt-1 text-sm font-medium text-ink">
                         {formatearTextoEnum(
                           detalle.factor
                         )}
@@ -1291,11 +1291,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Tipo de empresa
                       </p>
 
-                      <p className="mt-1 text-sm font-medium text-slate-800">
+                      <p className="mt-1 text-sm font-medium text-ink">
                         {formatearTextoEnum(
                           detalle.tipoEmpresa
                         )}
@@ -1304,11 +1304,11 @@ export function RiskDashboard({
 
 
                     <div className="sm:col-span-2">
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Detalle del riesgo
                       </p>
 
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-ink">
                         {detalle.detalleRiesgo ||
                           "—"}
                       </p>
@@ -1321,17 +1321,17 @@ export function RiskDashboard({
 
                 {/* EXPOSICIÓN */}
 
-                <section className="rounded-xl border border-slate-200 p-5">
+                <section className="card p-5">
 
-                  <h3 className="font-bold text-slate-900">
+                  <h3 className="font-bold text-ink">
                     Evaluación del riesgo
                   </h3>
 
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
 
-                    <div className="rounded-xl bg-slate-50 p-4">
+                    <div className="rounded-xl bg-surface-2 p-4">
 
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Riesgo inherente
                       </p>
 
@@ -1343,7 +1343,7 @@ export function RiskDashboard({
                         />
                       </div>
 
-                      <p className="mt-3 text-sm text-slate-600">
+                      <p className="mt-3 text-sm text-muted">
                         Probabilidad:{" "}
                         <strong>
                           {formatearTextoEnum(
@@ -1352,7 +1352,7 @@ export function RiskDashboard({
                         </strong>
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-600">
+                      <p className="mt-1 text-sm text-muted">
                         Impacto:{" "}
                         <strong>
                           {formatearTextoEnum(
@@ -1364,9 +1364,9 @@ export function RiskDashboard({
                     </div>
 
 
-                    <div className="rounded-xl bg-slate-50 p-4">
+                    <div className="rounded-xl bg-surface-2 p-4">
 
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Riesgo residual
                       </p>
 
@@ -1378,7 +1378,7 @@ export function RiskDashboard({
                         />
                       </div>
 
-                      <p className="mt-3 text-sm text-slate-600">
+                      <p className="mt-3 text-sm text-muted">
                         Probabilidad:{" "}
                         <strong>
                           {formatearTextoEnum(
@@ -1387,7 +1387,7 @@ export function RiskDashboard({
                         </strong>
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-600">
+                      <p className="mt-1 text-sm text-muted">
                         Impacto:{" "}
                         <strong>
                           {formatearTextoEnum(
@@ -1405,20 +1405,20 @@ export function RiskDashboard({
 
                 {/* CONTROL */}
 
-                <section className="rounded-xl border border-slate-200 p-5">
+                <section className="card p-5">
 
-                  <h3 className="font-bold text-slate-900">
+                  <h3 className="font-bold text-ink">
                     Control
                   </h3>
 
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Descripción
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {detalle.controlDescripcion ||
                           "—"}
                       </p>
@@ -1426,11 +1426,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Documento
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {detalle.controlDocumento ||
                           "—"}
                       </p>
@@ -1438,11 +1438,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Área de control
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {detalle.controlArea ||
                           "—"}
                       </p>
@@ -1450,11 +1450,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Mitigación
                       </p>
 
-                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                      <p className="mt-1 text-sm font-semibold text-ink">
                         {detalle.mitigacion !=
                         null
                           ? `${(
@@ -1474,20 +1474,20 @@ export function RiskDashboard({
 
                 {/* TRATAMIENTO */}
 
-                <section className="rounded-xl border border-slate-200 p-5">
+                <section className="card p-5">
 
-                  <h3 className="font-bold text-slate-900">
+                  <h3 className="font-bold text-ink">
                     Tratamiento
                   </h3>
 
                   <div className="mt-4 grid gap-5 sm:grid-cols-2">
 
                     <div className="sm:col-span-2">
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Plan de acción
                       </p>
 
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-ink">
                         {detalle.planAccion ||
                           "—"}
                       </p>
@@ -1495,11 +1495,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Área responsable
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {detalle.areaResponsable ||
                           "—"}
                       </p>
@@ -1507,11 +1507,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Estado
                       </p>
 
-                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                      <p className="mt-1 text-sm font-semibold text-ink">
                         {detalle.estado ===
                         "EDITANDO"
                           ? "Borrador"
@@ -1524,11 +1524,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Fecha inicio
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {formatearFecha(
                           detalle.fechaInicio
                         )}
@@ -1537,11 +1537,11 @@ export function RiskDashboard({
 
 
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
+                      <p className="eyebrow">
                         Fecha cierre
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="mt-1 text-sm text-ink">
                         {formatearFecha(
                           detalle.fechaCierre
                         )}
@@ -1562,7 +1562,7 @@ export function RiskDashboard({
                     onClick={
                       cerrarDetalle
                     }
-                    className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    className="card px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-surface-2"
                   >
                     Cerrar
                   </button>
@@ -1586,7 +1586,7 @@ export function RiskDashboard({
                           );
                         }
                       }}
-                      className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover"
+                      className="inline-flex items-center gap-2 btn btn-primary"
                     >
                       <Download className="h-4 w-4" />
 

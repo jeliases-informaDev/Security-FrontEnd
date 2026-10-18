@@ -455,7 +455,7 @@ export function OperacionForm({ usuario, id, onCancelar, onGuardado }: Operacion
     <FormProvider {...metodos}>
       <form onSubmit={guardar} noValidate className="space-y-6">
         {errorGeneral && (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p role="alert" className="rounded-lg border border-bad/20 bg-bad-soft px-4 py-3 text-sm text-bad">
             {errorGeneral}
           </p>
         )}
@@ -488,8 +488,8 @@ export function OperacionForm({ usuario, id, onCancelar, onGuardado }: Operacion
           titulo="Persona representada"
           descripcion="Solo si la operación se hace en nombre de otra persona."
           acciones={
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" className="h-4 w-4 rounded border-slate-300 accent-[#12253d]" {...register('conRepresentada')} />
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+              <input type="checkbox" className="h-4 w-4 rounded border-line-strong accent-[#12253d]" {...register('conRepresentada')} />
               Actúa en representación de otra persona
             </label>
           }
@@ -559,7 +559,7 @@ export function OperacionForm({ usuario, id, onCancelar, onGuardado }: Operacion
             {fields.map((campoLista, indice) => {
               const errs = errors.beneficiarios?.[indice];
               return (
-                <div key={campoLista.id} className="grid grid-cols-1 items-start gap-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto]">
+                <div key={campoLista.id} className="grid grid-cols-1 items-start gap-4 rounded-lg border border-line bg-surface-2/60 p-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_auto]">
                   <Campo id={`beneficiario-${indice}-nombre`} texto="Nombre completo" error={errs?.nombre?.message}>
                     <input id={`beneficiario-${indice}-nombre`} autoComplete="off" className={clase(errs?.nombre?.message)} {...register(`beneficiarios.${indice}.nombre`)} />
                   </Campo>
@@ -580,7 +580,7 @@ export function OperacionForm({ usuario, id, onCancelar, onGuardado }: Operacion
                     disabled={fields.length === 1}
                     aria-label={`Quitar el beneficiario ${indice + 1}`}
                     title={fields.length === 1 ? 'Debe quedar al menos un beneficiario' : 'Quitar beneficiario'}
-                    className="mt-0 flex h-10 w-10 items-center justify-center self-end rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-500 sm:mt-7 sm:self-start"
+                    className="mt-0 flex h-10 w-10 items-center justify-center self-end rounded-lg text-muted transition hover:bg-bad-soft hover:text-bad disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted sm:mt-7 sm:self-start"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>

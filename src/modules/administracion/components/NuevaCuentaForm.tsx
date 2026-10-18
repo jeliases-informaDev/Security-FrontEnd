@@ -94,7 +94,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
   return (
     <form onSubmit={crear} noValidate className="space-y-6">
       {errorGeneral && (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="rounded-lg border border-bad/20 bg-bad-soft px-4 py-3 text-sm text-bad">
           {errorGeneral}
         </p>
       )}
@@ -173,7 +173,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
                 onClick={() => setMostrarClave((visible) => !visible)}
                 aria-label={mostrarClave ? 'Ocultar la clave' : 'Mostrar la clave'}
                 title={mostrarClave ? 'Ocultar la clave' : 'Mostrar la clave'}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-white text-muted transition hover:bg-surface-2"
               >
                 {mostrarClave ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
               </button>

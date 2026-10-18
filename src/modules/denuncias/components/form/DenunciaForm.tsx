@@ -36,7 +36,7 @@ import { StyledSelect } from "@/shared/ui/StyledSelect";
    UI
    ============================================================ */
 const inputClass =
-  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-faint focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-faint";
 const labelClass =
   "mb-2 block text-sm font-semibold text-ink";
 const MAX_DOCUMENTOS = 5;
@@ -761,28 +761,28 @@ export function DenunciaForm() {
             MENSAJE DE ERROR
         ====================================================== */}
         {error && (
-          <div className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <div className="rounded-xl border border-bad/20 bg-bad-soft px-5 py-4 text-sm text-bad">
             {error}
           </div>
         )}
         {/* ======================================================
             INFORMACIÓN DE LA DENUNCIA
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <div className="mb-8 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
               <FileText
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Información principal
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                 Información de la denuncia
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 Indica el motivo y describe detalladamente
                 los hechos que deseas reportar.
               </p>
@@ -840,21 +840,21 @@ export function DenunciaForm() {
         {/* ======================================================
             RECEPTOR
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <div className="mb-8 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
               <UserRound
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Receptor
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                 Receptor de la denuncia
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 Selecciona quién deberá recibir la denuncia
                 o propón otro receptor.
               </p>
@@ -913,13 +913,13 @@ export function DenunciaForm() {
                   event.target.checked
                 )
               }
-              className="h-4 w-4 rounded border-slate-300 accent-brand"
+              className="h-4 w-4 rounded border-line-strong accent-brand"
             />
             <div>
               <p className="text-sm font-semibold text-ink">
                 Proponer otro receptor
               </p>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-muted">
                 Utiliza esta opción si deseas proponer
                 un receptor distinto a los disponibles.
               </p>
@@ -929,25 +929,25 @@ export function DenunciaForm() {
         {/* ======================================================
             DOCUMENTACIÓN
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
               <FileText
                 size={22}
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Evidencias
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                 Documentación
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 Puedes adjuntar documentos relacionados
                 con la denuncia.
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-faint">
                 PDF, DOC o DOCX · máximo 5 archivos ·
                 máximo 10 MB por archivo.
               </p>
@@ -994,15 +994,15 @@ export function DenunciaForm() {
                 <p className="mt-3 text-sm font-bold text-ink">
                   Seleccionar documentos
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-muted">
                   Haz clic para seleccionar
                   uno o varios archivos.
                 </p>
               </label>
               {/* ERROR */}
               {errorDocumentos && (
-                <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
-                  <p className="text-sm text-red-700">
+                <div className="mt-3 rounded-xl border border-bad/20 bg-bad-soft px-4 py-3">
+                  <p className="text-sm text-bad">
                     {errorDocumentos}
                   </p>
                 </div>
@@ -1027,7 +1027,7 @@ export function DenunciaForm() {
                         key={`${archivo.name}-${archivo.size}-${archivo.lastModified}`}
                         className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                           <FileText
                             size={18}
                           />
@@ -1036,7 +1036,7 @@ export function DenunciaForm() {
                           <p className="truncate text-sm font-semibold text-ink">
                             {archivo.name}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-500">
+                          <p className="mt-0.5 text-xs text-muted">
                             {formatearTamanoArchivo(
                               archivo.size
                             )}
@@ -1052,7 +1052,7 @@ export function DenunciaForm() {
                           disabled={
                             enviando
                           }
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-bad transition hover:bg-bad-soft disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label={`Eliminar ${archivo.name}`}
                         >
                           <Trash2
@@ -1070,22 +1070,22 @@ export function DenunciaForm() {
         {/* ======================================================
             INVOLUCRADOS
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <div className="mb-7 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                 <Users
                   size={22}
                 />
               </div>
               <div>
-                <p className="text-xs font-bold text-muted">
+                <p className="eyebrow">
                   Involucrados
                 </p>
-                <h2 className="mt-2 text-2xl font-bold text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   Personas y/o empresas involucradas
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                   Registra al menos una persona o empresa
                   relacionada con los hechos denunciados.
                 </p>
@@ -1106,12 +1106,12 @@ export function DenunciaForm() {
             <div className="rounded-xl border border-dashed border-line-strong bg-surface-2 px-6 py-10 text-center">
               <Users
                 size={27}
-                className="mx-auto text-slate-400"
+                className="mx-auto text-faint"
               />
               <p className="mt-3 text-sm font-semibold text-ink">
                 No hay involucrados registrados
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted">
                 Utiliza el botón “Nueva persona” para agregar uno.
               </p>
             </div>
@@ -1149,7 +1149,7 @@ export function DenunciaForm() {
                       ) => (
                         <tr
                           key={`${involucrado.nombreRazonSocial}-${index}`}
-                          className="text-slate-600"
+                          className="text-muted"
                         >
                           <td className="px-5 py-4">
                             {involucrado.tipoPersona ===
@@ -1181,7 +1181,7 @@ export function DenunciaForm() {
                                   index
                                 )
                               }
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-red-500 transition hover:bg-red-50"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-bad transition hover:bg-bad-soft"
                               aria-label="Eliminar involucrado"
                             >
                               <Trash2
@@ -1201,21 +1201,21 @@ export function DenunciaForm() {
         {/* ======================================================
             DENUNCIANTE
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <div className="mb-7 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
               <ShieldCheck
                 size={22}
               />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted">
+              <p className="eyebrow">
                 Confidencialidad
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                 Datos del denunciante
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 Puedes identificarte o realizar la denuncia
                 de manera anónima.
               </p>
@@ -1230,13 +1230,13 @@ export function DenunciaForm() {
                   event.target.checked
                 )
               }
-              className="mt-1 h-4 w-4 rounded border-slate-300 accent-brand"
+              className="mt-1 h-4 w-4 rounded border-line-strong accent-brand"
             />
             <div>
               <p className="text-sm font-bold text-ink">
                 Realizar denuncia anónima
               </p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
+              <p className="mt-1 text-xs leading-5 text-muted">
                 Si activas esta opción, tus datos personales
                 no serán enviados ni almacenados.
               </p>
@@ -1314,7 +1314,7 @@ export function DenunciaForm() {
         {/* ======================================================
             TÉRMINOS Y ENVÍO
         ====================================================== */}
-        <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
+        <section className="card p-6 lg:p-8">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -1324,13 +1324,13 @@ export function DenunciaForm() {
                   event.target.checked
                 )
               }
-              className="mt-1 h-4 w-4 rounded border-slate-300 accent-brand"
+              className="mt-1 h-4 w-4 rounded border-line-strong accent-brand"
             />
             <div>
               <p className="text-sm font-semibold text-ink">
                 Acepto los términos y condiciones *
               </p>
-              <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-muted">
                 Declaro que la información proporcionada es veraz
                 y autorizo su tratamiento para la gestión de la denuncia.
               </p>
@@ -1367,7 +1367,7 @@ export function DenunciaForm() {
             className="
               fixed inset-0 z-[120]
               flex items-center justify-center
-              bg-slate-950/40
+              bg-ink/40
               p-3 sm:p-4
               backdrop-blur-sm
             "
@@ -1390,7 +1390,7 @@ export function DenunciaForm() {
               {/* CONTENIDO CON SCROLL */}
               <div className="overflow-y-auto px-5 py-5 text-center sm:px-7 sm:py-6">
                 {/* ICONO */}
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-ok-soft text-ok">
                   <CheckCircle2 size={27} />
                 </div>
                 {/* CABECERA */}
@@ -1400,7 +1400,7 @@ export function DenunciaForm() {
                 <h2 className="mt-1.5 text-2xl font-bold text-ink sm:text-3xl">
                   Denuncia registrada
                 </h2>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-5 text-slate-500">
+                <p className="mx-auto mt-2 max-w-md text-sm leading-5 text-muted">
                   Tu denuncia fue registrada correctamente. Guarda el identificador y
                   el PIN para consultar posteriormente su estado.
                 </p>
@@ -1462,11 +1462,11 @@ export function DenunciaForm() {
                 {documentos.length > 0 && (
                   <div className="mt-4">
                     {documentosSubidos ? (
-                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left">
-                        <p className="text-sm font-bold text-emerald-900">
+                      <div className="rounded-xl border border-ok/20 bg-ok-soft px-4 py-3 text-left">
+                        <p className="text-sm font-bold text-ok">
                           Documentación cargada
                         </p>
-                        <p className="mt-1 text-xs leading-5 text-emerald-700">
+                        <p className="mt-1 text-xs leading-5 text-ok">
                           Se cargaron correctamente{" "}
                           {documentos.length}{" "}
                           {documentos.length === 1
@@ -1475,14 +1475,14 @@ export function DenunciaForm() {
                         </p>
                       </div>
                     ) : advertenciaDocumentos ? (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
-                        <p className="text-sm font-bold text-amber-900">
+                      <div className="rounded-xl border border-warn/20 bg-warn-soft px-4 py-3 text-left">
+                        <p className="text-sm font-bold text-warn">
                           Denuncia registrada
                         </p>
-                        <p className="mt-1 text-xs leading-5 text-amber-800">
+                        <p className="mt-1 text-xs leading-5 text-warn">
                           {advertenciaDocumentos}
                         </p>
-                        <p className="mt-1 text-xs leading-5 text-amber-800">
+                        <p className="mt-1 text-xs leading-5 text-warn">
                           Guarda tu identificador y PIN.
                           La denuncia no se ha perdido.
                         </p>
@@ -1491,11 +1491,11 @@ export function DenunciaForm() {
                   </div>
                 )}
                 {/* ADVERTENCIA */}
-                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
-                  <p className="text-sm font-bold text-amber-900">
+                <div className="mt-4 rounded-xl border border-warn/20 bg-warn-soft px-4 py-3 text-left">
+                  <p className="text-sm font-bold text-warn">
                     Guarda estos datos
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-amber-800">
+                  <p className="mt-1 text-xs leading-5 text-warn">
                     El PIN solo se muestra en este momento. Lo necesitarás junto con el
                     identificador para consultar el seguimiento de tu denuncia.
                   </p>
@@ -1556,12 +1556,12 @@ export function DenunciaForm() {
           MODAL INVOLUCRADO
       ======================================================== */}
       {modalInvolucradoAbierto && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-line bg-white shadow-2xl">
             {/* HEADER */}
             <header className="flex items-start justify-between border-b border-line px-6 py-6 md:px-8">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   {tipoPersona ===
                   "PERSONA_JURIDICA" ? (
                     <Building2
@@ -1574,13 +1574,13 @@ export function DenunciaForm() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-muted">
+                  <p className="eyebrow">
                     Involucrados
                   </p>
-                  <h2 className="mt-2 text-2xl font-bold text-ink">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                     Nueva persona o empresa
                   </h2>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-muted">
                     Registra la información del involucrado.
                   </p>
                 </div>
@@ -1588,7 +1588,7 @@ export function DenunciaForm() {
               <button
                 type="button"
                 onClick={cerrarModalInvolucrado}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-ink"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-faint transition hover:bg-surface-2 hover:text-ink"
                 aria-label="Cerrar"
               >
                 <X

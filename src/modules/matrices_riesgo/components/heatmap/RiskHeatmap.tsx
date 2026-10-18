@@ -311,8 +311,8 @@ export function RiskHeatmap({
 
   if (cargando) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center border border-slate-200 bg-white">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
+      <div className="flex min-h-[420px] items-center justify-center border border-line bg-white">
+        <div className="flex flex-col items-center gap-3 text-muted">
           <Loader2 className="h-6 w-6 animate-spin" />
 
           <span className="text-sm">
@@ -406,7 +406,7 @@ export function RiskHeatmap({
               Matriz de probabilidad e impacto
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted">
               Identifica la posición del riesgo según
               su probabilidad e impacto.
             </p>
@@ -668,7 +668,7 @@ export function RiskHeatmap({
                                 gridRow:
                                   fila,
                               }}
-                              className="border border-white bg-slate-100"
+                              className="border border-white bg-surface-2"
                             />
                           );
                         }
@@ -837,14 +837,14 @@ export function RiskHeatmap({
               className="flex items-center gap-2"
             >
               <span
-                className="inline-block h-4 w-4 border border-slate-300"
+                className="inline-block h-4 w-4 border border-line-strong"
                 style={{
                   backgroundColor:
                     estilo.fondo,
                 }}
               />
 
-              <span className="text-sm text-slate-700">
+              <span className="text-sm text-ink">
                 {
                   estilo.etiqueta
                 }
@@ -860,7 +860,7 @@ export function RiskHeatmap({
             I
           </span>
 
-          <span className="text-xs font-medium text-slate-600">
+          <span className="text-xs font-medium text-muted">
             Riesgo inherente
           </span>
         </div>
@@ -872,7 +872,7 @@ export function RiskHeatmap({
             R
           </span>
 
-          <span className="text-xs font-medium text-slate-600">
+          <span className="text-xs font-medium text-muted">
             Riesgo residual
           </span>
         </div>

@@ -1,6 +1,55 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+
+/** Iniciales de una persona o institución (dos letras) en un círculo de color de marca. */
+export function Avatar({ nombre, tamano = 'md', className = '' }: { nombre: string; tamano?: 'sm' | 'md' | 'lg'; className?: string }) {
+  const iniciales = nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || '·';
+  const medida = tamano === 'sm' ? 'h-8 w-8 text-[11px]' : tamano === 'lg' ? 'h-12 w-12 text-sm' : 'h-10 w-10 text-xs';
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-hover font-semibold text-white ${medida} ${className}`} aria-hidden="true">
+      {iniciales}
+    </span>
+  );
+}
+
+export interface AvisoDatos { tipo: 'ok' | 'error' | 'info'; texto: ReactNode }
+
+/** Franja de confirmación (verde), de error (roja) o informativa (azul) con botón para cerrarla. */
+export function Aviso({ aviso, onCerrar, children, className = '' }: { aviso: AvisoDatos; onCerrar?: () => void; children?: ReactNode; className?: string }) {
+  const estilo = aviso.tipo === 'error' ? 'border-bad/20 bg-bad-soft text-bad' : aviso.tipo === 'info' ? 'border-info/20 bg-info-soft text-info' : 'border-ok/20 bg-ok-soft text-ok';
+  const Icono = aviso.tipo === 'error' ? AlertCircle : aviso.tipo === 'info' ? Info : CheckCircle2;
+  return (
+    <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`aparece flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${estilo} ${className}`}>
+      <Icono className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p>{aviso.texto}</p>
+        {children}
+      </div>
+      {onCerrar && (
+        <button type="button" onClick={onCerrar} aria-label="Cerrar el aviso" className="-mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-70 transition hover:bg-black/5 hover:opacity-100">
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Paginación simple: texto «Mostrando a–b de n» y botones Anterior / Siguiente. */
+export function Paginacion({ desde, hasta, total, pagina, totalPaginas, onCambiar, cargando = false, extra }: { desde: number; hasta: number; total: number; pagina: number; totalPaginas: number; onCambiar: (pagina: number) => void; cargando?: boolean; extra?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface-2/40 px-5 py-3 text-sm text-muted">
+      <p aria-live="polite" className="tabular-nums">Mostrando {desde}–{hasta} de {total}{extra}</p>
+      {totalPaginas > 1 && (
+        <div className="flex items-center gap-2">
+          <span className="tabular-nums text-xs">Página {pagina + 1} de {totalPaginas}</span>
+          <button type="button" onClick={() => onCambiar(Math.max(0, pagina - 1))} disabled={pagina === 0 || cargando} className="btn btn-secondary btn-sm">Anterior</button>
+          <button type="button" onClick={() => onCambiar(pagina + 1)} disabled={pagina + 1 >= totalPaginas || cargando} className="btn btn-secondary btn-sm">Siguiente</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Piezas pequeñas del sistema visual, compartidas por todos los módulos.
 

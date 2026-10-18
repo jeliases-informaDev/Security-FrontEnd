@@ -1,33 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, ShieldQuestion, User, MapPin, IdCard, Landmark } from 'lucide-react';
-import {
-  listasNegativasService,
-  ResultadoBusquedaResponse,
-} from '@/modules/listas_negativas/services/listasNegativasService';
+import { Gauge, IdCard, Landmark, MapPin, RotateCcw, Search, User } from 'lucide-react';
+import { listasNegativasService, ResultadoBusquedaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
 import { scoringService, CatalogosScoring, ScoringResult } from '@/modules/scoring/services/scoringService';
-import { PageHeader, PageShell } from '@/shared/ui/PageShell';
+import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
+import { Avatar, Aviso, Boton, Esqueleto, EstadoVacio } from '@/shared/ui/kit';
 
-const CATEGORIA_STYLES: Record<string, string> = {
-  'Riesgo Muy Bajo': 'bg-green-50 text-green-700 border-green-200',
-  'Riesgo Bajo': 'bg-green-50 text-green-700 border-green-200',
-  'Riesgo Medio': 'bg-amber-50 text-amber-700 border-amber-200',
-  'Riesgo Alto': 'bg-red-50 text-red-700 border-red-200',
-  'Riesgo Muy Alto': 'bg-red-50 text-red-700 border-red-200',
+// Tono de cada categoría de riesgo (texto, fondo y color del medidor).
+const CATEGORIA: Record<string, { badge: string; barra: string }> = {
+  'Riesgo Muy Bajo': { badge: 'badge-ok', barra: 'bg-ok' },
+  'Riesgo Bajo': { badge: 'badge-ok', barra: 'bg-ok' },
+  'Riesgo Medio': { badge: 'badge-warn', barra: 'bg-warn' },
+  'Riesgo Alto': { badge: 'badge-bad', barra: 'bg-bad' },
+  'Riesgo Muy Alto': { badge: 'badge-bad', barra: 'bg-bad' },
 };
 
-const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition';
-
-function iniciales(nombre: string): string {
-  return nombre
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join('');
+/** Campo con icono a la izquierda (texto o selector). */
+function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <Icono className="pointer-events-none absolute left-3.5 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-faint" aria-hidden="true" />
+      {children}
+    </div>
+  );
 }
+
+const PASOS = ['Cliente', 'Datos', 'Resultado'] as const;
 
 export function EvaluarScoring() {
   const [catalogos, setCatalogos] = useState<CatalogosScoring | null>(null);
@@ -49,15 +48,9 @@ export function EvaluarScoring() {
     let cancelado = false;
     scoringService
       .obtenerCatalogos()
-      .then((data) => {
-        if (!cancelado) setCatalogos(data);
-      })
-      .catch(() => {
-        if (!cancelado) setError('No se pudieron cargar los catálogos de scoring.');
-      });
-    return () => {
-      cancelado = true;
-    };
+      .then((data) => { if (!cancelado) setCatalogos(data); })
+      .catch(() => { if (!cancelado) setError('No se pudieron cargar los catálogos de scoring.'); });
+    return () => { cancelado = true; };
   }, []);
 
   const buscarEntidad = async () => {
@@ -93,236 +86,179 @@ export function EvaluarScoring() {
       });
       setResultado(data);
     } catch (err: unknown) {
-      const mensaje =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'No se pudo completar la evaluación.';
+      const mensaje = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo completar la evaluación.';
       setError(mensaje);
     } finally {
       setEvaluando(false);
     }
   };
 
+  const reiniciar = () => {
+    setEntidadSeleccionada(null);
+    setResultado(null);
+    setIdOcupacion('');
+    setIdDepartamento('');
+    setVolumenTransaccional('');
+    setDocumentoBusqueda('');
+    setCandidatos(null);
+  };
+
+  const paso = resultado ? 2 : entidadSeleccionada ? 1 : 0;
+  const tono = resultado ? CATEGORIA[resultado.categoria] ?? { badge: 'badge-neutral', barra: 'bg-faint' } : null;
+  const pesoTotal = resultado ? resultado.factores.reduce((suma, f) => suma + Number(f.peso || 0), 0) : 0;
+
   return (
     <PageShell>
       <PageHeader
+        antetitulo="Debida diligencia"
+        icono={Gauge}
         titulo="Scoring de Riesgo"
         descripcion="Evaluación de riesgo LA/FT por ocupación, zona geográfica y volumen transaccional."
+        acciones={entidadSeleccionada ? <Boton variante="secundario" icono={RotateCcw} onClick={reiniciar}>Evaluar otro cliente</Boton> : null}
       />
 
-      <div className="max-w-3xl">
-      {!entidadSeleccionada && (
-        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-6">
-          <label className="block text-xs font-medium text-brand-muted mb-1.5">
-            Buscar cliente por documento
-          </label>
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <IdCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition"
-                placeholder="DNI / RUC / Pasaporte"
-                value={documentoBusqueda}
-                onChange={(e) => setDocumentoBusqueda(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && buscarEntidad()}
-              />
-            </div>
-            <button
-              onClick={buscarEntidad}
-              disabled={buscando}
-              className="px-5 py-2.5 bg-brand-navy text-white text-sm font-semibold rounded-xl hover:bg-brand-navy-2 transition disabled:opacity-60 shrink-0"
-            >
-              {buscando ? 'Buscando…' : 'Buscar'}
-            </button>
-          </div>
-          <p className="text-xs text-brand-muted mt-2">
-            Busca primero en Listas Negativas si el cliente es nuevo: aquí solo se evalúan entidades ya
-            registradas.
-          </p>
+      <div className="max-w-3xl space-y-6">
+        {/* Pasos */}
+        <ol className="flex items-center gap-2 text-sm" aria-label="Pasos de la evaluación">
+          {PASOS.map((nombre, i) => (
+            <li key={nombre} className="flex items-center gap-2">
+              <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${i < paso ? 'bg-brand text-white' : i === paso ? 'bg-brand-soft text-brand-ink ring-2 ring-brand/30' : 'bg-surface-2 text-muted'}`} aria-current={i === paso ? 'step' : undefined}>{i + 1}</span>
+              <span className={i === paso ? 'font-medium text-ink' : 'text-muted'}>{nombre}</span>
+              {i < PASOS.length - 1 && <span className="mx-1 h-px w-8 bg-line" aria-hidden="true" />}
+            </li>
+          ))}
+        </ol>
 
-          {candidatos !== null && (
-            <div className="mt-4 space-y-2">
-              {candidatos.length === 0 ? (
-                <p className="text-sm text-brand-muted">No se encontró ninguna entidad con ese documento.</p>
-              ) : (
-                candidatos.map((c) => (
-                  <button
-                    key={c.entidadId}
-                    onClick={() => seleccionarEntidad(c)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition text-left"
-                  >
-                    <div className="w-9 h-9 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center shrink-0">
-                      {iniciales(c.nombreCompleto) || '·'}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-brand-ink">{c.nombreCompleto}</p>
-                      <p className="text-xs text-brand-muted">
-                        {c.tipoDocumento}: {c.documento}
-                      </p>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      )}
+        {error && <Aviso aviso={{ tipo: 'error', texto: error }} onCerrar={() => setError(null)} />}
 
-      {entidadSeleccionada && !resultado && (
-        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 mb-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-navy text-white text-sm font-semibold flex items-center justify-center shrink-0">
-                {iniciales(entidadSeleccionada.nombreCompleto) || '·'}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-brand-ink">{entidadSeleccionada.nombreCompleto}</p>
-                <p className="text-xs text-brand-muted">
-                  {entidadSeleccionada.tipoDocumento}: {entidadSeleccionada.documento}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setEntidadSeleccionada(null)}
-              className="text-xs text-brand-navy hover:underline"
-            >
-              Cambiar
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-brand-muted mb-1.5">
-                Ocupación / Profesión
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
-                <select
-                  className={`${inputClass} pl-10 appearance-none`}
-                  value={idOcupacion}
-                  onChange={(e) => setIdOcupacion(e.target.value)}
-                >
-                  <option value="">Selecciona…</option>
-                  {catalogos?.ocupaciones.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-brand-muted mb-1.5">
-                Departamento (residencia)
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
-                <select
-                  className={`${inputClass} pl-10 appearance-none`}
-                  value={idDepartamento}
-                  onChange={(e) => setIdDepartamento(e.target.value)}
-                >
-                  <option value="">Selecciona…</option>
-                  {catalogos?.departamentos.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-brand-muted mb-1.5">
-                Volumen transaccional mensual estimado (S/.)
-              </label>
-              <div className="relative">
-                <Landmark className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+        {!entidadSeleccionada && (
+          <Panel className="aparece" titulo="1. Elige al cliente" descripcion="Busca por documento entre las entidades ya registradas." relleno>
+            <label htmlFor="sc-doc" className="label">Documento del cliente</label>
+            <div className="flex gap-3">
+              <CampoIcono icono={IdCard}>
                 <input
-                  type="number"
-                  min="0"
-                  className={`${inputClass} pl-10`}
-                  placeholder="Ej. 15000"
-                  value={volumenTransaccional}
-                  onChange={(e) => setVolumenTransaccional(e.target.value)}
+                  id="sc-doc"
+                  type="text"
+                  className="input pl-10 font-mono"
+                  placeholder="DNI, RUC o pasaporte"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={documentoBusqueda}
+                  onChange={(e) => setDocumentoBusqueda(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && buscarEntidad()}
                 />
+              </CampoIcono>
+              <Boton icono={Search} cargando={buscando} onClick={buscarEntidad} className="shrink-0">{buscando ? 'Buscando…' : 'Buscar'}</Boton>
+            </div>
+            <p className="hint mt-2">Si el cliente es nuevo, búscalo primero en Listas Negativas: aquí solo se evalúan entidades ya registradas.</p>
+
+            {candidatos !== null && (
+              <div className="mt-5 space-y-2" aria-live="polite">
+                {candidatos.length === 0 ? (
+                  <EstadoVacio icono={Search} titulo="No se encontró ninguna entidad con ese documento" className="py-6" />
+                ) : (
+                  candidatos.map((c) => (
+                    <button key={c.entidadId} onClick={() => seleccionarEntidad(c)} className="card card-hover flex w-full items-center gap-3 p-3 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20">
+                      <Avatar nombre={c.nombreCompleto} tamano="sm" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-ink">{c.nombreCompleto}</p>
+                        <p className="text-xs text-muted">{c.tipoDocumento}: <span className="font-mono">{c.documento}</span></p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </Panel>
+        )}
+
+        {entidadSeleccionada && !resultado && (
+          <Panel className="aparece" titulo="2. Datos de la evaluación" relleno acciones={<button type="button" onClick={() => setEntidadSeleccionada(null)} className="btn btn-ghost btn-sm">Cambiar cliente</button>}>
+            <div className="mb-5 flex items-center gap-3 rounded-xl bg-surface-2/70 p-3">
+              <Avatar nombre={entidadSeleccionada.nombreCompleto} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-ink">{entidadSeleccionada.nombreCompleto}</p>
+                <p className="text-xs text-muted">{entidadSeleccionada.tipoDocumento}: <span className="font-mono">{entidadSeleccionada.documento}</span></p>
               </div>
             </div>
-          </div>
 
-          {error && (
-            <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={evaluar}
-            disabled={evaluando || !idOcupacion || !idDepartamento || !volumenTransaccional}
-            className="mt-5 w-full px-6 py-2.5 bg-brand-navy text-white text-sm font-semibold rounded-xl hover:bg-brand-navy-2 transition disabled:opacity-50"
-          >
-            {evaluando ? 'Evaluando…' : 'Evaluar riesgo'}
-          </button>
-        </div>
-      )}
-
-      {resultado && (
-        <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100">
-          <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-            <div>
-              <p className="text-sm font-semibold text-brand-ink">{resultado.nombreCompleto}</p>
-              <p className="text-xs text-brand-muted">{resultado.documento}</p>
-            </div>
-            <span
-              className={`text-sm font-semibold px-3 py-1.5 rounded-full border ${
-                CATEGORIA_STYLES[resultado.categoria] ?? 'bg-slate-100 text-slate-700 border-slate-200'
-              }`}
-            >
-              {resultado.categoria} · {resultado.puntajeTotal.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="space-y-2 mb-5">
-            {resultado.factores.map((f, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
-              >
+            {!catalogos ? (
+              <Esqueleto lineas={4} />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-brand-ink font-medium">{f.nombre}</p>
-                  <p className="text-xs text-brand-muted">
-                    {f.valor} · peso {f.peso}%
-                  </p>
+                  <label htmlFor="sc-ocupacion" className="label">Ocupación / profesión</label>
+                  <CampoIcono icono={User}>
+                    <select id="sc-ocupacion" className="input pl-10" value={idOcupacion} onChange={(e) => setIdOcupacion(e.target.value)}>
+                      <option value="">Selecciona…</option>
+                      {catalogos.ocupaciones.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+                    </select>
+                  </CampoIcono>
                 </div>
-                <span className="text-brand-ink font-semibold">{f.puntaje}</span>
+                <div>
+                  <label htmlFor="sc-departamento" className="label">Departamento (residencia)</label>
+                  <CampoIcono icono={MapPin}>
+                    <select id="sc-departamento" className="input pl-10" value={idDepartamento} onChange={(e) => setIdDepartamento(e.target.value)}>
+                      <option value="">Selecciona…</option>
+                      {catalogos.departamentos.map((d) => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+                    </select>
+                  </CampoIcono>
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="sc-volumen" className="label">Volumen transaccional mensual estimado (S/)</label>
+                  <CampoIcono icono={Landmark}>
+                    <input id="sc-volumen" type="number" min="0" inputMode="decimal" className="input pl-10 tabular-nums" placeholder="Ej. 15000" value={volumenTransaccional} onChange={(e) => setVolumenTransaccional(e.target.value)} />
+                  </CampoIcono>
+                </div>
               </div>
-            ))}
-          </div>
+            )}
 
-          <button
-            onClick={() => {
-              setEntidadSeleccionada(null);
-              setResultado(null);
-              setIdOcupacion('');
-              setIdDepartamento('');
-              setVolumenTransaccional('');
-              setDocumentoBusqueda('');
-            }}
-            className="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-brand-navy text-sm font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 transition"
-          >
-            <ShieldQuestion className="w-4 h-4" />
-            Evaluar otro cliente
-          </button>
-        </div>
-      )}
+            <Boton className="mt-6 w-full" tamano="lg" cargando={evaluando} disabled={!catalogos || !idOcupacion || !idDepartamento || !volumenTransaccional} onClick={evaluar}>
+              {evaluando ? 'Evaluando…' : 'Evaluar riesgo'}
+            </Boton>
+          </Panel>
+        )}
 
-      {!entidadSeleccionada && !catalogos && !error && (
-        <div className="text-center text-sm text-brand-muted flex items-center justify-center gap-2 mt-4">
-          <Search className="w-4 h-4" />
-          Cargando catálogos…
-        </div>
-      )}
+        {resultado && tono && (
+          <Panel className="aparece">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <Avatar nombre={resultado.nombreCompleto} />
+                <div>
+                  <p className="text-base font-semibold text-ink">{resultado.nombreCompleto}</p>
+                  <p className="text-xs text-muted"><span className="font-mono">{resultado.documento}</span></p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className={`badge ${tono.badge} text-sm`}>{resultado.categoria}</span>
+                <p className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-ink">{resultado.puntajeTotal.toFixed(2)}</p>
+                <p className="text-xs text-muted">puntaje total</p>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6">
+              <p className="eyebrow mb-3">Factores evaluados</p>
+              <ul className="space-y-3">
+                {resultado.factores.map((f, i) => {
+                  const parte = pesoTotal > 0 ? Math.max(0, Math.min(100, (Number(f.peso || 0) / pesoTotal) * 100)) : 0;
+                  return (
+                    <li key={i} className="grid gap-1 sm:grid-cols-[1fr_auto] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-ink">{f.nombre}</p>
+                        <p className="text-xs text-muted">{f.valor} · peso {f.peso}%</p>
+                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                          <div className={`h-full rounded-full ${tono.barra}`} style={{ width: `${parte}%` }} />
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums text-ink sm:pl-6">{f.puntaje}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Boton variante="secundario" icono={RotateCcw} onClick={reiniciar} className="mt-6 w-full">Evaluar otro cliente</Boton>
+            </div>
+          </Panel>
+        )}
       </div>
     </PageShell>
   );

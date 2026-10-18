@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Check, Copy, Plus, Search } from 'lucide-react';
+import { Check, Copy, KeyRound, Plus, Search, SearchX, UserRound, Users } from 'lucide-react';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
 import { Modal } from '@/shared/ui/Modal';
 import { Panel } from '@/shared/ui/PageShell';
-import { botonPrimario, botonSecundario, botonTexto, campo } from '@/shared/ui/estilos';
+import { Avatar, Boton, Esqueleto, EstadoVacio, Etiqueta, Paginacion } from '@/shared/ui/kit';
 import { AvisoBanner, type Aviso } from './AvisoBanner';
 import { EditarCuentaModal } from './EditarCuentaModal';
 import { NuevaCuentaForm } from './NuevaCuentaForm';
@@ -110,52 +110,39 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
   if (vista.tipo === 'creada') {
     const { cuenta, clave } = vista;
     return (
-      <Panel className="p-5 sm:p-6">
-        <div role="status" className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          Se creó la cuenta de <strong className="font-semibold">{cuenta.nombreCompleto || cuenta.usuario}</strong>.
+      <Panel className="aparece max-w-2xl" titulo="Cuenta creada" descripcion="Entrega estos datos a la persona antes de salir de esta pantalla." relleno>
+        <div className="flex items-center gap-3">
+          <Avatar nombre={cuenta.nombreCompleto || cuenta.usuario} tamano="lg" />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-ink">{cuenta.nombreCompleto || cuenta.usuario}</p>
+            <p className="text-sm text-muted">{[cuenta.rolNombre, cuenta.empresa].filter(Boolean).join(' · ') || 'Sin rol ni empresa'}</p>
+          </div>
         </div>
 
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium text-brand-muted">Usuario</dt>
-            <dd className="mt-1 font-mono text-[15px] text-brand-ink">{cuenta.usuario}</dd>
+        <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-line bg-surface-2/60 p-4">
+            <dt className="flex items-center gap-1.5 text-xs font-medium text-muted"><UserRound className="h-3.5 w-3.5" aria-hidden="true" /> Usuario</dt>
+            <dd className="mt-1 break-all font-mono text-[15px] text-ink">{cuenta.usuario}</dd>
           </div>
-          <div>
-            <dt className="text-xs font-medium text-brand-muted">Clave inicial</dt>
-            <dd className="mt-1 font-mono text-[15px] text-brand-ink">{clave}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-brand-muted">Empresa</dt>
-            <dd className="mt-1 text-brand-ink">{cuenta.empresa ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-brand-muted">Rol</dt>
-            <dd className="mt-1 text-brand-ink">{cuenta.rolNombre ?? '—'}</dd>
+          <div className="rounded-xl border border-line bg-surface-2/60 p-4">
+            <dt className="flex items-center gap-1.5 text-xs font-medium text-muted"><KeyRound className="h-3.5 w-3.5" aria-hidden="true" /> Clave inicial</dt>
+            <dd className="mt-1 break-all font-mono text-[15px] text-ink">{clave}</dd>
           </div>
         </dl>
-        <p className="mt-4 text-sm text-brand-muted">La clave no se vuelve a mostrar: cópiala y entrégasela a la persona antes de salir de esta pantalla.</p>
+        <p className="hint mt-3">La clave no se vuelve a mostrar: cópiala ahora.</p>
 
-        {aviso && (
-          <div className="mt-4">
-            <AvisoBanner aviso={aviso} onCerrar={() => setAviso(null)} />
-          </div>
-        )}
+        {aviso && <AvisoBanner aviso={aviso} onCerrar={() => setAviso(null)} />}
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => copiarAcceso(cuenta, clave)} className={botonPrimario}>
-            {copiado ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-            {copiado ? 'Copiado' : 'Copiar datos de acceso'}
-          </button>
-          <button type="button" onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }} className={botonSecundario}>
-            Crear otra cuenta
-          </button>
-          <button type="button" onClick={() => { setAviso(null); setVista({ tipo: 'lista' }); }} className={botonTexto}>
-            Volver a la lista
-          </button>
+          <Boton icono={copiado ? Check : Copy} onClick={() => copiarAcceso(cuenta, clave)}>{copiado ? 'Copiado' : 'Copiar datos de acceso'}</Boton>
+          <Boton variante="secundario" onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }}>Crear otra cuenta</Boton>
+          <Boton variante="fantasma" onClick={() => { setAviso(null); setVista({ tipo: 'lista' }); }}>Volver a la lista</Boton>
         </div>
       </Panel>
     );
   }
+
+  const hayFiltros = busqueda.trim() !== '' || filtroEmpresa !== '';
 
   return (
     <div>
@@ -163,137 +150,117 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative min-w-[15rem] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" aria-hidden="true" />
           <input
             type="search"
             value={busqueda}
-            onChange={(evento) => {
-              setBusqueda(evento.target.value);
-              setPagina(0);
-            }}
-            placeholder="Buscar por nombre, usuario, correo o empresa"
+            onChange={(evento) => { setBusqueda(evento.target.value); setPagina(0); }}
+            placeholder="Buscar por nombre, usuario, correo o empresa…"
             aria-label="Buscar cuentas"
-            className={`${campo} pl-9`}
+            autoComplete="off"
+            className="input pl-10"
           />
         </div>
         <div className="w-full sm:w-64">
           <select
             value={filtroEmpresa}
-            onChange={(evento) => {
-              setFiltroEmpresa(evento.target.value);
-              setPagina(0);
-            }}
+            onChange={(evento) => { setFiltroEmpresa(evento.target.value); setPagina(0); }}
             aria-label="Filtrar por empresa"
-            className={campo}
+            className="input"
           >
             <option value="">Todas las empresas</option>
             <option value={SIN_EMPRESA}>Sin empresa{sinEmpresa > 0 ? ` (${sinEmpresa})` : ''}</option>
             {empresas.map((empresa) => (
-              <option key={empresa.id} value={empresa.nombre}>
-                {empresa.nombre}
-              </option>
+              <option key={empresa.id} value={empresa.nombre}>{empresa.nombre}</option>
             ))}
           </select>
         </div>
-        <button
-          type="button"
-          onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }}
-          disabled={!listoParaCrear}
-          title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}
-          className={botonPrimario}
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
+        <Boton icono={Plus} onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
           Nueva cuenta
-        </button>
+        </Boton>
       </div>
 
       {error ? (
-        <Panel className="px-6 py-10 text-center">
-          <p role="alert" className="text-sm text-red-700">
-            {error}
-          </p>
-          <button type="button" onClick={onRecargar} className={`${botonSecundario} mt-4`}>
-            Reintentar
-          </button>
+        <Panel>
+          <EstadoVacio icono={Users} titulo="No se pudieron cargar las cuentas" texto={error} accion={<Boton variante="secundario" onClick={onRecargar}>Reintentar</Boton>} />
         </Panel>
       ) : cuentas === null ? (
-        <Panel className="px-6 py-12 text-center text-sm text-brand-muted">Cargando cuentas…</Panel>
+        <Panel relleno>
+          <Esqueleto lineas={6} />
+        </Panel>
       ) : filtradas.length === 0 ? (
-        <Panel className="px-6 py-12 text-center">
-          <p className="font-medium text-brand-ink">{cuentas.length === 0 ? 'Todavía no hay cuentas.' : 'Ninguna cuenta coincide con la búsqueda.'}</p>
-          {cuentas.length > 0 && (
-            <button type="button" onClick={() => { setBusqueda(''); setFiltroEmpresa(''); setPagina(0); }} className={`${botonSecundario} mt-4`}>
-              Quitar los filtros
-            </button>
+        <Panel>
+          {cuentas.length === 0 ? (
+            <EstadoVacio icono={Users} titulo="Todavía no hay cuentas" texto="Crea la primera con el botón «Nueva cuenta»." />
+          ) : (
+            <EstadoVacio
+              icono={SearchX}
+              titulo="Ninguna cuenta coincide con la búsqueda"
+              texto="Prueba con otro nombre o quita los filtros."
+              accion={hayFiltros ? <Boton variante="secundario" onClick={() => { setBusqueda(''); setFiltroEmpresa(''); setPagina(0); }}>Quitar los filtros</Boton> : undefined}
+            />
           )}
         </Panel>
       ) : (
-        <Panel className={`overflow-hidden ${cargando ? 'opacity-70' : ''}`}>
+        <Panel className={cargando ? 'opacity-70 transition-opacity' : 'transition-opacity'}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[52rem] text-left text-sm">
+            <table className="tabla min-w-[52rem]">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-brand-muted">
-                  <th scope="col" className="px-5 py-3">Cuenta</th>
-                  <th scope="col" className="px-3 py-3">Correo</th>
-                  <th scope="col" className="px-3 py-3">Empresa</th>
-                  <th scope="col" className="px-3 py-3">Rol</th>
-                  <th scope="col" className="px-3 py-3">Estado</th>
-                  <th scope="col" className="px-5 py-3 text-right">Acciones</th>
+                <tr>
+                  <th scope="col">Cuenta</th>
+                  <th scope="col">Correo</th>
+                  <th scope="col">Empresa</th>
+                  <th scope="col">Rol</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" className="text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {visibles.map((cuenta) => {
                   const propia = cuenta.usuario.toLowerCase() === usuarioActual.toLowerCase();
                   return (
-                    <tr key={cuenta.id} className="transition hover:bg-slate-50">
-                      <td className="px-5 py-3">
-                        <p className={`font-medium ${cuenta.activo ? 'text-brand-ink' : 'text-slate-500'}`}>
-                          {cuenta.nombreCompleto || cuenta.usuario}
-                          {propia && <span className="ml-2 text-xs font-normal text-brand-muted">(tú)</span>}
-                        </p>
-                        <p className="font-mono text-[13px] text-brand-muted">{cuenta.usuario}</p>
+                    <tr key={cuenta.id} className={cuenta.activo ? '' : 'opacity-70'}>
+                      <td>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Avatar nombre={cuenta.nombreCompleto || cuenta.usuario} tamano="sm" className={cuenta.activo ? '' : 'grayscale'} />
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-ink">
+                              {cuenta.nombreCompleto || cuenta.usuario}
+                              {propia && <span className="ml-2 text-xs font-normal text-muted">(tú)</span>}
+                            </p>
+                            <p className="font-mono text-[13px] text-muted">{cuenta.usuario}</p>
+                          </div>
+                        </div>
                       </td>
-                      <td className="max-w-[14rem] truncate px-3 py-3 text-brand-muted" title={cuenta.correo}>
-                        {cuenta.correo}
-                      </td>
-                      <td className="px-3 py-3">
+                      <td className="max-w-[14rem] truncate text-muted" title={cuenta.correo}>{cuenta.correo}</td>
+                      <td>
                         {cuenta.empresa?.trim() ? (
-                          <span className="text-brand-ink">{cuenta.empresa}</span>
+                          <span className="text-ink">{cuenta.empresa}</span>
                         ) : (
-                          <span className="text-amber-800" title="Sin empresa no puede usar Registro de operaciones">
-                            Sin empresa
-                          </span>
+                          <Etiqueta tono="warn" className="whitespace-nowrap">
+                            <span title="Sin empresa no puede usar Registro de operaciones">Sin empresa</span>
+                          </Etiqueta>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3 text-brand-muted">{cuenta.rolNombre ?? '—'}</td>
-                      <td className="whitespace-nowrap px-3 py-3">
-                        <span className={`inline-flex items-center gap-1.5 ${cuenta.activo ? 'text-brand-ink' : 'text-slate-500'}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${cuenta.activo ? 'bg-emerald-500' : 'bg-slate-400'}`} aria-hidden="true" />
-                          {cuenta.activo ? 'Activa' : 'Inactiva'}
-                        </span>
+                      <td className="whitespace-nowrap text-muted">{cuenta.rolNombre ?? '—'}</td>
+                      <td className="whitespace-nowrap">
+                        <Etiqueta tono={cuenta.activo ? 'ok' : 'neutral'} punto>{cuenta.activo ? 'Activa' : 'Inactiva'}</Etiqueta>
                       </td>
-                      <td className="px-5 py-3">
+                      <td>
                         <div className="flex items-center justify-end gap-1">
-                          <button type="button" onClick={() => setEditando(cuenta)} className={`${botonTexto} whitespace-nowrap`}>
-                            Editar
-                          </button>
+                          <button type="button" onClick={() => setEditando(cuenta)} className="btn btn-ghost btn-sm whitespace-nowrap">Editar</button>
                           {cuenta.activo ? (
                             <button
                               type="button"
                               onClick={() => setDesactivando(cuenta)}
                               disabled={propia || procesando === cuenta.id}
                               title={propia ? 'No puedes desactivar tu propia cuenta' : undefined}
-                              className={`${botonTexto} whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40`}
+                              className="btn btn-ghost btn-sm whitespace-nowrap"
                             >
                               Desactivar
                             </button>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cuenta, true)}
-                              disabled={procesando === cuenta.id}
-                              className={`${botonTexto} whitespace-nowrap disabled:opacity-50`}
-                            >
+                            <button type="button" onClick={() => cambiarEstado(cuenta, true)} disabled={procesando === cuenta.id} className="btn btn-ghost btn-sm whitespace-nowrap">
                               Activar
                             </button>
                           )}
@@ -306,22 +273,15 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-3 text-sm text-brand-muted">
-            <p aria-live="polite">
-              Mostrando {desde}–{hasta} de {filtradas.length}
-              {filtradas.length !== (cuentas?.length ?? 0) ? ` (${cuentas?.length ?? 0} en total)` : ''}
-            </p>
-            {totalPaginas > 1 && (
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setPagina(Math.max(0, paginaActual - 1))} disabled={paginaActual === 0} className={botonSecundario}>
-                  Anterior
-                </button>
-                <button type="button" onClick={() => setPagina(paginaActual + 1)} disabled={paginaActual + 1 >= totalPaginas} className={botonSecundario}>
-                  Siguiente
-                </button>
-              </div>
-            )}
-          </div>
+          <Paginacion
+            desde={desde}
+            hasta={hasta}
+            total={filtradas.length}
+            pagina={paginaActual}
+            totalPaginas={totalPaginas}
+            onCambiar={setPagina}
+            extra={filtradas.length !== cuentas.length ? ` (${cuentas.length} en total)` : null}
+          />
         </Panel>
       )}
 
@@ -347,16 +307,14 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
           onCerrar={() => setDesactivando(null)}
           pie={
             <>
-              <button type="button" onClick={() => setDesactivando(null)} className={botonSecundario}>
-                Cancelar
-              </button>
-              <button type="button" onClick={() => cambiarEstado(desactivando, false)} disabled={procesando === desactivando.id} className={botonPrimario}>
+              <Boton variante="secundario" onClick={() => setDesactivando(null)}>Cancelar</Boton>
+              <Boton variante="peligro" onClick={() => cambiarEstado(desactivando, false)} cargando={procesando === desactivando.id}>
                 {procesando === desactivando.id ? 'Desactivando…' : 'Desactivar'}
-              </button>
+              </Boton>
             </>
           }
         >
-          <p className="text-sm text-brand-ink">No podrá entrar a la plataforma hasta que la actives de nuevo. Sus registros y su historial se conservan.</p>
+          <p className="text-sm text-ink">No podrá entrar a la plataforma hasta que la actives de nuevo. Sus registros y su historial se conservan.</p>
         </Modal>
       )}
     </div>

@@ -259,7 +259,7 @@ export function RiskDistributionChart({
   // ==========================================================
 
   return (
-    <section className="h-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="h-full card p-6 shadow-sm">
 
       {/* HEADER */}
 
@@ -273,7 +273,7 @@ export function RiskDistributionChart({
           Distribución por nivel
         </h2>
 
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-muted">
           Distribución del riesgo{" "}
 
           <span className="font-semibold text-brand">
@@ -307,7 +307,7 @@ export function RiskDistributionChart({
               {total}
             </span>
 
-            <span className="mt-1 text-xs font-semibold text-slate-400">
+            <span className="mt-1 text-xs font-semibold text-faint">
               Evaluaciones
             </span>
 
@@ -349,7 +349,7 @@ export function RiskDistributionChart({
                   }}
                 />
 
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-ink">
                   {item.etiqueta}
                 </span>
 
@@ -362,7 +362,7 @@ export function RiskDistributionChart({
                   {item.cantidad}
                 </span>
 
-                <span className="min-w-[52px] text-right text-xs font-medium text-slate-400">
+                <span className="min-w-[52px] text-right text-xs font-medium text-faint">
                   {item.porcentaje.toFixed(
                     1
                   )}
@@ -381,9 +381,9 @@ export function RiskDistributionChart({
 
       {total === 0 && (
 
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3">
+        <div className="mt-5 rounded-xl bg-surface-2 px-4 py-3">
 
-          <p className="text-center text-sm text-slate-400">
+          <p className="text-center text-sm text-faint">
 
             No existen evaluaciones registradas
             con riesgo{" "}

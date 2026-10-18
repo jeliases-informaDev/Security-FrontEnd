@@ -936,7 +936,7 @@ export function RiskDashboard({
                                       )
                                     }
                                     title="Ver evaluación"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-[#1B4589] hover:bg-blue-50 hover:text-[#1B4589]"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </button>
@@ -955,7 +955,7 @@ export function RiskDashboard({
                                       !onVerMatriz
                                     }
                                     title="Ver matriz"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-[#1B4589] hover:bg-blue-50 hover:text-[#1B4589] disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     <Grid3X3 className="h-4 w-4" />
                                   </button>
@@ -975,7 +975,7 @@ export function RiskDashboard({
                                       item.id
                                     }
                                     title="Descargar PDF"
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-[#1B4589] hover:bg-blue-50 hover:text-[#1B4589] disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:bg-blue-50 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     {descargandoPdfId ===
                                     item.id ? (
@@ -1033,7 +1033,7 @@ export function RiskDashboard({
                         )
                       )
                     }
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1B4589]"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none transition focus:border-brand"
                   >
                     <option value={5}>
                       5
@@ -1134,7 +1134,7 @@ export function RiskDashboard({
                           className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition ${
                             paginaActual ===
                             pagina
-                              ? "bg-[#1B4589] text-white"
+                              ? "bg-brand text-white"
                               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                           }`}
                         >
@@ -1198,7 +1198,7 @@ export function RiskDashboard({
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
 
               <div>
-                <p className="text-xs font-bold text-[#1B4589]">
+                <p className="text-xs font-bold text-brand">
                   Detalle de evaluación
                 </p>
 
@@ -1586,7 +1586,7 @@ export function RiskDashboard({
                           );
                         }
                       }}
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#1B4589] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163A74]"
+                      className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover"
                     >
                       <Download className="h-4 w-4" />
 

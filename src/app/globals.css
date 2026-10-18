@@ -1,54 +1,165 @@
 @import "tailwindcss";
 
+/*
+  Sistema visual de PLAFT (claro, limpio y con una sola familia de colores).
+  Todo sale de estas variables: los componentes usan los nombres (brand, ink, line…) y nunca valores sueltos.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
   color-scheme: light;
+
+  /* Superficies y texto */
+  --canvas: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+  --line: #e2e7ef;
+  --line-strong: #c9d2df;
+  --ink: #101828;
+  --muted: #5b6778;
+  --faint: #98a2b3;
+
+  /* Marca: verde petróleo (confianza, cumplimiento) con un acento ámbar para avisos y resaltes */
+  --brand: #0f766e;
+  --brand-hover: #0b5f59;
+  --brand-soft: #e4f3f0;
+  --brand-ink: #0a4a45;
+  --accent: #d97706;
+  --accent-soft: #fdf1dc;
+
+  /* Estados */
+  --ok: #15803d; --ok-soft: #dcfce7;
+  --warn: #b45309; --warn-soft: #fef3c7;
+  --bad: #b91c1c; --bad-soft: #fee2e2;
+  --info: #1d4ed8; --info-soft: #dbeafe;
+
+  --sombra-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 1px rgba(16, 24, 40, 0.04);
+  --sombra-md: 0 8px 24px -12px rgba(16, 24, 40, 0.18), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --sombra-lg: 0 24px 60px -24px rgba(16, 24, 40, 0.28), 0 6px 18px rgba(16, 24, 40, 0.08);
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
 }
 
-/* Paleta de marca (misma identidad del Project Canvas del proyecto) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --color-brand-navy: #12253d;
-  --color-brand-navy-2: #1b3654;
-  --color-brand-paper: #eaeef3;
-  --color-brand-ink: #1a1f27;
-  --color-brand-muted: #5b6572;
-  --color-brand-amber: #c98a2c;
-  --color-brand-amber-soft: #f6e8cf;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-ok: var(--ok); --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn); --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad); --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info); --color-info-soft: var(--info-soft);
+
+  /* Nombres heredados de la primera versión: siguen funcionando y ahora apuntan a la paleta nueva. */
+  --color-brand-navy: var(--brand);
+  --color-brand-navy-2: var(--brand-hover);
+  --color-brand-paper: var(--canvas);
+  --color-brand-muted: var(--muted);
+  --color-brand-amber: var(--accent);
+  --color-brand-amber-soft: var(--accent-soft);
+
+  --shadow-sm: var(--sombra-sm);
+  --shadow-md: var(--sombra-md);
+  --shadow-lg: var(--sombra-lg);
 }
 
-/*
-  La app todavia no tiene un tema oscuro real (ningun componente adapta sus
-  colores). Dejar que el navegador aplique prefers-color-scheme aqui solo
-  invierte --foreground/--background sin que los componentes lo sepan, y el
-  texto de los inputs termina heredando un color casi blanco sobre fondos
-  que siguen siendo blancos. Por eso se fuerza color-scheme: light arriba.
-*/
+/* La app no tiene tema oscuro: se fija el claro para que el navegador no invierta colores a medias. */
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
-}
-
-/* Foco de teclado visible y parejo en toda la aplicacion (en la capa base: los componentes que definen su propio foco lo siguen mandando) */
 @layer base {
-  :focus-visible {
-    outline: 2px solid var(--color-brand-amber);
-    outline-offset: 2px;
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
   }
+  h1, h2, h3, h4 { letter-spacing: -0.01em; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  button, [role="button"], a, input, select, textarea { touch-action: manipulation; }
+  ::selection { background: var(--brand-soft); color: var(--brand-ink); }
+  /* Foco de teclado visible y parejo en toda la aplicación */
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+  /* Barras de desplazamiento discretas */
+  * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 }
 
-/* Panel de Indira: entra deslizandose desde la derecha (responde a una accion del usuario) */
-@keyframes panel-entra {
-  from { transform: translateX(1.25rem); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@layer components {
+  /* ---- Botones ---- */
+  .btn {
+    @apply inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150;
+    @apply disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
+  }
+  .btn-primary { @apply bg-brand text-white shadow-sm hover:bg-brand-hover; }
+  .btn-secondary { @apply border border-line-strong bg-surface text-ink hover:border-brand hover:bg-brand-soft/40 hover:text-brand-ink; }
+  .btn-ghost { @apply text-brand-ink hover:bg-brand-soft; }
+  .btn-danger { @apply bg-bad text-white hover:bg-red-800; }
+  .btn-sm { @apply h-8 rounded-lg px-3 text-[13px]; }
+  .btn-lg { @apply h-11 px-5 text-[15px]; }
+  .btn-icon { @apply h-9 w-9 rounded-lg p-0; }
+
+  /* ---- Campos ---- */
+  .label { @apply mb-1.5 block text-sm font-medium text-ink; }
+  .input {
+    @apply h-10 w-full rounded-xl border border-line-strong bg-surface px-3 text-sm text-ink shadow-sm transition-[border-color,box-shadow] duration-150 placeholder:text-faint;
+    @apply hover:border-brand/50 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15 disabled:bg-surface-2 disabled:text-muted;
+  }
+  .input-error { @apply border-bad focus:border-bad focus:ring-bad/15; }
+  .hint { @apply mt-1 text-xs text-muted; }
+  .error-text { @apply mt-1 text-xs font-medium text-bad; }
+
+  /* ---- Etiquetas de estado ---- */
+  .badge { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .badge-neutral { @apply bg-surface-2 text-muted; }
+  .badge-brand { @apply bg-brand-soft text-brand-ink; }
+  .badge-ok { @apply bg-ok-soft text-ok; }
+  .badge-warn { @apply bg-warn-soft text-warn; }
+  .badge-bad { @apply bg-bad-soft text-bad; }
+  .badge-info { @apply bg-info-soft text-info; }
+
+  /* ---- Superficies ---- */
+  .card { @apply rounded-2xl border border-line bg-surface shadow-sm; }
+  .card-hover { @apply transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted; }
+
+  /* ---- Tablas ---- */
+  .tabla { @apply w-full border-collapse text-sm; }
+  .tabla th { @apply sticky top-0 z-[1] border-b border-line bg-surface-2/80 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-muted backdrop-blur; }
+  .tabla td { @apply border-b border-line px-4 py-3 align-middle text-ink; }
+  .tabla tbody tr:last-child td { @apply border-b-0; }
+  .tabla tbody tr { @apply transition-colors hover:bg-brand-soft/30; }
+  .tabla .num { @apply text-right tabular-nums; }
+
+  /* ---- Navegación lateral ---- */
+  .nav-item { @apply relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-ink; }
+  .nav-item[aria-current="page"] { @apply bg-brand-soft text-brand-ink; }
+  .nav-item[aria-current="page"]::before { content: ""; @apply absolute bottom-2 left-0 top-2 w-1 rounded-full bg-brand; }
+
+  /* ---- Esqueletos de carga ---- */
+  .skeleton { @apply animate-pulse rounded-lg bg-surface-2; }
 }
+
+/* ---- Movimiento (solo transform/opacity) ---- */
+@keyframes panel-entra { from { transform: translateX(1.25rem); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes aparece { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes zoom-entra { from { transform: scale(0.98); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.aparece { animation: aparece 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.zoom-entra { animation: zoom-entra 160ms ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

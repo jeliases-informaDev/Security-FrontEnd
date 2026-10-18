@@ -67,27 +67,27 @@ export function RiskExposurePanel({
   riesgoResidual,
 }: Props) {
   return (
-    <aside className="relative overflow-hidden rounded-xl border border-[#C6D0E2] bg-white p-6">
-      <div className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-[#E8ECF3]" />
+    <aside className="relative overflow-hidden rounded-xl border border-line-strong bg-white p-6">
+      <div className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-line" />
 
       <div className="relative">
         <div className="mb-7 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B4589] text-white">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
             <Activity size={20} />
           </div>
 
           <div>
-            <p className="text-xs font-bold text-[#547AA7]">
+            <p className="text-xs font-bold text-muted">
               Exposición actual
             </p>
-            <h3 className="text-lg font-bold text-[#231F20]">
+            <h3 className="text-lg font-bold text-ink">
               Lectura del riesgo
             </h3>
           </div>
         </div>
 
-        <div className="rounded-xl bg-[#E8ECF3]/70 p-5">
-          <p className="text-xs font-semibold text-[#547AA7]">
+        <div className="rounded-xl bg-line/70 p-5">
+          <p className="text-xs font-semibold text-muted">
             Riesgo inherente
           </p>
 
@@ -103,7 +103,7 @@ export function RiskExposurePanel({
 
             <ShieldCheck
               size={23}
-              className="text-[#1B4589]"
+              className="text-brand"
             />
           </div>
 
@@ -112,7 +112,7 @@ export function RiskExposurePanel({
               <p className="text-[11px] uppercase text-slate-400">
                 Probabilidad
               </p>
-              <p className="mt-1 text-sm font-semibold text-[#231F20]">
+              <p className="mt-1 text-sm font-semibold text-ink">
                 {etiqueta(probabilidad)}
               </p>
             </div>
@@ -121,7 +121,7 @@ export function RiskExposurePanel({
               <p className="text-[11px] uppercase text-slate-400">
                 Impacto
               </p>
-              <p className="mt-1 text-sm font-semibold text-[#231F20]">
+              <p className="mt-1 text-sm font-semibold text-ink">
                 {etiqueta(impacto)}
               </p>
             </div>
@@ -129,26 +129,26 @@ export function RiskExposurePanel({
         </div>
 
         <div className="my-4 flex justify-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C6D0E2] bg-white text-[#1B4589]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-line-strong bg-white text-brand">
             <ArrowDown size={18} />
           </div>
         </div>
 
-        <div className="rounded-xl border border-dashed border-[#C6D0E2] p-5">
+        <div className="rounded-xl border border-dashed border-line-strong p-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-[#547AA7]">
+            <p className="text-xs font-semibold text-muted">
               Mitigación
             </p>
 
-            <span className="text-xl font-bold text-[#1B4589]">
+            <span className="text-xl font-bold text-brand">
               {mitigacion != null
                 ? `${Math.round(mitigacion * 100)} %`
                 : "--"}
             </span>
           </div>
 
-          <div className="mt-4 border-t border-[#E8ECF3] pt-4">
-            <p className="text-xs font-semibold text-[#547AA7]">
+          <div className="mt-4 border-t border-line pt-4">
+            <p className="text-xs font-semibold text-muted">
               Riesgo residual
             </p>
 

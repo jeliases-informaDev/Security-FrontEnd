@@ -1,29 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { ShieldAlert } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { IndiraPanel } from '@/modules/indira/components/IndiraPanel';
-import { DashboardHeader } from '@/shared/ui/DashboardHeader';
-
-// Alto aproximado de la cabecera hasta que se mide (evita que el panel salte al abrirse la primera vez).
-const ALTO_CABECERA_INICIAL_PX = 107;
+import { ALTO_BARRA_PX, AppShell } from '@/shared/ui/AppShell';
+import { MARCA } from '@/shared/lib/marca';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const { usuario, cargando, error, logout } = useAuth();
   const [indiraAbierta, setIndiraAbierta] = useState(false);
-  const [altoCabecera, setAltoCabecera] = useState(ALTO_CABECERA_INICIAL_PX);
-  const cabeceraRef = useRef<HTMLElement>(null);
-
-  // El panel de Indira se acopla justo debajo de la cabecera, sea cual sea su alto.
-  useEffect(() => {
-    const cabecera = cabeceraRef.current;
-    if (!cabecera) return;
-    const medir = () => setAltoCabecera(cabecera.getBoundingClientRect().height);
-    medir();
-    const observador = new ResizeObserver(medir);
-    observador.observe(cabecera);
-    return () => observador.disconnect();
-  }, [usuario]);
 
   const cerrarIndira = useCallback(() => {
     setIndiraAbierta(false);
@@ -32,49 +18,37 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (cargando) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-paper">
-        <p className="text-sm text-brand-muted">Verificando sesión…</p>
+      <div className="flex min-h-screen items-center justify-center bg-canvas" role="status" aria-live="polite">
+        <div className="flex items-center gap-3 text-sm text-muted">
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-brand" aria-hidden="true" />
+          Verificando sesión…
+        </div>
       </div>
     );
   }
 
   if (error || !usuario) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-paper p-6">
-        <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 text-center">
-          <p className="mb-4 text-sm font-medium text-red-600">{error ?? 'No se pudo confirmar la sesión'}</p>
-          <button
-            onClick={logout}
-            className="rounded-lg bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-          >
-            Volver al login
-          </button>
+      <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
+        <div className="card zoom-entra w-full max-w-md p-8 text-center">
+          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-bad-soft text-bad" aria-hidden="true"><ShieldAlert className="h-6 w-6" /></span>
+          <p className="text-base font-semibold text-ink">No pudimos confirmar tu sesión</p>
+          <p className="mt-1 text-sm text-muted">{error ?? `Vuelve a entrar a ${MARCA.nombre} para continuar.`}</p>
+          <button onClick={logout} className="btn btn-primary mt-6">Volver al inicio de sesión</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-paper">
-      <DashboardHeader
-        usuario={usuario}
-        onLogout={logout}
-        indiraAbierta={indiraAbierta}
-        onAlternarIndira={() => setIndiraAbierta((abierta) => !abierta)}
-        cabeceraRef={cabeceraRef}
-      />
-      {/* En pantallas anchas el contenido se corre para dejarle sitio al chat: nada queda tapado */}
-      <div className={`transition-[padding] duration-200 ease-out ${indiraAbierta ? 'xl:pr-[26rem]' : ''}`}>{children}</div>
-      <IndiraPanel abierto={indiraAbierta} onCerrar={cerrarIndira} top={altoCabecera} />
-    </div>
+    <AppShell usuario={usuario} onLogout={logout} indiraAbierta={indiraAbierta} onAlternarIndira={() => setIndiraAbierta((abierta) => !abierta)}>
+      {children}
+      <IndiraPanel abierto={indiraAbierta} onCerrar={cerrarIndira} top={ALTO_BARRA_PX} />
+    </AppShell>
   );
 }
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <AuthProvider>
       <DashboardShell>{children}</DashboardShell>

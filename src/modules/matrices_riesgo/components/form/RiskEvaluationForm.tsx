@@ -2278,7 +2278,7 @@ export function RiskEvaluationForm({
 
   return (
 
-    <div className="min-h-screen bg-[#F7F9FC] px-5 py-7 lg:px-8">
+    <div className="min-h-screen bg-surface-2 px-5 py-7 lg:px-8">
 
       <div className="mx-auto max-w-[1500px]">
 
@@ -2293,17 +2293,17 @@ export function RiskEvaluationForm({
 
             <div className="mb-3 flex items-center gap-2">
 
-              <span className="h-2 w-2 rounded-full bg-[#ED1C24]" />
+              <span className="h-2 w-2 rounded-full bg-bad" />
 
 
-              <p className="text-xs font-bold text-[#547AA7]">
+              <p className="text-xs font-bold text-muted">
                 Matriz de riesgo
               </p>
 
             </div>
 
 
-            <h1 className="text-3xl font-bold tracking-tight text-[#231F20] lg:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-ink lg:text-4xl">
 
               {continuandoBorrador
                 ? "Continuar evaluación"
@@ -2332,7 +2332,7 @@ export function RiskEvaluationForm({
                   true
                 )
               }
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 py-3 text-sm font-semibold text-brand transition hover:bg-line"
             >
 
               <Settings2
@@ -2352,7 +2352,7 @@ export function RiskEvaluationForm({
             STEPPER
            ====================================================== */}
 
-        <div className="mb-7 rounded-xl border border-[#E8ECF3] bg-white p-5">
+        <div className="mb-7 rounded-xl border border-line bg-white p-5">
 
           <RiskFormStepper
             currentStep={
@@ -2410,16 +2410,16 @@ export function RiskEvaluationForm({
 
           {currentStep === 1 && (
 
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   01 · Identificación
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                <h2 className="mt-2 text-2xl font-bold text-ink">
                   Riesgo inherente
                 </h2>
 
@@ -2790,7 +2790,7 @@ export function RiskEvaluationForm({
 
                   <div className="relative">
 
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#547AA7]">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted">
                       S/
                     </span>
 
@@ -2837,7 +2837,7 @@ export function RiskEvaluationForm({
                     disabled={
                       calculando
                     }
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
                   >
 
                     {calculando ? (
@@ -2867,7 +2867,7 @@ export function RiskEvaluationForm({
 
               {/* NAVEGACIÓN */}
 
-              <div className="mt-8 flex justify-end border-t border-[#E8ECF3] pt-6">
+              <div className="mt-8 flex justify-end border-t border-line pt-6">
 
                 <button
                   type="button"
@@ -2877,7 +2877,7 @@ export function RiskEvaluationForm({
                   disabled={
                     !riesgoInherente
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#231F20] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
                 >
 
                   Continuar a controles
@@ -2900,11 +2900,11 @@ export function RiskEvaluationForm({
 
           {currentStep === 2 && (
 
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
               <div className="mb-8 flex items-start gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
 
                   <SlidersHorizontal
                     size={22}
@@ -2915,12 +2915,12 @@ export function RiskEvaluationForm({
 
                 <div>
 
-                  <p className="text-xs font-bold text-[#547AA7]">
+                  <p className="text-xs font-bold text-muted">
                     02 · Evaluación
                   </p>
 
 
-                  <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                  <h2 className="mt-2 text-2xl font-bold text-ink">
                     Controles del riesgo
                   </h2>
 
@@ -2936,24 +2936,24 @@ export function RiskEvaluationForm({
 
               {/* RESUMEN */}
 
-              <div className="mb-7 rounded-xl border border-[#C6D0E2] bg-[#E8ECF3]/40 p-5">
+              <div className="mb-7 rounded-xl border border-line-strong bg-line/40 p-5">
 
                 <div className="flex items-center gap-3">
 
                   <ShieldCheck
                     size={20}
-                    className="text-[#1B4589]"
+                    className="text-brand"
                   />
 
 
                   <div>
 
-                    <p className="text-xs font-bold text-[#547AA7]">
+                    <p className="text-xs font-bold text-muted">
                       Riesgo identificado
                     </p>
 
 
-                    <p className="mt-1 font-bold text-[#231F20]">
+                    <p className="mt-1 font-bold text-ink">
                       {form.titulo}
                     </p>
 
@@ -2998,7 +2998,7 @@ export function RiskEvaluationForm({
 
               <div className="mb-7">
 
-                <p className="mb-4 text-xs font-bold text-[#547AA7]">
+                <p className="mb-4 text-xs font-bold text-muted">
                   Identificación del control
                 </p>
 
@@ -3111,7 +3111,7 @@ export function RiskEvaluationForm({
 
               <div>
 
-                <p className="mb-4 text-xs font-bold text-[#547AA7]">
+                <p className="mb-4 text-xs font-bold text-muted">
                   Diseño y ejecución
                 </p>
 
@@ -3359,13 +3359,13 @@ export function RiskEvaluationForm({
 
               {/* CALCULO RESIDUAL */}
 
-              <div className="mt-7 rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="mt-7 rounded-xl border border-line bg-surface-2 p-5">
 
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
                   <div>
 
-                    <p className="font-bold text-[#231F20]">
+                    <p className="font-bold text-ink">
                       Calcular exposición residual
                     </p>
 
@@ -3385,7 +3385,7 @@ export function RiskEvaluationForm({
                     disabled={
                       calculandoResidual
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
                   >
 
                     {calculandoResidual ? (
@@ -3415,7 +3415,7 @@ export function RiskEvaluationForm({
 
               {/* NAVEGACIÓN */}
 
-              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#E8ECF3] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
 
                 <button
                   type="button"
@@ -3433,7 +3433,7 @@ export function RiskEvaluationForm({
 
                     scrollTop();
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3.5 text-sm font-bold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 py-3.5 text-sm font-bold text-brand transition hover:bg-line"
                 >
 
                   <ArrowLeft
@@ -3453,7 +3453,7 @@ export function RiskEvaluationForm({
                   disabled={
                     !riesgoResidual
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#231F20] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
                 >
 
                   Continuar a riesgo residual
@@ -3476,16 +3476,16 @@ export function RiskEvaluationForm({
 
           {currentStep === 3 && (
 
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   03 · Resultado
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                <h2 className="mt-2 text-2xl font-bold text-ink">
                   Riesgo residual
                 </h2>
 
@@ -3502,14 +3502,14 @@ export function RiskEvaluationForm({
 
                 {/* INHERENTE */}
 
-                <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-6">
+                <div className="rounded-xl border border-line bg-surface-2 p-6">
 
-                  <p className="text-xs font-bold text-[#547AA7]">
+                  <p className="text-xs font-bold text-muted">
                     Antes de controles
                   </p>
 
 
-                  <h3 className="mt-2 text-lg font-bold text-[#231F20]">
+                  <h3 className="mt-2 text-lg font-bold text-ink">
                     Riesgo inherente
                   </h3>
 
@@ -3548,14 +3548,14 @@ export function RiskEvaluationForm({
 
                 {/* RESIDUAL */}
 
-                <div className="rounded-xl border border-[#C6D0E2] bg-[#E8ECF3]/40 p-6">
+                <div className="rounded-xl border border-line-strong bg-line/40 p-6">
 
-                  <p className="text-xs font-bold text-[#1B4589]">
+                  <p className="text-xs font-bold text-brand">
                     Después de controles
                   </p>
 
 
-                  <h3 className="mt-2 text-lg font-bold text-[#231F20]">
+                  <h3 className="mt-2 text-lg font-bold text-ink">
                     Riesgo residual
                   </h3>
 
@@ -3597,18 +3597,18 @@ export function RiskEvaluationForm({
 
               {/* MITIGACIÓN */}
 
-              <div className="mt-6 rounded-xl border border-[#E8ECF3] p-6">
+              <div className="mt-6 rounded-xl border border-line p-6">
 
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
                   <div>
 
-                    <p className="text-xs font-bold text-[#547AA7]">
+                    <p className="text-xs font-bold text-muted">
                       Efectividad de controles
                     </p>
 
 
-                    <h3 className="mt-2 text-lg font-bold text-[#231F20]">
+                    <h3 className="mt-2 text-lg font-bold text-ink">
                       Mitigación obtenida
                     </h3>
 
@@ -3620,7 +3620,7 @@ export function RiskEvaluationForm({
                   </div>
 
 
-                  <div className="rounded-xl bg-[#1B4589] px-6 py-4 text-center text-white">
+                  <div className="rounded-xl bg-brand px-6 py-4 text-center text-white">
 
                     <p className="text-xs font-semibold text-white/70">
                       Mitigación
@@ -3650,11 +3650,11 @@ export function RiskEvaluationForm({
 
               {/* COMPARACIÓN */}
 
-              <div className="mt-6 overflow-hidden rounded-xl border border-[#E8ECF3]">
+              <div className="mt-6 overflow-hidden rounded-xl border border-line">
 
-                <div className="border-b border-[#E8ECF3] bg-[#F7F9FC] px-5 py-4">
+                <div className="border-b border-line bg-surface-2 px-5 py-4">
 
-                  <p className="font-bold text-[#231F20]">
+                  <p className="font-bold text-ink">
                     Comparación de exposición
                   </p>
 
@@ -3741,7 +3741,7 @@ export function RiskEvaluationForm({
 
               {/* NAVEGACIÓN */}
 
-              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#E8ECF3] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
 
                 <button
                   type="button"
@@ -3759,7 +3759,7 @@ export function RiskEvaluationForm({
 
                     scrollTop();
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3.5 text-sm font-bold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 py-3.5 text-sm font-bold text-brand transition hover:bg-line"
                 >
 
                   <ArrowLeft
@@ -3787,7 +3787,7 @@ export function RiskEvaluationForm({
 
                     scrollTop();
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#231F20] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-bold text-white transition hover:bg-black"
                 >
 
                   Continuar a tratamiento
@@ -3810,16 +3810,16 @@ export function RiskEvaluationForm({
 
           {currentStep === 4 && (
 
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+            <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
               <div className="mb-8">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   04 · Tratamiento
                 </p>
 
 
-                <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                <h2 className="mt-2 text-2xl font-bold text-ink">
                   Plan de tratamiento
                 </h2>
 
@@ -3833,9 +3833,9 @@ export function RiskEvaluationForm({
 
               {/* RESULTADO */}
 
-              <div className="mb-7 rounded-xl border border-[#C6D0E2] bg-[#E8ECF3]/40 p-5">
+              <div className="mb-7 rounded-xl border border-line-strong bg-line/40 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   Resultado actual
                 </p>
 
@@ -4036,7 +4036,7 @@ export function RiskEvaluationForm({
               {analisisRegistradoId ===
                 null && (
 
-                <div className="mt-8 flex border-t border-[#E8ECF3] pt-6">
+                <div className="mt-8 flex border-t border-line pt-6">
 
                   <button
                     type="button"
@@ -4054,7 +4054,7 @@ export function RiskEvaluationForm({
 
                       scrollTop();
                     }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3.5 text-sm font-bold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 py-3.5 text-sm font-bold text-brand transition hover:bg-line"
                   >
 
                     <ArrowLeft
@@ -4117,7 +4117,7 @@ export function RiskEvaluationForm({
             ACCIONES DE LA EVALUACIÓN
            ====================================================== */}
 
-        <div className="mt-6 rounded-xl border border-[#E8ECF3] bg-white p-5 shadow-sm">
+        <div className="mt-6 rounded-xl border border-line bg-white p-5 shadow-sm">
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -4126,7 +4126,7 @@ export function RiskEvaluationForm({
 
             <div>
 
-              <p className="text-xs font-bold text-[#547AA7]">
+              <p className="text-xs font-bold text-muted">
                 Acciones de evaluación
               </p>
 
@@ -4164,7 +4164,7 @@ export function RiskEvaluationForm({
                     guardando ||
                     registrando
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-6 py-3.5 text-sm font-bold text-[#1B4589] transition hover:border-[#1B4589] hover:bg-[#E8ECF3] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-6 py-3.5 text-sm font-bold text-brand transition hover:border-brand hover:bg-line disabled:cursor-not-allowed disabled:opacity-50"
                 >
 
                   {guardando ? (
@@ -4207,7 +4207,7 @@ export function RiskEvaluationForm({
                       ? "Completa primero los pasos de la evaluación"
                       : "Registrar evaluación"
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
 
                   {registrando ? (
@@ -4253,7 +4253,7 @@ export function RiskEvaluationForm({
                   disabled={
                     descargandoPdf
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-6 py-3.5 text-sm font-bold text-[#1B4589] transition hover:border-[#1B4589] hover:bg-[#E8ECF3] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-6 py-3.5 text-sm font-bold text-brand transition hover:border-brand hover:bg-line disabled:cursor-not-allowed disabled:opacity-50"
                 >
 
                   {descargandoPdf ? (
@@ -4286,7 +4286,7 @@ export function RiskEvaluationForm({
                   onClick={
                     iniciarNuevaEvaluacion
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#163a74]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 text-sm font-bold text-white transition hover:bg-brand-hover"
                 >
 
                   <Plus
@@ -4340,7 +4340,7 @@ export function RiskEvaluationForm({
    ============================================================ */
 
 const inputClass =
-  "w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 
 
 function Field({
@@ -4367,7 +4367,7 @@ function Field({
 
     <label className="block">
 
-      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#231F20]">
+      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
 
         {icon}
 
@@ -4401,12 +4401,12 @@ function MiniSummary({
 
     <div className="rounded-xl bg-white px-4 py-3">
 
-      <p className="text-[11px] font-bold text-[#547AA7]">
+      <p className="text-[11px] font-bold text-muted">
         {label}
       </p>
 
 
-      <p className="mt-1 text-sm font-bold text-[#231F20]">
+      <p className="mt-1 text-sm font-bold text-ink">
 
         {formatEnum(
           value
@@ -4442,7 +4442,7 @@ function ResultItem({
       </span>
 
 
-      <span className="text-right text-sm font-bold text-[#231F20]">
+      <span className="text-right text-sm font-bold text-ink">
 
         {formatEnum(
           value
@@ -4472,9 +4472,9 @@ function ComparisonCell({
   return (
 
     <div
-      className={`border-b border-r border-[#E8ECF3] px-4 py-4 last:border-r-0 ${
+      className={`border-b border-r border-line px-4 py-4 last:border-r-0 ${
         header
-          ? "bg-[#F7F9FC]"
+          ? "bg-surface-2"
           : "bg-white"
       }`}
     >
@@ -4482,8 +4482,8 @@ function ComparisonCell({
       <p
         className={`text-sm ${
           header
-            ? "font-bold text-[#1B4589]"
-            : "font-semibold text-[#231F20]"
+            ? "font-bold text-brand"
+            : "font-semibold text-ink"
         }`}
       >
         {value}

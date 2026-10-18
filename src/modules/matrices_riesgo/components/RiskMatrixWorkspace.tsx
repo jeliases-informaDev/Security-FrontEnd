@@ -349,7 +349,7 @@ export function RiskMatrixWorkspace() {
             <button
               type="button"
               onClick={() => setModalNuevaEvaluacionAbierto(true)}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1B4589] px-4 text-sm font-semibold text-white transition hover:bg-[#163A74]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover"
             >
               <Plus className="h-4 w-4" />
               Nueva evaluación
@@ -562,7 +562,7 @@ export function RiskMatrixWorkspace() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-[#547AA7]">
+                  <p className="text-xs font-bold text-muted">
                     Matrices de riesgo
                   </p>
 
@@ -651,7 +651,7 @@ export function RiskMatrixWorkspace() {
                 onClick={
                   confirmarNuevaEvaluacion
                 }
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1B4589] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163A74]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover"
               >
                 <Plus className="h-4 w-4" />
 

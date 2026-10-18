@@ -456,11 +456,11 @@ export function RiskAggregateHeatmap({
 
         <div>
 
-          <p className="text-xs font-bold text-[#1B4589]">
+          <p className="text-xs font-bold text-brand">
             Resumen de exposición
           </p>
 
-          <h2 className="mt-1 text-xl font-bold tracking-tight text-[#231F20]">
+          <h2 className="mt-1 text-xl font-bold tracking-tight text-ink">
             Matriz general de riesgos
           </h2>
 
@@ -488,7 +488,7 @@ export function RiskAggregateHeatmap({
             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
               tipoVista ===
               "residual"
-                ? "bg-white text-[#1B4589] shadow-sm"
+                ? "bg-white text-brand shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -506,7 +506,7 @@ export function RiskAggregateHeatmap({
             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
               tipoVista ===
               "inherente"
-                ? "bg-white text-[#1B4589] shadow-sm"
+                ? "bg-white text-brand shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -547,11 +547,11 @@ export function RiskAggregateHeatmap({
                 gridRow:
                   "1 / span 5",
               }}
-              className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
+              className="flex items-center justify-center border border-line-strong bg-line"
             >
 
               <span
-                className="text-[11px] font-bold text-[#1B4589]"
+                className="text-[11px] font-bold text-brand"
                 style={{
                   writingMode:
                     "vertical-rl",
@@ -599,10 +599,10 @@ export function RiskAggregateHeatmap({
                       title={
                         probabilidad.descripcion
                       }
-                      className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-2 text-center"
+                      className="flex items-center justify-center border border-line bg-surface-2 px-2 text-center"
                     >
 
-                      <span className="text-xs font-bold text-[#231F20]">
+                      <span className="text-xs font-bold text-ink">
                         {formatearTexto(
                           probabilidad.codigo
                         )}
@@ -728,10 +728,10 @@ export function RiskAggregateHeatmap({
 
                     gridRow: 6,
                   }}
-                  className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-1 text-center"
+                  className="flex items-center justify-center border border-line bg-surface-2 px-1 text-center"
                 >
 
-                  <span className="text-[11px] font-bold text-[#231F20]">
+                  <span className="text-[11px] font-bold text-ink">
                     {formatearTexto(
                       impacto.codigo
                     )}
@@ -774,7 +774,7 @@ export function RiskAggregateHeatmap({
           FOOTER
          ===================================================== */}
 
-      <div className="mx-auto mt-4 flex max-w-[880px] flex-col gap-3 border-t border-[#E8ECF3] pt-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto mt-4 flex max-w-[880px] flex-col gap-3 border-t border-line pt-3 lg:flex-row lg:items-center lg:justify-between">
 
         <p className="text-xs text-slate-500">
 

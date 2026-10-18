@@ -31,10 +31,10 @@ import type {
 // ============================================================
 
 const inputClass =
-  "w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50";
+  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-slate-50";
 
 const labelClass =
-  "mb-2 block text-sm font-semibold text-[#231F20]";
+  "mb-2 block text-sm font-semibold text-ink";
 
 
 // ============================================================
@@ -264,21 +264,21 @@ export function ConsultaDenuncia() {
           FORMULARIO DE CONSULTA
       ====================================================== */}
 
-      <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+      <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
         <div className="flex items-start gap-4">
 
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
             <Search size={22} />
           </div>
 
           <div>
 
-            <p className="text-xs font-bold text-[#547AA7]">
+            <p className="text-xs font-bold text-muted">
               Seguimiento
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+            <h2 className="mt-2 text-2xl font-bold text-ink">
               Consultar denuncia
             </h2>
 
@@ -374,13 +374,13 @@ export function ConsultaDenuncia() {
                 justify-center
                 gap-2
                 rounded-xl
-                bg-[#1B4589]
+                bg-brand
                 px-6 py-3.5
                 text-sm
                 font-bold
                 text-white
                 transition
-                hover:bg-[#163a74]
+                hover:bg-brand-hover
                 disabled:cursor-not-allowed
                 disabled:opacity-50
               "
@@ -421,7 +421,7 @@ export function ConsultaDenuncia() {
         <>
           {/* RESUMEN */}
 
-          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
 
@@ -433,11 +433,11 @@ export function ConsultaDenuncia() {
 
                 <div>
 
-                  <p className="text-xs font-bold text-[#547AA7]">
+                  <p className="text-xs font-bold text-muted">
                     Denuncia encontrada
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                  <h2 className="mt-2 text-2xl font-bold text-ink">
                     {resultado.codigoSeguimiento}
                   </h2>
 
@@ -480,13 +480,13 @@ export function ConsultaDenuncia() {
 
               {/* CAUSA */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   Causa
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {causaLabels[
                     resultado.causa
                   ]}
@@ -497,13 +497,13 @@ export function ConsultaDenuncia() {
 
               {/* RELACIÓN */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   Relación
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {relacionLabels[
                     resultado.relacionEmpresa
                   ]}
@@ -514,13 +514,13 @@ export function ConsultaDenuncia() {
 
               {/* ACTUALIZACIÓN */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   Última actualización
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {formatearFecha(
                     resultado.fechaActualizacion
                   )}
@@ -533,18 +533,18 @@ export function ConsultaDenuncia() {
 
             {/* DESCRIPCIÓN */}
 
-            <div className="mt-5 rounded-xl border border-[#E8ECF3] bg-white p-5">
+            <div className="mt-5 rounded-xl border border-line bg-white p-5">
 
               <div className="flex items-start gap-3">
 
                 <FileText
                   size={19}
-                  className="mt-0.5 shrink-0 text-[#547AA7]"
+                  className="mt-0.5 shrink-0 text-muted"
                 />
 
                 <div>
 
-                  <p className="text-sm font-bold text-[#231F20]">
+                  <p className="text-sm font-bold text-ink">
                     Descripción
                   </p>
 
@@ -565,21 +565,21 @@ export function ConsultaDenuncia() {
               HISTORIAL
           ================================================== */}
 
-          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="rounded-xl border border-line bg-white p-6 lg:p-8">
 
             <div className="flex items-start gap-4">
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-line text-brand">
                 <Clock3 size={22} />
               </div>
 
               <div>
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="text-xs font-bold text-muted">
                   Seguimiento
                 </p>
 
-                <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                <h2 className="mt-2 text-2xl font-bold text-ink">
                   Historial de la denuncia
                 </h2>
 
@@ -597,14 +597,14 @@ export function ConsultaDenuncia() {
 
               {resultado.historial.length === 0 ? (
 
-                <div className="rounded-xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-8 text-center">
+                <div className="rounded-xl border border-dashed border-line-strong bg-surface-2 px-6 py-8 text-center">
 
                   <Clock3
                     size={25}
                     className="mx-auto text-slate-400"
                   />
 
-                  <p className="mt-3 text-sm font-semibold text-[#231F20]">
+                  <p className="mt-3 text-sm font-semibold text-ink">
                     No hay movimientos registrados
                   </p>
 
@@ -657,7 +657,7 @@ export function ConsultaDenuncia() {
 
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 
-                              <p className="text-sm font-bold text-[#231F20]">
+                              <p className="text-sm font-bold text-ink">
                                 {estadoLabels[
                                   registro.estadoNuevo
                                 ]}
@@ -702,7 +702,7 @@ export function ConsultaDenuncia() {
             <button
               type="button"
               onClick={nuevaConsulta}
-              className="rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+              className="rounded-xl border border-line-strong bg-white px-5 py-3 text-sm font-semibold text-brand transition hover:bg-line"
             >
               Realizar otra consulta
             </button>

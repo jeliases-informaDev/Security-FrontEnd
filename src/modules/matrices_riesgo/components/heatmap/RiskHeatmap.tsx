@@ -398,11 +398,11 @@ export function RiskHeatmap({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
           <div>
-            <p className="text-xs font-bold text-[#1B4589]">
+            <p className="text-xs font-bold text-brand">
               Mapa de exposición
             </p>
 
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#231F20]">
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-ink">
               Matriz de probabilidad e impacto
             </h2>
 
@@ -426,7 +426,7 @@ export function RiskHeatmap({
                 disabled={
                   descargandoPdf
                 }
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-bold text-[#1B4589] transition hover:border-[#1B4589] hover:bg-[#E8ECF3] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 py-3 text-sm font-bold text-brand transition hover:border-brand hover:bg-line disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {descargandoPdf ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -462,23 +462,23 @@ export function RiskHeatmap({
         seleccion?.inherente ||
         seleccion?.residual
       ) && (
-        <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[#E8ECF3] py-4">
+        <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-line py-4">
 
           {/* RIESGO INHERENTE */}
 
           {seleccion?.inherente && (
             <div className="flex items-center gap-3">
 
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B4589] text-xs font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
                 I
               </span>
 
               <div>
-                <p className="text-[10px] font-bold text-[#547AA7]">
+                <p className="text-[10px] font-bold text-muted">
                   Riesgo inherente
                 </p>
 
-                <p className="text-sm font-semibold text-[#231F20]">
+                <p className="text-sm font-semibold text-ink">
                   {formatearTexto(
                     seleccion
                       .inherente
@@ -513,16 +513,16 @@ export function RiskHeatmap({
           {seleccion?.residual && (
             <div className="flex items-center gap-3">
 
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-xs font-bold text-[#1B4589]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand bg-white text-xs font-bold text-brand">
                 R
               </span>
 
               <div>
-                <p className="text-[10px] font-bold text-[#547AA7]">
+                <p className="text-[10px] font-bold text-muted">
                   Riesgo residual
                 </p>
 
-                <p className="text-sm font-semibold text-[#231F20]">
+                <p className="text-sm font-semibold text-ink">
                   {formatearTexto(
                     seleccion
                       .residual
@@ -585,10 +585,10 @@ export function RiskHeatmap({
                 gridRow:
                   '1 / span 5',
               }}
-              className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
+              className="flex items-center justify-center border border-line-strong bg-line"
             >
               <span
-                className="text-sm font-bold text-[#1B4589]"
+                className="text-sm font-bold text-brand"
                 style={{
                   writingMode:
                     'vertical-rl',
@@ -634,9 +634,9 @@ export function RiskHeatmap({
                       title={
                         probabilidad.descripcion
                       }
-                      className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-2 text-center"
+                      className="flex items-center justify-center border border-line bg-surface-2 px-2 text-center"
                     >
-                      <span className="text-[13px] font-bold text-[#231F20]">
+                      <span className="text-[13px] font-bold text-ink">
                         {formatearTexto(
                           probabilidad.codigo
                         )}
@@ -729,7 +729,7 @@ export function RiskHeatmap({
                                 {esInherente && (
                                   <span
                                     title="Riesgo inherente"
-                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1B4589] text-[10px] font-bold text-white shadow"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-brand text-[10px] font-bold text-white shadow"
                                   >
                                     I
                                   </span>
@@ -738,7 +738,7 @@ export function RiskHeatmap({
                                 {esResidual && (
                                   <span
                                     title="Riesgo residual"
-                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[10px] font-bold text-[#1B4589] shadow"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-brand bg-white text-[10px] font-bold text-brand shadow"
                                   >
                                     R
                                   </span>
@@ -776,9 +776,9 @@ export function RiskHeatmap({
                     gridRow:
                       6,
                   }}
-                  className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-2 text-center"
+                  className="flex items-center justify-center border border-line bg-surface-2 px-2 text-center"
                 >
-                  <span className="text-[13px] font-bold text-[#231F20]">
+                  <span className="text-[13px] font-bold text-ink">
                     {formatearTexto(
                       impacto.codigo
                     )}
@@ -799,9 +799,9 @@ export function RiskHeatmap({
                 gridRow:
                   7,
               }}
-              className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
+              className="flex items-center justify-center border border-line-strong bg-line"
             >
-              <span className="text-sm font-bold text-[#1B4589]">
+              <span className="text-sm font-bold text-brand">
                 Impacto
               </span>
             </div>
@@ -814,7 +814,7 @@ export function RiskHeatmap({
           LEYENDA
          ===================================================== */}
 
-      <div className="mx-auto mt-6 flex max-w-[1050px] flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-[#E8ECF3] pt-4">
+      <div className="mx-auto mt-6 flex max-w-[1050px] flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-line pt-4">
 
         {(
           Object.entries(
@@ -856,7 +856,7 @@ export function RiskHeatmap({
         {/* LEYENDA INHERENTE */}
 
         <div className="ml-2 flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1B4589] text-[9px] font-bold text-white">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">
             I
           </span>
 
@@ -868,7 +868,7 @@ export function RiskHeatmap({
         {/* LEYENDA RESIDUAL */}
 
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1B4589] bg-white text-[9px] font-bold text-[#1B4589]">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-brand bg-white text-[9px] font-bold text-brand">
             R
           </span>
 

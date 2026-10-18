@@ -35,6 +35,16 @@ export const authService = {
     return data;
   },
 
+  /** Pide el enlace de recuperación; la respuesta es igual exista o no el correo. */
+  async solicitarRecuperacion(correo: string): Promise<void> {
+    await apiClient.post('/auth/forgot-password', { correo });
+  },
+
+  /** Crea la contraseña con el enlace que llegó por correo (invitación o recuperación). */
+  async restablecerClave(token: string, nuevaClave: string): Promise<void> {
+    await apiClient.post('/auth/reset-password', { token, nuevaClave });
+  },
+
   logout(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(TOKEN_KEY);

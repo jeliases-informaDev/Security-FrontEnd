@@ -48,6 +48,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
     handleSubmit,
     setValue,
     setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(esquema),
@@ -64,6 +65,8 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
       clave: generarClave(),
     },
   });
+
+  const siglaElegida = activas.find((e) => e.nombre === watch('empresa'))?.sigla?.toLowerCase() ?? null;
 
   const crear = handleSubmit(async (valores) => {
     setErrorGeneral(null);
@@ -155,7 +158,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
 
       <Seccion titulo="Acceso" descripcion="Con esto entrará a la plataforma. Cópialos antes de salir de esta pantalla: la clave no se vuelve a mostrar.">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Campo id="usuario" texto="Usuario" error={errors.usuario?.message}>
+          <Campo id="usuario" texto="Usuario" error={errors.usuario?.message} ayuda={siglaElegida ? `Se guardará como ${siglaElegida}.usuario: la sigla de la empresa va delante y la persona no tiene que escribirla. Puede entrar con su correo.` : 'La persona también podrá entrar con su correo.'}>
             <input id="usuario" autoComplete="off" spellCheck={false} className={`${clase(errors.usuario?.message)} font-mono`} {...register('usuario')} />
           </Campo>
           <Campo id="clave" texto="Clave inicial" error={errors.clave?.message}>

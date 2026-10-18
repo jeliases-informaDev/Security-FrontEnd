@@ -45,7 +45,7 @@ export default function LoginPage() {
           <div className="card aparece p-7 sm:p-8">
             <p className="eyebrow">Bienvenido</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
-            <p className="mb-6 mt-1 text-sm text-muted">Usa el usuario y la contraseña que te asignó tu oficial de cumplimiento.</p>
+            <p className="mb-6 mt-1 text-sm text-muted">Entra con tu correo (o tu usuario) y tu contraseña.</p>
             <LoginForm />
           </div>
 

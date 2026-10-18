@@ -1,16 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { History, Search, ExternalLink, Eye } from 'lucide-react';
+import { History, Search, ExternalLink, Eye, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   listasNegativasService,
   HistorialConsultaResponse,
   ManchaResponse,
 } from '@/modules/listas_negativas/services/listasNegativasService';
+import { EtiquetaLista } from '@/modules/listas_negativas/components/ManchaCard';
+import { Panel } from '@/shared/ui/PageShell';
+import { Avatar, Paginacion } from '@/shared/ui/kit';
 
-// Los nombres reales de lista (catalogo Inspektor) son demasiado largos para una celda
+// Los nombres reales de lista (catálogo Inspektor) son demasiado largos para una celda
 // de tabla ("Peru - Personas sancionadas por la Superintendencia de Banca y Seguros"),
-// asi que se muestra el grupo abreviado y el nombre completo queda en el tooltip.
+// así que se muestra el grupo abreviado y el nombre completo queda en el tooltip.
 const GRUPO_ABREVIADO: Record<string, string> = {
   'Listas Restrictivas': 'Restrictiva',
   'Listas Asociadas a LA/FT o Corrupcion (Penal)': 'LA/FT Penal',
@@ -26,37 +29,23 @@ function etiquetaCorta(mancha: ManchaResponse): string {
   return mancha.tipoListaNombre ?? mancha.tipoListaCodigo ?? '—';
 }
 
-// Colorimetria real de Inspektor/Risk Consulting (grupoColor viene del backend);
-// sin grupo (ej. Noticias) cae en el estilo por defecto (gris).
-const COLOR_GRUPO_STYLES: Record<string, string> = {
-  Vinotinto: 'bg-rose-50 text-rose-800 border-rose-200',
-  Rojo: 'bg-red-50 text-red-700 border-red-100',
-  Naranja: 'bg-orange-50 text-orange-700 border-orange-100',
-  Amarillo: 'bg-amber-50 text-amber-700 border-amber-100',
-  Verde: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-};
-
-function formatearFechaHora(fecha: string): string {
-  return new Date(fecha).toLocaleString('es-PE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function iniciales(nombre: string): string {
-  return nombre
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join('');
-}
+const formatoFechaHora = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 type Orden = 'nombre' | 'fecha';
 type Direccion = 'asc' | 'desc';
+
+/** Flecha del encabezado ordenable: doble cuando la columna no es la activa, simple en el sentido actual. */
+function IconoOrden({ activo, direccion }: { activo: boolean; direccion: Direccion }) {
+  if (!activo) return <ArrowUpDown className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />;
+  return direccion === 'asc' ? <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />;
+}
+
+interface Resultado {
+  /** A qué pedido corresponde: si no coincide con el pedido actual, todavía se está cargando. */
+  clave: string;
+  items: HistorialConsultaResponse[];
+  totalPaginas: number;
+}
 
 interface HistorialBusquedasProps {
   onVerDetalle: (entidadId: number) => void;
@@ -64,219 +53,155 @@ interface HistorialBusquedasProps {
 }
 
 export function HistorialBusquedas({ onVerDetalle, recargarClave }: HistorialBusquedasProps) {
-  const [items, setItems] = useState<HistorialConsultaResponse[]>([]);
   const [pagina, setPagina] = useState(0);
   const [tamano, setTamano] = useState(10);
-  const [totalPaginas, setTotalPaginas] = useState(0);
-  const [cargando, setCargando] = useState(true);
   const [filtro, setFiltro] = useState('');
   const [orden, setOrden] = useState<Orden>('fecha');
   const [direccion, setDireccion] = useState<Direccion>('desc');
+  const [resultado, setResultado] = useState<Resultado | null>(null);
 
-  // Una busqueda nueva (recargarClave) siempre vuelve a la primera pagina.
-  useEffect(() => {
+  // Una búsqueda nueva (recargarClave) siempre vuelve a la primera página.
+  const [ultimaRecarga, setUltimaRecarga] = useState(recargarClave);
+  if (ultimaRecarga !== recargarClave) {
+    setUltimaRecarga(recargarClave);
     setPagina(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recargarClave]);
+  }
+
+  const clave = `${recargarClave}|${pagina}|${tamano}`;
+  const cargando = resultado?.clave !== clave;
+  const items = resultado?.items ?? [];
+  const totalPaginas = resultado?.totalPaginas ?? 0;
 
   useEffect(() => {
     let cancelado = false;
-    // Patron de fetch-en-mount documentado por React (react.dev/learn/synchronizing-with-effects).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCargando(true);
-
     listasNegativasService
       .obtenerHistorial(pagina, tamano)
       .then((data) => {
-        if (cancelado) return;
-        setItems(data.content);
-        setTotalPaginas(data.totalPages);
+        if (!cancelado) setResultado({ clave, items: data.content, totalPaginas: data.totalPages });
       })
       .catch(() => {
-        // Sin historial disponible o backend no accesible: no bloquea el resto de la pantalla
-      })
-      .finally(() => {
-        if (!cancelado) setCargando(false);
+        // Sin historial disponible o backend no accesible: se conserva lo que había y no se bloquea el resto de la pantalla.
+        if (!cancelado) setResultado((previo) => ({ clave, items: previo?.items ?? [], totalPaginas: previo?.totalPaginas ?? 0 }));
       });
-
     return () => {
       cancelado = true;
     };
-  }, [recargarClave, pagina, tamano]);
+  }, [clave, pagina, tamano]);
 
   const itemsFiltrados = useMemo(() => {
     const texto = filtro.trim().toLowerCase();
     const filtrados = texto
-      ? items.filter(
-          (item) =>
-            item.resultado.nombreCompleto.toLowerCase().includes(texto) ||
-            item.resultado.documento.toLowerCase().includes(texto)
-        )
+      ? items.filter((item) => item.resultado.nombreCompleto.toLowerCase().includes(texto) || item.resultado.documento.toLowerCase().includes(texto))
       : items;
 
     const factor = direccion === 'asc' ? 1 : -1;
     return [...filtrados].sort((a, b) => {
-      if (orden === 'nombre') {
-        return factor * a.resultado.nombreCompleto.localeCompare(b.resultado.nombreCompleto);
-      }
+      if (orden === 'nombre') return factor * a.resultado.nombreCompleto.localeCompare(b.resultado.nombreCompleto);
       return factor * (new Date(a.fechaConsulta).getTime() - new Date(b.fechaConsulta).getTime());
     });
   }, [items, filtro, orden, direccion]);
 
   const alternarOrden = (campo: Orden) => {
-    if (orden === campo) {
-      setDireccion((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
+    if (orden === campo) setDireccion((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
       setOrden(campo);
       setDireccion('asc');
     }
   };
 
-  if (!cargando && items.length === 0 && pagina === 0 && !filtro) {
-    return null;
-  }
+  const ariaSort = (campo: Orden) => (orden === campo ? (direccion === 'asc' ? 'ascending' : 'descending') : 'none');
+
+  if (!cargando && items.length === 0 && pagina === 0 && !filtro) return null;
 
   return (
-    <section className="mt-10">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="w-4 h-4 text-brand-muted" />
-        <h2 className="text-sm font-semibold text-brand-ink">Mis búsquedas recientes</h2>
-      </div>
-
-      <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-slate-100">
-          <label className="flex items-center gap-2 text-xs text-brand-muted">
-            Mostrar
-            <select
-              value={tamano}
-              onChange={(e) => {
-                setTamano(Number(e.target.value));
-                setPagina(0);
-              }}
-              className="rounded-lg border border-slate-200 text-xs px-2 py-1 text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-navy/20"
-            >
-              {[10, 25, 50].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-            registros
-          </label>
-
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-              placeholder="Buscar en esta página…"
-              className="pl-7 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs text-brand-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20"
-            />
-          </div>
-        </div>
-
+    <section className="mt-10" aria-labelledby="titulo-historial">
+      <Panel
+        titulo={<span id="titulo-historial" className="flex items-center gap-2"><History className="h-4 w-4 text-brand" aria-hidden="true" /> Mis búsquedas recientes</span>}
+        descripcion="Cada consulta queda registrada con quién la hizo y cuándo."
+        acciones={
+          <>
+            <label className="flex items-center gap-2 text-xs text-muted">
+              Mostrar
+              <select
+                value={tamano}
+                onChange={(e) => { setTamano(Number(e.target.value)); setPagina(0); }}
+                aria-label="Registros por página"
+                className="input h-8 w-auto px-2 text-xs"
+              >
+                {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint" aria-hidden="true" />
+              <input
+                type="search"
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Buscar en esta página…"
+                aria-label="Buscar en el historial"
+                autoComplete="off"
+                className="input h-8 w-56 pl-8 text-xs"
+              />
+            </div>
+          </>
+        }
+      >
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="tabla">
             <thead>
-              <tr className="text-left text-[11px] font-medium text-brand-muted border-b border-slate-100">
-                <th className="px-5 py-2.5">
-                  <button
-                    onClick={() => alternarOrden('nombre')}
-                    className="flex items-center gap-1 hover:text-brand-ink transition"
-                  >
-                    Persona / Institución
-                    {orden === 'nombre' && <span>{direccion === 'asc' ? '↑' : '↓'}</span>}
+              <tr>
+                <th scope="col" aria-sort={ariaSort('nombre')}>
+                  <button type="button" onClick={() => alternarOrden('nombre')} className="flex items-center gap-1 uppercase tracking-wide hover:text-ink">
+                    Persona / institución <IconoOrden activo={orden === 'nombre'} direccion={direccion} />
                   </button>
                 </th>
-                <th className="px-5 py-2.5">Identificación</th>
-                <th className="px-5 py-2.5">Tipo de lista</th>
-                <th className="px-5 py-2.5">
-                  <button
-                    onClick={() => alternarOrden('fecha')}
-                    className="flex items-center gap-1 hover:text-brand-ink transition"
-                  >
-                    Fecha de registro
-                    {orden === 'fecha' && <span>{direccion === 'asc' ? '↑' : '↓'}</span>}
+                <th scope="col">Identificación</th>
+                <th scope="col">Tipo de lista</th>
+                <th scope="col" aria-sort={ariaSort('fecha')}>
+                  <button type="button" onClick={() => alternarOrden('fecha')} className="flex items-center gap-1 uppercase tracking-wide hover:text-ink">
+                    Fecha de consulta <IconoOrden activo={orden === 'fecha'} direccion={direccion} />
                   </button>
                 </th>
-                <th className="px-5 py-2.5 text-right">Acciones</th>
+                <th scope="col" className="text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className={cargando ? 'opacity-60' : ''}>
               {itemsFiltrados.map((item) => {
                 const primeraMancha = item.resultado.manchas[0];
+                const extra = item.resultado.manchas.length - 1;
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-brand-navy text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
-                          {iniciales(item.resultado.nombreCompleto) || '·'}
-                        </div>
+                  <tr key={item.id}>
+                    <td>
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <Avatar nombre={item.resultado.nombreCompleto} tamano="sm" />
                         <div className="min-w-0">
-                          <p className="font-medium text-brand-ink truncate">
-                            {item.resultado.nombreCompleto}
-                          </p>
-                          <p className="text-xs text-brand-muted">
-                            {item.resultado.tipoEntidad === 'JURIDICA'
-                              ? 'Persona jurídica'
-                              : 'Persona natural'}
-                          </p>
+                          <p className="truncate font-medium text-ink">{item.resultado.nombreCompleto}</p>
+                          <p className="text-xs text-muted">{item.resultado.tipoEntidad === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-brand-ink whitespace-nowrap">
-                      {item.resultado.tipoDocumento ?? 'Doc.'}: {item.resultado.documento}
+                    <td className="whitespace-nowrap font-mono text-[13px]">
+                      <span className="text-muted">{item.resultado.tipoDocumento ?? 'Doc.'}</span> {item.resultado.documento}
                     </td>
-                    <td className="px-5 py-3">
+                    <td>
                       {primeraMancha ? (
-                        <span className="relative inline-block group/tooltip">
-                          <span
-                            className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full border cursor-default ${
-                              COLOR_GRUPO_STYLES[primeraMancha.grupoColor ?? ''] ??
-                              'bg-slate-100 text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            {etiquetaCorta(primeraMancha)}
-                            {item.resultado.manchas.length > 1
-                              ? ` +${item.resultado.manchas.length - 1}`
-                              : ''}
-                          </span>
-                          <span className="pointer-events-none absolute z-10 hidden group-hover/tooltip:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[240px] px-3 py-2 rounded-lg bg-brand-ink text-white text-xs leading-snug shadow-lg">
-                            {primeraMancha.tipoListaNombre}
-                            {item.resultado.manchas.length > 1 && (
-                              <span className="block mt-1 text-slate-300">
-                                +{item.resultado.manchas.length - 1} coincidencia
-                                {item.resultado.manchas.length - 1 === 1 ? '' : 's'} más
-                              </span>
-                            )}
-                          </span>
+                        <span className="inline-flex items-center gap-1.5" title={`${primeraMancha.tipoListaNombre ?? ''}${extra > 0 ? ` · +${extra} coincidencia${extra === 1 ? '' : 's'} más` : ''}`}>
+                          <EtiquetaLista mancha={primeraMancha} texto={etiquetaCorta(primeraMancha)} />
+                          {extra > 0 && <span className="badge badge-neutral">+{extra}</span>}
                         </span>
                       ) : (
-                        <span className="text-xs text-brand-muted">—</span>
+                        <span className="text-xs text-muted">—</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-brand-muted whitespace-nowrap">
-                      {formatearFechaHora(item.fechaConsulta)}
-                    </td>
-                    <td className="px-5 py-3">
+                    <td className="whitespace-nowrap tabular-nums text-muted">{formatoFechaHora.format(new Date(item.fechaConsulta))}</td>
+                    <td>
                       <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => onVerDetalle(item.resultado.entidadId)}
-                          title="Ver detalle"
-                          className="p-1.5 rounded-lg text-brand-navy hover:bg-brand-navy/10 transition"
-                        >
-                          <Eye className="w-4 h-4" />
+                        <button type="button" onClick={() => onVerDetalle(item.resultado.entidadId)} title="Ver detalle" aria-label={`Ver detalle de ${item.resultado.nombreCompleto}`} className="btn btn-ghost btn-icon h-8 w-8">
+                          <Eye className="h-4 w-4" aria-hidden="true" />
                         </button>
                         {primeraMancha?.link && (
-                          <a
-                            href={primeraMancha.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Ver fuente"
-                            className="p-1.5 rounded-lg text-brand-navy hover:bg-brand-navy/10 transition"
-                          >
-                            <ExternalLink className="w-4 h-4" />
+                          <a href={primeraMancha.link} target="_blank" rel="noopener noreferrer" title="Ver fuente" aria-label="Ver fuente" className="btn btn-ghost btn-icon h-8 w-8">
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
                           </a>
                         )}
                       </div>
@@ -287,10 +212,8 @@ export function HistorialBusquedas({ onVerDetalle, recargarClave }: HistorialBus
 
               {itemsFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-sm text-brand-muted">
-                    {filtro
-                      ? `No hay búsquedas que coincidan con "${filtro}".`
-                      : 'Sin búsquedas registradas.'}
+                  <td colSpan={5} className="px-5 py-8 text-center text-sm text-muted">
+                    {cargando ? 'Cargando búsquedas…' : filtro ? `No hay búsquedas que coincidan con «${filtro}».` : 'Sin búsquedas registradas.'}
                   </td>
                 </tr>
               )}
@@ -299,29 +222,9 @@ export function HistorialBusquedas({ onVerDetalle, recargarClave }: HistorialBus
         </div>
 
         {totalPaginas > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-            <p className="text-xs text-brand-muted">
-              Página {pagina + 1} de {totalPaginas}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPagina((p) => Math.max(0, p - 1))}
-                disabled={pagina === 0 || cargando}
-                className="px-3 py-1.5 text-xs font-medium text-brand-navy rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
-                disabled={pagina >= totalPaginas - 1 || cargando}
-                className="px-3 py-1.5 text-xs font-medium text-brand-navy rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+          <Paginacion desde={pagina * tamano + 1} hasta={pagina * tamano + items.length} total={totalPaginas * tamano} pagina={pagina} totalPaginas={totalPaginas} onCambiar={setPagina} cargando={cargando} />
         )}
-      </div>
+      </Panel>
     </section>
   );
 }

@@ -377,9 +377,9 @@ export function RiskAggregateHeatmap({
   if (cargando) {
 
     return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-xl border border-slate-200 bg-white">
+      <div className="flex min-h-[360px] items-center justify-center card">
 
-        <div className="flex flex-col items-center gap-3 text-slate-500">
+        <div className="flex flex-col items-center gap-3 text-muted">
 
           <Loader2 className="h-6 w-6 animate-spin" />
 
@@ -446,7 +446,7 @@ export function RiskAggregateHeatmap({
   // ==========================================================
 
   return (
-    <section className="w-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="w-full card p-5 shadow-sm">
 
       {/* =====================================================
           CABECERA
@@ -456,15 +456,15 @@ export function RiskAggregateHeatmap({
 
         <div>
 
-          <p className="text-xs font-bold text-[#1B4589]">
+          <p className="text-xs font-bold text-brand">
             Resumen de exposición
           </p>
 
-          <h2 className="mt-1 text-xl font-bold tracking-tight text-[#231F20]">
+          <h2 className="mt-1 text-xl font-bold tracking-tight text-ink">
             Matriz general de riesgos
           </h2>
 
-          <p className="mt-1.5 text-sm text-slate-500">
+          <p className="mt-1.5 text-sm text-muted">
             Distribución de las evaluaciones registradas
             según su probabilidad e impacto.
           </p>
@@ -476,7 +476,7 @@ export function RiskAggregateHeatmap({
             SELECTOR COMPARTIDO
            =================================================== */}
 
-        <div className="inline-flex shrink-0 self-start rounded-xl bg-slate-100 p-1">
+        <div className="inline-flex shrink-0 self-start rounded-xl bg-surface-2 p-1">
 
           <button
             type="button"
@@ -488,8 +488,8 @@ export function RiskAggregateHeatmap({
             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
               tipoVista ===
               "residual"
-                ? "bg-white text-[#1B4589] shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                ? "bg-white text-brand shadow-sm"
+                : "text-muted hover:text-ink"
             }`}
           >
             Residual
@@ -506,8 +506,8 @@ export function RiskAggregateHeatmap({
             className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
               tipoVista ===
               "inherente"
-                ? "bg-white text-[#1B4589] shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                ? "bg-white text-brand shadow-sm"
+                : "text-muted hover:text-ink"
             }`}
           >
             Inherente
@@ -547,11 +547,11 @@ export function RiskAggregateHeatmap({
                 gridRow:
                   "1 / span 5",
               }}
-              className="flex items-center justify-center border border-[#C6D0E2] bg-[#E8ECF3]"
+              className="flex items-center justify-center border border-line-strong bg-line"
             >
 
               <span
-                className="text-[11px] font-bold text-[#1B4589]"
+                className="text-[11px] font-bold text-brand"
                 style={{
                   writingMode:
                     "vertical-rl",
@@ -599,10 +599,10 @@ export function RiskAggregateHeatmap({
                       title={
                         probabilidad.descripcion
                       }
-                      className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-2 text-center"
+                      className="flex items-center justify-center border border-line bg-surface-2 px-2 text-center"
                     >
 
-                      <span className="text-xs font-bold text-[#231F20]">
+                      <span className="text-xs font-bold text-ink">
                         {formatearTexto(
                           probabilidad.codigo
                         )}
@@ -653,7 +653,7 @@ export function RiskAggregateHeatmap({
                                 gridRow:
                                   fila,
                               }}
-                              className="border border-white bg-slate-100"
+                              className="border border-white bg-surface-2"
                             />
                           );
                         }
@@ -728,10 +728,10 @@ export function RiskAggregateHeatmap({
 
                     gridRow: 6,
                   }}
-                  className="flex items-center justify-center border border-[#D7DEE9] bg-[#F7F9FC] px-1 text-center"
+                  className="flex items-center justify-center border border-line bg-surface-2 px-1 text-center"
                 >
 
-                  <span className="text-[11px] font-bold text-[#231F20]">
+                  <span className="text-[11px] font-bold text-ink">
                     {formatearTexto(
                       impacto.codigo
                     )}
@@ -774,13 +774,13 @@ export function RiskAggregateHeatmap({
           FOOTER
          ===================================================== */}
 
-      <div className="mx-auto mt-4 flex max-w-[880px] flex-col gap-3 border-t border-[#E8ECF3] pt-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto mt-4 flex max-w-[880px] flex-col gap-3 border-t border-line pt-3 lg:flex-row lg:items-center lg:justify-between">
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
 
           Evaluaciones consideradas:{" "}
 
-          <span className="font-bold text-slate-700">
+          <span className="font-bold text-ink">
             {totalConsiderado}
           </span>
 
@@ -819,7 +819,7 @@ export function RiskAggregateHeatmap({
                   }}
                 />
 
-                <span className="text-[11px] font-medium text-slate-600">
+                <span className="text-[11px] font-medium text-muted">
                   {
                     estilo.etiqueta
                   }

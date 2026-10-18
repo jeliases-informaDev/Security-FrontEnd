@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
 import {
   operacionesService,
   mensajeDeErrorOperaciones,
   type OperacionItem,
   type UsuarioEmpresa,
 } from '@/modules/operaciones/services/operacionesService';
-import { botonPrimario, botonSecundario, campo, etiqueta } from '@/shared/ui/estilos';
+import { Modal } from '@/shared/ui/Modal';
+import { Aviso, Boton } from '@/shared/ui/kit';
 
 interface CambiarResponsableModalProps {
   operacion: OperacionItem;
@@ -41,17 +41,10 @@ export function CambiarResponsableModal({ operacion, empresa, onCerrar, onGuarda
     };
   }, [empresa]);
 
+  // El selector empieza deshabilitado (cargando): se le da el foco cuando ya tiene opciones.
   useEffect(() => {
-    selectorRef.current?.focus();
+    if (usuarios !== null) selectorRef.current?.focus();
   }, [usuarios]);
-
-  useEffect(() => {
-    const alPresionar = (evento: KeyboardEvent) => {
-      if (evento.key === 'Escape') onCerrar();
-    };
-    document.addEventListener('keydown', alPresionar);
-    return () => document.removeEventListener('keydown', alPresionar);
-  }, [onCerrar]);
 
   const guardar = async () => {
     if (!seleccionado) return;
@@ -68,58 +61,37 @@ export function CambiarResponsableModal({ operacion, empresa, onCerrar, onGuarda
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onMouseDown={(evento) => evento.target === evento.currentTarget && onCerrar()}>
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-responsable" className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
-          <div>
-            <h2 id="titulo-responsable" className="text-base font-semibold text-brand-ink">
-              Cambiar responsable
-            </h2>
-            <p className="mt-0.5 font-mono text-[13px] text-brand-muted">{operacion.numeroRegistro ?? `Registro ${operacion.id}`}</p>
-          </div>
-          <button type="button" onClick={onCerrar} aria-label="Cerrar" className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="space-y-3 px-5 py-5">
-          <div>
-            <label htmlFor="responsable" className={etiqueta}>
-              Responsable
-            </label>
-            <select
-              id="responsable"
-              ref={selectorRef}
-              value={seleccionado}
-              onChange={(evento) => setSeleccionado(evento.target.value)}
-              disabled={usuarios === null || guardando}
-              className={campo}
-            >
-              <option value="">{usuarios === null ? 'Cargando usuarios…' : 'Elige un usuario'}</option>
-              {(usuarios ?? []).map((usuario) => (
-                <option key={usuario.id} value={usuario.id}>
-                  {usuario.nombreCompleto || usuario.usuario}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1.5 text-xs text-brand-muted">Solo aparecen usuarios activos de {empresa}.</p>
-          </div>
-          {error && (
-            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
-          <button type="button" onClick={onCerrar} className={botonSecundario}>
-            Cancelar
-          </button>
-          <button type="button" onClick={guardar} disabled={!seleccionado || guardando} className={botonPrimario}>
-            {guardando ? 'Guardando…' : 'Guardar'}
-          </button>
-        </div>
+    <Modal
+      titulo="Cambiar responsable"
+      subtitulo={<span className="font-mono text-[13px]">{operacion.numeroRegistro ?? `Registro ${operacion.id}`}</span>}
+      onCerrar={onCerrar}
+      pie={
+        <>
+          <Boton variante="secundario" onClick={onCerrar}>Cancelar</Boton>
+          <Boton onClick={guardar} disabled={!seleccionado} cargando={guardando}>{guardando ? 'Guardando…' : 'Guardar'}</Boton>
+        </>
+      }
+    >
+      <div>
+        <label htmlFor="responsable" className="label">Responsable</label>
+        <select
+          id="responsable"
+          ref={selectorRef}
+          value={seleccionado}
+          onChange={(evento) => setSeleccionado(evento.target.value)}
+          disabled={usuarios === null || guardando}
+          className="input"
+        >
+          <option value="">{usuarios === null ? 'Cargando usuarios…' : 'Elige un usuario'}</option>
+          {(usuarios ?? []).map((usuario) => (
+            <option key={usuario.id} value={usuario.id}>
+              {usuario.nombreCompleto || usuario.usuario}
+            </option>
+          ))}
+        </select>
+        <p className="hint mt-1.5">Solo aparecen usuarios activos de {empresa}.</p>
       </div>
-    </div>
+      {error && <Aviso aviso={{ tipo: 'error', texto: error }} />}
+    </Modal>
   );
 }

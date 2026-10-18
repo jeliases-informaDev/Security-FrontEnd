@@ -22,10 +22,10 @@ export function RiskFormStepper({ currentStep }: Props) {
               className={[
                 "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition",
                 active
-                  ? "bg-[#1B4589] text-white"
+                  ? "bg-brand text-white"
                   : completed
-                    ? "bg-[#E8ECF3] text-[#1B4589]"
-                    : "bg-slate-100 text-slate-400",
+                    ? "bg-line text-brand"
+                    : "bg-surface-2 text-faint",
               ].join(" ")}
             >
               {step.number.toString().padStart(2, "0")}
@@ -36,8 +36,8 @@ export function RiskFormStepper({ currentStep }: Props) {
                 className={[
                   "truncate text-xs font-semibold",
                   active || completed
-                    ? "text-[#231F20]"
-                    : "text-slate-400",
+                    ? "text-ink"
+                    : "text-faint",
                 ].join(" ")}
               >
                 {step.label}
@@ -47,8 +47,8 @@ export function RiskFormStepper({ currentStep }: Props) {
                 className={[
                   "mt-1 h-1 w-full rounded-full",
                   completed || active
-                    ? "bg-[#1B4589]"
-                    : "bg-slate-200",
+                    ? "bg-brand"
+                    : "bg-line",
                 ].join(" ")}
               />
             </div>

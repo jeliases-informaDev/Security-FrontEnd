@@ -1,22 +1,20 @@
-// Clases compartidas de formularios y botones para las pantallas nuevas (mismas medidas y mismos colores de marca en todas).
+// Clases compartidas de formularios y botones. Son las clases del sistema visual (globals.css): mismas medidas, mismos colores
+// y el mismo foco en toda la aplicación. Se pueden combinar con utilidades extra (p. ej. `${botonPrimario} w-full`).
 
-export const etiqueta = 'mb-1.5 block text-sm font-medium text-slate-700';
+export const etiqueta = 'label';
 
-export const campo =
-  'h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-brand-ink placeholder:text-slate-400 ' +
-  'focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy disabled:bg-slate-50 disabled:text-slate-500';
+export const campo = 'input';
 
-export const campoError = 'border-red-400 focus:border-red-500 focus:ring-red-500';
+export const campoError = 'input-error';
 
-export const mensajeError = 'mt-1 text-xs text-red-600';
+export const mensajeError = 'error-text';
 
-export const botonPrimario =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-navy px-4 text-sm font-semibold text-white ' +
-  'transition hover:bg-brand-navy-2 disabled:cursor-not-allowed disabled:opacity-50';
+export const ayuda = 'hint';
 
-export const botonSecundario =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium ' +
-  'text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50';
+export const botonPrimario = 'btn btn-primary';
 
-export const botonTexto =
-  'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-brand-navy transition hover:bg-slate-100';
+export const botonSecundario = 'btn btn-secondary';
+
+export const botonPeligro = 'btn btn-danger';
+
+export const botonTexto = 'btn btn-ghost btn-sm';

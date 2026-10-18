@@ -85,7 +85,7 @@ export function EditarCuentaModal({ cuenta, empresas, roles, onCerrar, onGuardad
           ))}
         </select>
         {cambioEmpresa && actual !== '' && (
-          <p className="mt-1.5 text-xs text-amber-800">
+          <p className="mt-1.5 text-xs text-warn">
             Los registros de operaciones que esta cuenta ya hizo pasarán a la nueva empresa y dejarán de verse en {actual}.
           </p>
         )}
@@ -106,7 +106,7 @@ export function EditarCuentaModal({ cuenta, empresas, roles, onCerrar, onGuardad
       </div>
 
       {error && (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-lg border border-bad/20 bg-bad-soft px-3 py-2 text-sm text-bad">
           {error}
         </p>
       )}

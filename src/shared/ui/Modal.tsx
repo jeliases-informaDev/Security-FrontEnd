@@ -12,10 +12,14 @@ interface ModalProps {
   children: ReactNode;
   /** Botones del pie (alineados a la derecha). */
   pie?: ReactNode;
+  /** Ancho máximo de la ventana. */
+  tamano?: 'sm' | 'md' | 'lg';
 }
 
+const ANCHO = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl' } as const;
+
 /** Ventana emergente: se cierra con Escape o haciendo clic fuera, y al abrirse deja el cursor en el primer campo. */
-export function Modal({ titulo, subtitulo, onCerrar, children, pie }: ModalProps) {
+export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm' }: ModalProps) {
   const idTitulo = useId();
   const cuerpoRef = useRef<HTMLDivElement>(null);
 
@@ -33,32 +37,31 @@ export function Modal({ titulo, subtitulo, onCerrar, children, pie }: ModalProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       onMouseDown={(evento) => evento.target === evento.currentTarget && onCerrar()}
     >
-      <div role="dialog" aria-modal="true" aria-labelledby={idTitulo} className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={idTitulo}
+        className={`zoom-entra flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-surface shadow-lg sm:rounded-2xl ${ANCHO[tamano]}`}
+        style={{ overscrollBehavior: 'contain' }}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 id={idTitulo} className="text-base font-semibold text-brand-ink">
-              {titulo}
-            </h2>
-            {subtitulo && <p className="mt-0.5 truncate text-sm text-brand-muted">{subtitulo}</p>}
+            <h2 id={idTitulo} className="text-base font-semibold text-ink">{titulo}</h2>
+            {subtitulo && <p className="mt-0.5 truncate text-sm text-muted">{subtitulo}</p>}
           </div>
-          <button
-            type="button"
-            onClick={onCerrar}
-            aria-label="Cerrar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100"
-          >
+          <button type="button" onClick={onCerrar} aria-label="Cerrar" className="btn btn-ghost btn-icon -mr-2 -mt-1 text-muted">
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div ref={cuerpoRef} className="space-y-3 px-5 py-5">
+        <div ref={cuerpoRef} className="space-y-3 overflow-y-auto px-5 py-5">
           {children}
         </div>
 
-        {pie && <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">{pie}</div>}
+        {pie && <div className="flex justify-end gap-2 border-t border-line bg-surface-2/50 px-5 py-4">{pie}</div>}
       </div>
     </div>
   );

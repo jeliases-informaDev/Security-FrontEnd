@@ -220,19 +220,19 @@ export function CatalogManagerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#E8ECF3] bg-white shadow-2xl">
-        <header className="flex items-start justify-between border-b border-[#E8ECF3] px-6 py-6 md:px-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-line bg-white shadow-2xl">
+        <header className="flex items-start justify-between border-b border-line px-6 py-6 md:px-8">
           <div>
-            <p className="text-xs font-bold text-[#547AA7]">
+            <p className="eyebrow">
               Configuración
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
               Áreas y procesos
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted">
               Crea las áreas, registra sus
               procesos y define la relación
               entre ambos.
@@ -242,7 +242,7 @@ export function CatalogManagerModal({
           <button
             type="button"
             onClick={cerrarModal}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-[#231F20]"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-faint transition hover:bg-surface-2 hover:text-ink"
             aria-label="Cerrar"
           >
             <X size={20} />
@@ -263,24 +263,24 @@ export function CatalogManagerModal({
           )}
 
           <div className="grid gap-5 md:grid-cols-2">
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-5">
+            <section className="rounded-xl border border-line bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <Layers3 size={20} />
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-[#231F20]">
+                  <h3 className="font-bold text-ink">
                     Crear área
                   </h3>
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted">
                     Área responsable del riesgo
                   </p>
                 </div>
               </div>
 
-              <label className="mb-2 block text-sm font-semibold text-[#231F20]">
+              <label className="mb-2 block text-sm font-semibold text-ink">
                 Nombre del área
               </label>
 
@@ -301,7 +301,7 @@ export function CatalogManagerModal({
                     }
                   }}
                   placeholder="Ej. Tecnología"
-                  className="min-w-0 flex-1 rounded-xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                  className="min-w-0 flex-1 rounded-xl border border-line-strong px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-line"
                 />
 
                 <button
@@ -312,7 +312,7 @@ export function CatalogManagerModal({
                   disabled={
                     accion !== null
                   }
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#1B4589] text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Crear área"
                 >
                   {accion === "AREA" ? (
@@ -327,24 +327,24 @@ export function CatalogManagerModal({
               </div>
             </section>
 
-            <section className="rounded-xl border border-[#E8ECF3] bg-white p-5">
+            <section className="rounded-xl border border-line bg-white p-5">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <Workflow size={20} />
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-[#231F20]">
+                  <h3 className="font-bold text-ink">
                     Crear proceso
                   </h3>
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted">
                     Proceso que será evaluado
                   </p>
                 </div>
               </div>
 
-              <label className="mb-2 block text-sm font-semibold text-[#231F20]">
+              <label className="mb-2 block text-sm font-semibold text-ink">
                 Nombre del proceso
               </label>
 
@@ -365,7 +365,7 @@ export function CatalogManagerModal({
                     }
                   }}
                   placeholder="Ej. Gestión de accesos"
-                  className="min-w-0 flex-1 rounded-xl border border-[#C6D0E2] px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                  className="min-w-0 flex-1 rounded-xl border border-line-strong px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-line"
                 />
 
                 <button
@@ -376,7 +376,7 @@ export function CatalogManagerModal({
                   disabled={
                     accion !== null
                   }
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#1B4589] text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Crear proceso"
                 >
                   {accion ===
@@ -393,18 +393,18 @@ export function CatalogManagerModal({
             </section>
           </div>
 
-          <section className="rounded-xl border border-[#C6D0E2] bg-[#E8ECF3]/50 p-6">
+          <section className="rounded-xl border border-line-strong bg-line/50 p-6">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1B4589] shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand shadow-sm">
                 <Link2 size={19} />
               </div>
 
               <div>
-                <h3 className="font-bold text-[#231F20]">
+                <h3 className="font-bold text-ink">
                   Vincular área y proceso
                 </h3>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted">
                   Define qué procesos pertenecen
                   a cada área.
                 </p>
@@ -412,7 +412,7 @@ export function CatalogManagerModal({
             </div>
 
             {cargandoCatalogos ? (
-              <div className="flex items-center justify-center py-8 text-sm text-slate-500">
+              <div className="flex items-center justify-center py-8 text-sm text-muted">
                 <Loader2
                   size={18}
                   className="mr-2 animate-spin"
@@ -424,7 +424,7 @@ export function CatalogManagerModal({
               <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#231F20]">
+                    <label className="mb-2 block text-sm font-semibold text-ink">
                       Área
                     </label>
 
@@ -435,7 +435,7 @@ export function CatalogManagerModal({
                           e.target.value
                         )
                       }
-                      className="w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                      className="w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-line"
                     >
                       <option value="">
                         Seleccionar área
@@ -453,7 +453,7 @@ export function CatalogManagerModal({
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#231F20]">
+                    <label className="mb-2 block text-sm font-semibold text-ink">
                       Proceso
                     </label>
 
@@ -464,7 +464,7 @@ export function CatalogManagerModal({
                           e.target.value
                         )
                       }
-                      className="w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3]"
+                      className="w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-line"
                     >
                       <option value="">
                         Seleccionar proceso
@@ -501,7 +501,7 @@ export function CatalogManagerModal({
                       !areaId ||
                       !procesoId
                     }
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#1B4589] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#163a74] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {accion ===
                     "VINCULO" ? (

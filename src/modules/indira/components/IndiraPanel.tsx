@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { isAxiosError } from 'axios';
-import { Bot, Send, ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { Send, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { indiraService, type FeedbackIndira } from '@/modules/indira/services/indiraService';
 
 interface Mensaje {
@@ -55,13 +55,13 @@ function mensajeDeError(error: unknown): string {
 interface IndiraPanelProps {
   abierto: boolean;
   onCerrar: () => void;
-  /** Distancia desde arriba (la altura de la cabecera): el panel queda debajo de ella. */
+  /** Distancia desde arriba (la altura de la barra superior): el panel queda debajo de ella. */
   top?: number;
 }
 
 /**
- * Chat con Indira acoplado al borde derecho, debajo de la cabecera. En pantallas anchas el contenido se corre para dejarle sitio
- * (no tapa nada); en pantallas chicas se abre encima con un fondo atenuado.
+ * Chat con Indira acoplado al borde derecho, debajo de la barra superior. En pantallas anchas el contenido se corre para dejarle
+ * sitio (no tapa nada); en pantallas chicas se abre encima con un fondo atenuado.
  */
 export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([SALUDO]);
@@ -170,152 +170,123 @@ export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
 
   if (!abierto) return null;
 
+  const botonFeedback = (m: Mensaje, valor: FeedbackIndira, Icono: typeof ThumbsUp, etiqueta: string, activo: string) => (
+    <button
+      type="button"
+      disabled={m.feedback !== undefined}
+      onClick={() => void darFeedback(m.id, m.mensajeId!, valor)}
+      aria-label={etiqueta}
+      aria-pressed={m.feedback === valor}
+      className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+        m.feedback === valor ? activo : 'text-faint hover:bg-surface-2 hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent'
+      }`}
+    >
+      <Icono className="h-3.5 w-3.5" aria-hidden="true" />
+    </button>
+  );
+
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-slate-900/30 xl:hidden" aria-hidden="true" onClick={onCerrar} />
+      <div className="fixed inset-0 z-30 bg-ink/30 xl:hidden" aria-hidden="true" onClick={onCerrar} />
       <aside
         role="dialog"
         aria-label="Chat con Indira"
-        style={{ top }}
-        className="fixed bottom-0 right-0 z-40 flex w-full animate-[panel-entra_180ms_ease-out] flex-col border-l border-slate-200 bg-white shadow-xl sm:w-[26rem] xl:shadow-none"
+        style={{ top, overscrollBehavior: 'contain' }}
+        className="fixed bottom-0 right-0 z-40 flex w-full animate-[panel-entra_180ms_ease-out] flex-col border-l border-line bg-surface shadow-lg sm:w-[26rem] xl:shadow-none"
       >
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-amber-soft text-brand-navy">
-            <Bot className="h-4 w-4" />
-          </div>
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-amber-500 text-white" aria-hidden="true">
+            <Sparkles className="h-4 w-4" />
+          </span>
           <div className="min-w-0 leading-tight">
-            <p className="text-sm font-semibold text-brand-ink">Indira</p>
-            <p className="truncate text-xs text-brand-muted">Asistente virtual</p>
+            <p className="text-sm font-semibold text-ink">Indira</p>
+            <p className="truncate text-xs text-muted">Asistente de cumplimiento</p>
           </div>
-          <button
-            type="button"
-            onClick={onCerrar}
-            aria-label="Cerrar chat"
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-          >
-            <X className="h-4 w-4" />
+          <button type="button" onClick={onCerrar} aria-label="Cerrar chat" className="btn btn-ghost btn-icon ml-auto text-muted">
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </header>
 
-      <div
-        ref={listaRef}
-        aria-live="polite"
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-brand-paper/60"
-      >
-        {mensajes.map((m) => (
-          <div key={m.id} className={`flex flex-col ${m.rol === 'usuario' ? 'items-end' : 'items-start'}`}>
-            <div
-              className={`max-w-[85%] px-3.5 py-2.5 text-sm whitespace-pre-wrap break-words ${
-                m.rol === 'usuario'
-                  ? 'bg-brand-navy text-white rounded-2xl rounded-br-md'
-                  : m.esError
-                    ? 'bg-red-50 text-red-700 border border-red-200 rounded-2xl rounded-bl-md'
-                    : 'bg-white text-slate-800 border border-slate-200 rounded-2xl rounded-bl-md'
-              }`}
-            >
-              {m.texto}
-            </div>
-
-            {m.rol === 'indira' && m.mensajeId && (
-              <div className="mt-1 flex items-center gap-1 pl-1">
-                <button
-                  type="button"
-                  disabled={m.feedback !== undefined}
-                  onClick={() => void darFeedback(m.id, m.mensajeId!, 'positivo')}
-                  aria-label="Respuesta útil"
-                  aria-pressed={m.feedback === 'positivo'}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition ${
-                    m.feedback === 'positivo'
-                      ? 'text-green-700 bg-green-50'
-                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 disabled:hover:bg-transparent disabled:opacity-40'
-                  }`}
-                >
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={m.feedback !== undefined}
-                  onClick={() => void darFeedback(m.id, m.mensajeId!, 'negativo')}
-                  aria-label="Respuesta no útil"
-                  aria-pressed={m.feedback === 'negativo'}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition ${
-                    m.feedback === 'negativo'
-                      ? 'text-red-700 bg-red-50'
-                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 disabled:hover:bg-transparent disabled:opacity-40'
-                  }`}
-                >
-                  <ThumbsDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {soloSaludo && !enviando && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {SUGERENCIAS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => usarSugerencia(s)}
-                className="px-3 py-1.5 text-xs rounded-full border border-brand-navy/20 text-brand-navy bg-white hover:bg-brand-amber-soft transition"
+        <div ref={listaRef} aria-live="polite" className="flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
+          {mensajes.map((m) => (
+            <div key={m.id} className={`flex flex-col ${m.rol === 'usuario' ? 'items-end' : 'items-start'}`}>
+              <div
+                className={`max-w-[85%] whitespace-pre-wrap break-words px-3.5 py-2.5 text-sm leading-relaxed ${
+                  m.rol === 'usuario'
+                    ? 'rounded-2xl rounded-br-md bg-brand text-white'
+                    : m.esError
+                      ? 'rounded-2xl rounded-bl-md border border-bad/20 bg-bad-soft text-bad'
+                      : 'rounded-2xl rounded-bl-md border border-line bg-surface text-ink shadow-sm'
+                }`}
               >
-                {s.trim().replace(/:$/, '')}
-              </button>
-            ))}
-          </div>
-        )}
+                {m.texto}
+              </div>
 
-        {enviando && (
-          <div role="status" className="flex items-start">
-            <span className="sr-only">Indira está escribiendo</span>
-            <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-3.5 py-3 flex items-center gap-1">
-              {[0, 150, 300].map((retraso) => (
-                <span
-                  key={retraso}
-                  className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
-                  style={{ animationDelay: `${retraso}ms` }}
-                />
+              {m.rol === 'indira' && m.mensajeId && (
+                <div className="mt-1 flex items-center gap-1 pl-1">
+                  {botonFeedback(m, 'positivo', ThumbsUp, 'Respuesta útil', 'bg-ok-soft text-ok')}
+                  {botonFeedback(m, 'negativo', ThumbsDown, 'Respuesta no útil', 'bg-bad-soft text-bad')}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {soloSaludo && !enviando && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {SUGERENCIAS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => usarSugerencia(s)}
+                  className="rounded-full border border-brand/25 bg-surface px-3 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:border-brand hover:bg-brand-soft"
+                >
+                  {s.trim().replace(/:$/, '')}
+                </button>
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={alEnviarFormulario} className="border-t border-slate-200 bg-white px-3 pt-3 pb-1 shrink-0">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={entradaRef}
-            value={entrada}
-            rows={1}
-            maxLength={MAX_CARACTERES}
-            placeholder="Escribe tu mensaje…"
-            aria-label="Mensaje para Indira"
-            onChange={(e) => {
-              setEntrada(e.target.value);
-              ajustarAltura(e.target);
-            }}
-            onKeyDown={alPresionarTecla}
-            className="flex-1 resize-none px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy/40 transition"
-          />
-          <button
-            type="submit"
-            disabled={enviando || entrada.trim().length === 0}
-            aria-label="Enviar mensaje"
-            className="w-10 h-10 shrink-0 rounded-xl bg-brand-navy text-white flex items-center justify-center hover:bg-brand-navy-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="py-1.5 text-[11px] text-slate-400 flex justify-between gap-2">
-          <span>Indira puede equivocarse. Verifica la información importante.</span>
-          {quedanPocos && (
-            <span className="shrink-0 tabular-nums">
-              {entrada.length}/{MAX_CARACTERES}
-            </span>
           )}
-        </p>
-      </form>
+
+          {enviando && (
+            <div role="status" className="flex items-start">
+              <span className="sr-only">Indira está escribiendo</span>
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-line bg-surface px-3.5 py-3">
+                {[0, 150, 300].map((retraso) => (
+                  <span key={retraso} className="h-1.5 w-1.5 animate-bounce rounded-full bg-faint" style={{ animationDelay: `${retraso}ms` }} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={alEnviarFormulario} className="shrink-0 border-t border-line bg-surface px-3 pb-1 pt-3">
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={entradaRef}
+              value={entrada}
+              rows={1}
+              maxLength={MAX_CARACTERES}
+              placeholder="Escribe tu mensaje…"
+              aria-label="Mensaje para Indira"
+              onChange={(e) => {
+                setEntrada(e.target.value);
+                ajustarAltura(e.target);
+              }}
+              onKeyDown={alPresionarTecla}
+              className="input h-auto min-h-10 flex-1 resize-none py-2.5"
+            />
+            <button type="submit" disabled={enviando || entrada.trim().length === 0} aria-label="Enviar mensaje" className="btn btn-primary btn-icon h-10 w-10 rounded-xl">
+              <Send className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="flex justify-between gap-2 py-1.5 text-[11px] text-faint">
+            <span>Indira puede equivocarse. Verifica la información importante.</span>
+            {quedanPocos && (
+              <span className="shrink-0 tabular-nums">
+                {entrada.length}/{MAX_CARACTERES}
+              </span>
+            )}
+          </p>
+        </form>
       </aside>
     </>
   );

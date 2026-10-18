@@ -31,10 +31,10 @@ import type {
 // ============================================================
 
 const inputClass =
-  "w-full rounded-xl border border-[#C6D0E2] bg-white px-4 py-3 text-sm text-[#231F20] outline-none transition placeholder:text-slate-400 focus:border-[#1B4589] focus:ring-4 focus:ring-[#E8ECF3] disabled:cursor-not-allowed disabled:bg-slate-50";
+  "w-full rounded-xl border border-line-strong bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-faint focus:border-brand focus:ring-4 focus:ring-line disabled:cursor-not-allowed disabled:bg-surface-2";
 
 const labelClass =
-  "mb-2 block text-sm font-semibold text-[#231F20]";
+  "mb-2 block text-sm font-semibold text-ink";
 
 
 // ============================================================
@@ -106,13 +106,13 @@ function estadoBadgeClass(
       return "border-blue-200 bg-blue-50 text-blue-700";
 
     case "EN_PROCESO":
-      return "border-amber-200 bg-amber-50 text-amber-700";
+      return "border-warn/20 bg-warn-soft text-warn";
 
     case "CERRADO":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return "border-ok/20 bg-ok-soft text-ok";
 
     default:
-      return "border-slate-200 bg-slate-50 text-slate-600";
+      return "border-line bg-surface-2 text-muted";
   }
 }
 
@@ -264,25 +264,25 @@ export function ConsultaDenuncia() {
           FORMULARIO DE CONSULTA
       ====================================================== */}
 
-      <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+      <section className="card p-6 lg:p-8">
 
         <div className="flex items-start gap-4">
 
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
             <Search size={22} />
           </div>
 
           <div>
 
-            <p className="text-xs font-bold text-[#547AA7]">
+            <p className="eyebrow">
               Seguimiento
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
               Consultar denuncia
             </h2>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
               Ingresa el identificador y el PIN que recibiste al
               registrar tu denuncia.
             </p>
@@ -299,7 +299,7 @@ export function ConsultaDenuncia() {
 
           {error && (
 
-            <div className="mb-6 rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+            <div className="mb-6 rounded-xl border border-bad/20 bg-bad-soft px-5 py-4 text-sm text-bad">
               {error}
             </div>
 
@@ -374,13 +374,13 @@ export function ConsultaDenuncia() {
                 justify-center
                 gap-2
                 rounded-xl
-                bg-[#1B4589]
+                bg-brand
                 px-6 py-3.5
                 text-sm
                 font-bold
                 text-white
                 transition
-                hover:bg-[#163a74]
+                hover:bg-brand-hover
                 disabled:cursor-not-allowed
                 disabled:opacity-50
               "
@@ -421,27 +421,27 @@ export function ConsultaDenuncia() {
         <>
           {/* RESUMEN */}
 
-          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="card p-6 lg:p-8">
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
 
               <div className="flex items-start gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ok-soft text-ok">
                   <ShieldCheck size={22} />
                 </div>
 
                 <div>
 
-                  <p className="text-xs font-bold text-[#547AA7]">
+                  <p className="eyebrow">
                     Denuncia encontrada
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                     {resultado.codigoSeguimiento}
                   </h2>
 
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-muted">
                     Registrada el{" "}
                     {formatearFecha(
                       resultado.fechaCreacion
@@ -480,13 +480,13 @@ export function ConsultaDenuncia() {
 
               {/* CAUSA */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="eyebrow">
                   Causa
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {causaLabels[
                     resultado.causa
                   ]}
@@ -497,13 +497,13 @@ export function ConsultaDenuncia() {
 
               {/* RELACIÓN */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="eyebrow">
                   Relación
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {relacionLabels[
                     resultado.relacionEmpresa
                   ]}
@@ -514,13 +514,13 @@ export function ConsultaDenuncia() {
 
               {/* ACTUALIZACIÓN */}
 
-              <div className="rounded-xl border border-[#E8ECF3] bg-[#F7F9FC] p-5">
+              <div className="rounded-xl border border-line bg-surface-2 p-5">
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="eyebrow">
                   Última actualización
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-[#231F20]">
+                <p className="mt-2 text-sm font-bold text-ink">
                   {formatearFecha(
                     resultado.fechaActualizacion
                   )}
@@ -533,22 +533,22 @@ export function ConsultaDenuncia() {
 
             {/* DESCRIPCIÓN */}
 
-            <div className="mt-5 rounded-xl border border-[#E8ECF3] bg-white p-5">
+            <div className="mt-5 rounded-xl border border-line bg-white p-5">
 
               <div className="flex items-start gap-3">
 
                 <FileText
                   size={19}
-                  className="mt-0.5 shrink-0 text-[#547AA7]"
+                  className="mt-0.5 shrink-0 text-muted"
                 />
 
                 <div>
 
-                  <p className="text-sm font-bold text-[#231F20]">
+                  <p className="text-sm font-bold text-ink">
                     Descripción
                   </p>
 
-                  <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                  <p className="mt-2 whitespace-pre-line text-sm leading-6 text-muted">
                     {resultado.descripcion}
                   </p>
 
@@ -565,25 +565,25 @@ export function ConsultaDenuncia() {
               HISTORIAL
           ================================================== */}
 
-          <section className="rounded-xl border border-[#E8ECF3] bg-white p-6 lg:p-8">
+          <section className="card p-6 lg:p-8">
 
             <div className="flex items-start gap-4">
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E8ECF3] text-[#1B4589]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                 <Clock3 size={22} />
               </div>
 
               <div>
 
-                <p className="text-xs font-bold text-[#547AA7]">
+                <p className="eyebrow">
                   Seguimiento
                 </p>
 
-                <h2 className="mt-2 text-2xl font-bold text-[#231F20]">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
                   Historial de la denuncia
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className="mt-2 text-sm leading-6 text-muted">
                   Aquí puedes revisar los cambios de estado de tu
                   denuncia.
                 </p>
@@ -597,14 +597,14 @@ export function ConsultaDenuncia() {
 
               {resultado.historial.length === 0 ? (
 
-                <div className="rounded-xl border border-dashed border-[#C6D0E2] bg-[#F7F9FC] px-6 py-8 text-center">
+                <div className="rounded-xl border border-dashed border-line-strong bg-surface-2 px-6 py-8 text-center">
 
                   <Clock3
                     size={25}
-                    className="mx-auto text-slate-400"
+                    className="mx-auto text-faint"
                   />
 
-                  <p className="mt-3 text-sm font-semibold text-[#231F20]">
+                  <p className="mt-3 text-sm font-semibold text-ink">
                     No hay movimientos registrados
                   </p>
 
@@ -642,7 +642,7 @@ export function ConsultaDenuncia() {
 
                           {/* ICONO */}
 
-                          <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
+                          <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ok/20 bg-ok-soft text-ok">
 
                             <CheckCircle2
                               size={17}
@@ -657,13 +657,13 @@ export function ConsultaDenuncia() {
 
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 
-                              <p className="text-sm font-bold text-[#231F20]">
+                              <p className="text-sm font-bold text-ink">
                                 {estadoLabels[
                                   registro.estadoNuevo
                                 ]}
                               </p>
 
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-faint">
                                 {formatearFecha(
                                   registro.fechaCreacion
                                 )}
@@ -673,7 +673,7 @@ export function ConsultaDenuncia() {
 
                             {registro.comentario && (
 
-                              <p className="mt-1.5 text-sm leading-6 text-slate-500">
+                              <p className="mt-1.5 text-sm leading-6 text-muted">
                                 {registro.comentario}
                               </p>
 
@@ -702,7 +702,7 @@ export function ConsultaDenuncia() {
             <button
               type="button"
               onClick={nuevaConsulta}
-              className="rounded-xl border border-[#C6D0E2] bg-white px-5 py-3 text-sm font-semibold text-[#1B4589] transition hover:bg-[#E8ECF3]"
+              className="rounded-xl border border-line-strong bg-white px-5 py-3 text-sm font-semibold text-brand transition hover:bg-line"
             >
               Realizar otra consulta
             </button>

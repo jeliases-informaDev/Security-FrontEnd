@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, FilePlus2, Inbox, Search, ShieldAlert } from 'lucide-react';
+import { ArrowRight, FilePlus2, Inbox, MessageSquareWarning, Search, ShieldAlert } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
+import { Pestanas } from '@/shared/ui/kit';
 
 import { DenunciaForm } from './form/DenunciaForm';
 import { ConsultaDenuncia } from './consulta/ConsultaDenuncia';
@@ -23,40 +24,15 @@ interface Seccion {
 }
 
 const SECCIONES: Seccion[] = [
-  {
-    vista: 'registrar',
-    nombre: 'Nueva denuncia',
-    descripcion: 'Registra los hechos, los involucrados y el receptor, de forma identificada o anónima.',
-    icono: FilePlus2,
-  },
-  {
-    vista: 'consultar',
-    nombre: 'Consultar denuncia',
-    descripcion: 'Revisa el estado y el historial con el identificador y el PIN que se entregaron al registrarla.',
-    icono: Search,
-  },
-  {
-    vista: 'recibidas',
-    nombre: 'Denuncias recibidas',
-    descripcion: 'Revisa las denuncias asignadas, sus evidencias y su historial, y registra los avances de atención.',
-    icono: Inbox,
-    soloGestion: true,
-  },
+  { vista: 'registrar', nombre: 'Nueva denuncia', descripcion: 'Registra los hechos, los involucrados y el receptor, de forma identificada o anónima.', icono: FilePlus2 },
+  { vista: 'consultar', nombre: 'Consultar denuncia', descripcion: 'Revisa el estado y el historial con el identificador y el PIN que se entregaron al registrarla.', icono: Search },
+  { vista: 'recibidas', nombre: 'Denuncias recibidas', descripcion: 'Revisa las denuncias asignadas, sus evidencias y su historial, y registra los avances de atención.', icono: Inbox, soloGestion: true },
 ];
 
 const PASOS = [
-  {
-    titulo: 'Registra la denuncia',
-    texto: 'Completa la información necesaria y decide si te identificas o mantienes el anonimato.',
-  },
-  {
-    titulo: 'Guarda tus credenciales',
-    texto: 'Al terminar recibes un identificador y un PIN de seguimiento. Sin ellos no se puede consultar la denuncia.',
-  },
-  {
-    titulo: 'Consulta el seguimiento',
-    texto: 'Con el identificador y el PIN revisas el estado y los movimientos registrados.',
-  },
+  { titulo: 'Registra la denuncia', texto: 'Completa la información necesaria y decide si te identificas o mantienes el anonimato.' },
+  { titulo: 'Guarda tus credenciales', texto: 'Al terminar recibes un identificador y un PIN de seguimiento. Sin ellos no se puede consultar la denuncia.' },
+  { titulo: 'Consulta el seguimiento', texto: 'Con el identificador y el PIN revisas el estado y los movimientos registrados.' },
 ];
 
 export function DenunciaWorkspace() {
@@ -68,14 +44,12 @@ export function DenunciaWorkspace() {
   const [vista, setVista] = useState<VistaDenuncias>('resumen');
 
   const secciones = SECCIONES.filter((seccion) => !seccion.soloGestion || puedeGestionarDenuncias);
-  const pestanas: { vista: VistaDenuncias; nombre: string; icono: LucideIcon }[] = [
-    { vista: 'resumen', nombre: 'Resumen', icono: ShieldAlert },
-    ...secciones.map(({ vista: v, nombre, icono }) => ({ vista: v, nombre, icono })),
-  ];
 
   return (
     <PageShell>
       <PageHeader
+        antetitulo="Integridad"
+        icono={MessageSquareWarning}
         titulo="Canal de denuncias"
         sinLinea
         descripcion={
@@ -85,67 +59,49 @@ export function DenunciaWorkspace() {
         }
       />
 
-      <nav aria-label="Secciones del canal de denuncias" className="mb-6 flex gap-1 overflow-x-auto border-b border-slate-300/70">
-        {pestanas.map((pestana) => {
-          const Icono = pestana.icono;
-          const activa = vista === pestana.vista;
-          return (
-            <button
-              key={pestana.vista}
-              type="button"
-              onClick={() => setVista(pestana.vista)}
-              aria-current={activa ? 'page' : undefined}
-              className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm transition ${
-                activa
-                  ? 'border-brand-navy font-medium text-brand-navy'
-                  : 'border-transparent text-brand-muted hover:border-slate-400 hover:text-brand-ink'
-              }`}
-            >
-              <Icono className="h-4 w-4" aria-hidden="true" />
-              {pestana.nombre}
-            </button>
-          );
-        })}
-      </nav>
+      <Pestanas
+        ariaLabel="Secciones del canal de denuncias"
+        valor={vista}
+        onCambiar={setVista}
+        opciones={[{ valor: 'resumen' as VistaDenuncias, etiqueta: 'Resumen' }, ...secciones.map((s) => ({ valor: s.vista, etiqueta: s.nombre }))]}
+      />
 
       {vista === 'resumen' && (
         <div className="space-y-6">
-          <Panel>
-            <ul className="divide-y divide-slate-200">
-              {secciones.map((seccion) => {
-                const Icono = seccion.icono;
-                return (
-                  <li key={seccion.vista}>
-                    <button
-                      type="button"
-                      onClick={() => setVista(seccion.vista)}
-                      className="group flex w-full items-center gap-4 px-5 py-4 text-left transition first:rounded-t-xl last:rounded-b-xl hover:bg-slate-50"
-                    >
-                      <Icono className="h-5 w-5 shrink-0 text-brand-navy" aria-hidden="true" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium text-brand-ink">{seccion.nombre}</span>
-                        <span className="block text-sm text-brand-muted">{seccion.descripcion}</span>
-                      </span>
-                      <ChevronRight
-                        className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-navy"
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
+          <ul className={`grid gap-4 ${secciones.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+            {secciones.map((seccion, i) => {
+              const Icono = seccion.icono;
+              return (
+                <li key={seccion.vista} className="aparece" style={{ animationDelay: `${i * 40}ms` }}>
+                  <button
+                    type="button"
+                    onClick={() => setVista(seccion.vista)}
+                    className="card card-hover group flex h-full w-full flex-col gap-4 p-5 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-ink transition-colors group-hover:bg-brand group-hover:text-white" aria-hidden="true">
+                      <Icono className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-ink">{seccion.nombre}</span>
+                      <span className="mt-1 block text-sm leading-relaxed text-muted">{seccion.descripcion}</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-medium text-brand-ink">
+                      Ir <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
 
-          <Panel className="p-6">
-            <h2 className="text-base font-semibold text-brand-ink">Cómo funciona</h2>
-            <ol className="mt-5 grid gap-6 md:grid-cols-3">
+          <Panel titulo={<span className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-brand" aria-hidden="true" /> Cómo funciona</span>} relleno>
+            <ol className="grid gap-6 md:grid-cols-3">
               {PASOS.map((paso, indice) => (
-                <li key={paso.titulo} className="flex gap-3">
-                  <span className="mt-0.5 font-mono text-sm font-medium text-brand-navy">{indice + 1}.</span>
+                <li key={paso.titulo} className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft font-mono text-sm font-semibold text-brand-ink" aria-hidden="true">{indice + 1}</span>
                   <div>
-                    <p className="text-sm font-medium text-brand-ink">{paso.titulo}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-brand-muted">{paso.texto}</p>
+                    <p className="text-sm font-semibold text-ink">{paso.titulo}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{paso.texto}</p>
                   </div>
                 </li>
               ))}

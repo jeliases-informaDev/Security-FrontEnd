@@ -259,24 +259,24 @@ export function RiskDistributionChart({
   // ==========================================================
 
   return (
-    <section className="h-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="h-full card p-6 shadow-sm">
 
       {/* HEADER */}
 
       <div>
 
-        <p className="text-xs font-bold text-[#1B4589]">
+        <p className="text-xs font-bold text-brand">
           Distribución
         </p>
 
-        <h2 className="mt-1 text-xl font-bold tracking-tight text-[#231F20]">
+        <h2 className="mt-1 text-xl font-bold tracking-tight text-ink">
           Distribución por nivel
         </h2>
 
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-muted">
           Distribución del riesgo{" "}
 
-          <span className="font-semibold text-[#1B4589]">
+          <span className="font-semibold text-brand">
             {tipoVista ===
             "residual"
               ? "residual"
@@ -303,15 +303,15 @@ export function RiskDistributionChart({
 
           <div className="flex h-[142px] w-[142px] flex-col items-center justify-center rounded-full bg-white shadow-inner">
 
-            <span className="text-4xl font-black text-[#231F20]">
+            <span className="text-4xl font-black text-ink">
               {total}
             </span>
 
-            <span className="mt-1 text-xs font-semibold text-slate-400">
+            <span className="mt-1 text-xs font-semibold text-faint">
               Evaluaciones
             </span>
 
-            <span className="mt-1 text-[11px] font-semibold text-[#1B4589]">
+            <span className="mt-1 text-[11px] font-semibold text-brand">
               {tipoVista ===
               "residual"
                 ? "Residual"
@@ -349,7 +349,7 @@ export function RiskDistributionChart({
                   }}
                 />
 
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-ink">
                   {item.etiqueta}
                 </span>
 
@@ -358,11 +358,11 @@ export function RiskDistributionChart({
 
               <div className="flex items-center gap-4">
 
-                <span className="min-w-6 text-right text-sm font-bold text-[#231F20]">
+                <span className="min-w-6 text-right text-sm font-bold text-ink">
                   {item.cantidad}
                 </span>
 
-                <span className="min-w-[52px] text-right text-xs font-medium text-slate-400">
+                <span className="min-w-[52px] text-right text-xs font-medium text-faint">
                   {item.porcentaje.toFixed(
                     1
                   )}
@@ -381,9 +381,9 @@ export function RiskDistributionChart({
 
       {total === 0 && (
 
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3">
+        <div className="mt-5 rounded-xl bg-surface-2 px-4 py-3">
 
-          <p className="text-center text-sm text-slate-400">
+          <p className="text-center text-sm text-faint">
 
             No existen evaluaciones registradas
             con riesgo{" "}

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Search, User, IdCard, ShieldAlert, CalendarClock, UploadCloud, ChevronRight, SearchX } from 'lucide-react';
 import {
   listasNegativasService,
+  PaginaResultados,
   ResultadoBusquedaResponse,
   TipoDocumentoCodigo,
 } from '@/modules/listas_negativas/services/listasNegativasService';
@@ -15,7 +16,7 @@ import { DetalleEntidadModal } from '@/modules/listas_negativas/components/Detal
 import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
 import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
-import { Avatar, Aviso, Boton, EstadoVacio } from '@/shared/ui/kit';
+import { Avatar, Aviso, Boton, EstadoVacio, Paginacion } from '@/shared/ui/kit';
 
 // Formato real de cada documento peruano: largo exacto/máximo y los caracteres que acepta,
 // para restringir la escritura y no dejar pasar valores con el formato incorrecto.
@@ -29,6 +30,14 @@ const FORMATO_DOCUMENTO: Record<
   PASAPORTE: { label: 'Pasaporte', maxLength: 12, pattern: /^[A-Za-z0-9]{5,12}$/, soloDigitos: false, ejemplo: 'AB123456' },
 };
 
+// Igual que en el backend: sin documento, un texto de 1 o 2 letras coincide con media base de datos.
+const LETRAS_MINIMAS = 3;
+// Con más coincidencias que esto se sugiere afinar la búsqueda en vez de ir página por página.
+const UMBRAL_AFINAR = 200;
+
+const cuentaLetras = (texto?: string) =>
+  Array.from(texto ?? '').filter((c) => c.toLowerCase() !== c.toUpperCase() || (c >= '0' && c <= '9')).length;
+
 const busquedaSchema = z
   .object({
     nombres: z.string().optional(),
@@ -40,6 +49,16 @@ const busquedaSchema = z
   .refine(
     (values) => [values.nombres, values.apellidoPaterno, values.apellidoMaterno, values.documento].some((v) => v && v.trim().length > 0),
     { message: 'Ingresa al menos un criterio de búsqueda', path: ['nombres'] }
+  )
+  .refine(
+    (values) => {
+      const textos = [values.nombres, values.apellidoPaterno, values.apellidoMaterno];
+      const sinCriterios = ![...textos, values.documento].some((v) => v && v.trim().length > 0);
+      // Sin criterios ya avisa la regla anterior; con documento, los nombres solo afinan
+      if (sinCriterios || (values.documento && values.documento.trim())) return true;
+      return textos.some((v) => cuentaLetras(v) >= LETRAS_MINIMAS);
+    },
+    { message: `Escribe al menos ${LETRAS_MINIMAS} letras en el nombre o en un apellido, o indica el documento`, path: ['nombres'] }
   )
   .refine(
     (values) => {
@@ -63,7 +82,11 @@ function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children
 }
 
 export function BuscadorListasNegativas() {
-  const [resultados, setResultados] = useState<ResultadoBusquedaResponse[] | null>(null);
+  const [resultados, setResultados] = useState<PaginaResultados | null>(null);
+  // Criterios de la última búsqueda: las páginas siguientes los reusan aunque después se edite el formulario
+  const [criterios, setCriterios] = useState<BusquedaFormValues | null>(null);
+  const [cambiandoPagina, setCambiandoPagina] = useState(false);
+  const seccionResultados = useRef<HTMLElement>(null);
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [personaDetalle, setPersonaDetalle] = useState<ResultadoBusquedaResponse | null>(null);
   const [modalEnConstruccion, setModalEnConstruccion] = useState<string | null>(null);
@@ -80,20 +103,35 @@ export function BuscadorListasNegativas() {
   const tipoDocumentoSeleccionado = watch('tipoDocumento') as TipoDocumentoCodigo | '' | undefined;
   const formatoActivo = tipoDocumentoSeleccionado ? FORMATO_DOCUMENTO[tipoDocumentoSeleccionado] : null;
 
-  const onSubmit = async (values: BusquedaFormValues) => {
+  const buscarPagina = async (valores: BusquedaFormValues, pagina: number) => {
     setErrorServidor(null);
     try {
-      const data = await listasNegativasService.buscar(values);
+      const data = await listasNegativasService.buscar(valores, pagina);
       setResultados(data);
-      if (data.length > 0) setRecargarHistorial((n) => n + 1);
+      setCriterios(valores);
+      if (data.items.length > 0) setRecargarHistorial((n) => n + 1);
     } catch (err: unknown) {
       const mensaje =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'No se pudo completar la búsqueda. Inténtalo de nuevo en un momento.';
       setErrorServidor(mensaje);
-      setResultados(null);
+      // Si falla la primera página no hay nada que mostrar; si falla una siguiente, se conserva la que ya se veía
+      if (pagina === 0) setResultados(null);
     }
   };
+
+  const onSubmit = (values: BusquedaFormValues) => buscarPagina(values, 0);
+
+  const irAPagina = async (pagina: number) => {
+    if (!criterios) return;
+    setCambiandoPagina(true);
+    await buscarPagina(criterios, pagina);
+    setCambiandoPagina(false);
+    seccionResultados.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const desde = resultados ? resultados.pagina * resultados.tamano + 1 : 0;
+  const hasta = resultados ? desde + resultados.items.length - 1 : 0;
 
   const abrirDetallePorId = async (entidadId: number) => {
     try {
@@ -203,17 +241,20 @@ export function BuscadorListasNegativas() {
       )}
 
       {resultados !== null && (
-        <section aria-live="polite" className="space-y-3">
+        <section ref={seccionResultados} aria-live="polite" className="scroll-mt-4 space-y-3">
           <div className="flex items-baseline justify-between">
             <h2 className="text-base font-semibold text-ink">Resultados</h2>
-            <span className="text-sm tabular-nums text-muted">{resultados.length} coincidencia{resultados.length === 1 ? '' : 's'}</span>
+            <span className="text-sm tabular-nums text-muted">{resultados.total.toLocaleString('es-PE')} coincidencia{resultados.total === 1 ? '' : 's'}</span>
           </div>
-          {resultados.length === 0 ? (
+          {resultados.total > UMBRAL_AFINAR && (
+            <Aviso aviso={{ tipo: 'info', texto: `Hay ${resultados.total.toLocaleString('es-PE')} coincidencias: son demasiadas para revisarlas una por una. Agrega el nombre completo, el apellido materno o el documento para acotarlas.` }} />
+          )}
+          {resultados.items.length === 0 ? (
             <Panel>
               <EstadoVacio icono={SearchX} titulo="Sin coincidencias" texto="Ninguna persona o empresa coincide con los criterios ingresados. Prueba con menos datos o revisa el documento." />
             </Panel>
           ) : (
-            resultados.map((persona, i) => (
+            resultados.items.map((persona, i) => (
               <button
                 key={persona.entidadId}
                 onClick={() => setPersonaDetalle(persona)}
@@ -245,6 +286,11 @@ export function BuscadorListasNegativas() {
                 </div>
               </button>
             ))
+          )}
+          {resultados.totalPaginas > 1 && (
+            <Panel>
+              <Paginacion desde={desde} hasta={hasta} total={resultados.total} pagina={resultados.pagina} totalPaginas={resultados.totalPaginas} onCambiar={irAPagina} cargando={cambiandoPagina} />
+            </Panel>
           )}
         </section>
       )}

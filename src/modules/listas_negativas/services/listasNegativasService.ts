@@ -59,12 +59,41 @@ export interface BusquedaListasNegativasParams {
   apellidoMaterno?: string;
 }
 
+/** Una página de resultados de la búsqueda, con el total de toda la base. */
+export interface PaginaResultados {
+  items: ResultadoBusquedaResponse[];
+  /** Coincidencias en total (no solo las de esta página). */
+  total: number;
+  totalPaginas: number;
+  /** Página actual, desde 0. */
+  pagina: number;
+  tamano: number;
+}
+
+/** Personas por página en la búsqueda (el backend no pasa de 50). */
+export const TAMANO_PAGINA_BUSQUEDA = 20;
+
 export const listasNegativasService = {
-  async buscar(params: BusquedaListasNegativasParams): Promise<ResultadoBusquedaResponse[]> {
-    const { data } = await apiClient.get<ResultadoBusquedaResponse[]>('/listas-negativas/buscar', {
-      params,
+  async buscar(
+    params: BusquedaListasNegativasParams,
+    pagina = 0,
+    tamano = TAMANO_PAGINA_BUSQUEDA
+  ): Promise<PaginaResultados> {
+    const { data, headers } = await apiClient.get<ResultadoBusquedaResponse[]>('/listas-negativas/buscar', {
+      params: { ...params, page: pagina, size: tamano },
     });
-    return data;
+    // El backend manda el total en cabeceras (el cuerpo sigue siendo la lista). Si no llegan, la lista recibida es todo.
+    const cabecera = (nombre: string, porDefecto: number) => {
+      const valor = Number(headers?.[nombre]);
+      return Number.isFinite(valor) ? valor : porDefecto;
+    };
+    return {
+      items: data,
+      total: cabecera('x-total-count', data.length),
+      totalPaginas: cabecera('x-total-pages', 1),
+      pagina: cabecera('x-page', pagina),
+      tamano: cabecera('x-page-size', tamano),
+    };
   },
 
   async obtenerHistorial(page: number, size = 10): Promise<PageResponse<HistorialConsultaResponse>> {

@@ -59,7 +59,8 @@ export function EvaluarScoring() {
     setError(null);
     try {
       const data = await listasNegativasService.buscar({ documento: documentoBusqueda.trim() });
-      setCandidatos(data);
+      // Por documento hay a lo sumo unas pocas coincidencias: basta la primera página
+      setCandidatos(data.items);
     } catch {
       setError('No se pudo completar la búsqueda.');
     } finally {

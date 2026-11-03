@@ -80,9 +80,12 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
   },
 ];
 
-/** ¿La cuenta es administradora? Se mira el código del rol y su nombre, como en el resto de la web. */
+/** ¿La cuenta es administradora (Sulotec o Empresa)? */
 export function esAdministrador(usuario: { codigo?: string; rol?: string } | null | undefined): boolean {
-  return [usuario?.codigo, usuario?.rol].some((valor) => valor?.trim().toUpperCase() === 'ADMINISTRADOR');
+  return [usuario?.codigo, usuario?.rol].some((valor) => {
+    const v = valor?.trim().toUpperCase();
+    return v === 'ADMINISTRADOR' || v === 'ADMINISTRADOR_EMPRESA' || v === 'ADMIN_EMPRESA';
+  });
 }
 
 /** Módulos que le corresponden a la cuenta (los de administración solo los ve un administrador). */

@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/modules/auth/hooks/AuthProvider';
+import { LicenciaProvider } from '@/modules/licencias/context/LicenciaContext';
+import { SaldoInsuficienteModal } from '@/modules/licencias/components/SaldoInsuficienteModal';
 import { IndiraPanel } from '@/modules/indira/components/IndiraPanel';
 import { ALTO_BARRA_PX, AppShell } from '@/shared/ui/AppShell';
 import { MARCA } from '@/shared/lib/marca';
@@ -44,6 +46,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     <AppShell usuario={usuario} onLogout={logout} indiraAbierta={indiraAbierta} onAlternarIndira={() => setIndiraAbierta((abierta) => !abierta)}>
       {children}
       <IndiraPanel abierto={indiraAbierta} onCerrar={cerrarIndira} top={ALTO_BARRA_PX} />
+      <SaldoInsuficienteModal />
     </AppShell>
   );
 }
@@ -51,7 +54,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <AuthProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <LicenciaProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </LicenciaProvider>
     </AuthProvider>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, KeyRound, MailPlus, Plus, Search, SearchX, UploadCloud, UserRound, Users } from 'lucide-react';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
 import { Modal } from '@/shared/ui/Modal';
 import { Panel } from '@/shared/ui/PageShell';
 import { Avatar, Boton, Esqueleto, EstadoVacio, Etiqueta, Paginacion } from '@/shared/ui/kit';
@@ -35,6 +36,7 @@ interface CuentasPanelProps {
 }
 
 export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoParaCrear, usuarioActual, onRecargar, onIrAEmpresas }: CuentasPanelProps) {
+  const { bolsa, refrescarBolsa } = useLicencia();
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [editando, setEditando] = useState<Cuenta | null>(null);
@@ -73,8 +75,17 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
         texto: activo ? `La cuenta ${cuenta.usuario} está activa de nuevo.` : `La cuenta ${cuenta.usuario} quedó desactivada: ya no puede entrar.`,
       });
       onRecargar();
-    } catch (err) {
-      setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo cambiar el estado de la cuenta. Inténtalo de nuevo.') });
+      refrescarBolsa();
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status;
+      if (status === 409) {
+        setAviso({
+          tipo: 'error',
+          texto: 'Cupo de usuarios excedido (HTTP 409): No se puede activar la cuenta porque tu empresa ha alcanzado el límite máximo contratado.',
+        });
+      } else {
+        setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo cambiar el estado de la cuenta. Inténtalo de nuevo.') });
+      }
     } finally {
       setProcesando(null);
       setDesactivando(null);
@@ -115,6 +126,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
           setCopiado(false);
           setVista({ tipo: 'creada', cuenta, clave });
           onRecargar();
+          refrescarBolsa();
         }}
         onIrAEmpresas={onIrAEmpresas}
       />
@@ -127,7 +139,10 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
         empresas={empresas}
         roles={roles}
         onVolver={() => setVista({ tipo: 'lista' })}
-        onCreadas={onRecargar}
+        onCreadas={() => {
+          onRecargar();
+          refrescarBolsa();
+        }}
       />
     );
   }
@@ -200,6 +215,20 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             ))}
           </select>
         </div>
+
+        {/* Cupo de usuarios activo (compacto y sutil) */}
+        {bolsa && (
+          <span className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-muted">
+            <Users className="h-3.5 w-3.5 text-brand" />
+            <span>
+              Usuarios activos:{' '}
+              <strong className="text-ink tabular-nums">
+                {bolsa.usuariosActivos} de {bolsa.cupoUsuarios} permitidos
+              </strong>
+            </span>
+          </span>
+        )}
+
         <Boton variante="secundario" icono={UploadCloud} onClick={() => { setAviso(null); setVista({ tipo: 'masiva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
           Carga masiva
         </Boton>
@@ -329,6 +358,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             setEditando(null);
             setAviso({ tipo: 'ok', texto: `Se actualizó la cuenta ${cuenta.usuario}: ${resumen}.` });
             onRecargar();
+            refrescarBolsa();
           }}
         />
       )}

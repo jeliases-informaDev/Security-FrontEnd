@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, RefreshCw, Users, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/modules/auth/hooks/AuthProvider';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
 import { generarClave } from '@/modules/administracion/lib/generarClave';
 import { botonPrimario, botonSecundario, botonTexto, campo, campoError } from '@/shared/ui/estilos';
@@ -39,9 +41,21 @@ interface NuevaCuentaFormProps {
 }
 
 export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEmpresas }: NuevaCuentaFormProps) {
+  const { usuario: usuarioActual } = useAuth();
+  const { bolsa } = useLicencia();
   const activas = empresas.filter((empresa) => empresa.activa);
   const [mostrarClave, setMostrarClave] = useState(true);
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+
+  const esAdminEmpresa = usuarioActual?.rol?.toUpperCase() === 'ADMINISTRADOR_EMPRESA';
+
+  // Si es Administrador de Empresa: no se muestra el rol ADMINISTRADOR universal (solo USUARIO, SUPERVISOR, ADMINISTRADOR_EMPRESA)
+  const rolesDisponibles = esAdminEmpresa
+    ? roles.filter((r) => r.codigo.toUpperCase() !== 'ADMINISTRADOR')
+    : roles;
+
+  // Empresa predeterminada para el Administrador de Empresa
+  const empresaAdmin = bolsa?.empresaNombre || (activas.length === 1 ? activas[0].nombre : '');
 
   const {
     register,
@@ -58,9 +72,8 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
       apeMat: '',
       cargo: '',
       correo: '',
-      empresa: activas.length === 1 ? activas[0].nombre : '',
-      // El rol de menos permisos queda elegido de entrada; el administrador lo cambia si hace falta.
-      rolCodigo: roles.find((rol) => rol.codigo === 'USUARIO')?.codigo ?? '',
+      empresa: esAdminEmpresa ? empresaAdmin : (activas.length === 1 ? activas[0].nombre : ''),
+      rolCodigo: rolesDisponibles.find((rol) => rol.codigo === 'USUARIO')?.codigo ?? rolesDisponibles[0]?.codigo ?? '',
       usuario: '',
       clave: generarClave(),
     },
@@ -83,9 +96,21 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
         rolCodigo: valores.rolCodigo,
       });
       onCreada(cuenta, valores.clave);
-    } catch (err) {
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      const dataResp = (err as { response?: { data?: { message?: string; mensaje?: string } } })?.response?.data;
+
+      // HTTP 409 (Conflict): Cupo máximo alcanzado
+      if (status === 409) {
+        setErrorGeneral(
+          dataResp?.message ||
+          dataResp?.mensaje ||
+          'Se ha alcanzado el cupo máximo de usuarios activos permitidos en tu empresa. Desactiva usuarios inactivos o solicita una ampliación de cupo.'
+        );
+        return;
+      }
+
       const mensaje = mensajeDeError(err, 'No se pudo crear la cuenta. Revisa los datos e inténtalo de nuevo.');
-      // El backend avisa con un solo mensaje cuando el usuario o el correo ya existen: se marca el campo que corresponde.
       if (/nombre de usuario/i.test(mensaje)) setError('usuario', { message: mensaje });
       else if (/correo/i.test(mensaje)) setError('correo', { message: mensaje });
       else setErrorGeneral(mensaje);
@@ -96,6 +121,19 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
 
   return (
     <form onSubmit={crear} noValidate className="space-y-6">
+      {/* Contador de cupo de usuarios */}
+      {bolsa && (
+        <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-2/60 px-4 py-2.5 text-xs text-muted">
+          <Users className="h-4 w-4 text-brand" />
+          <span>
+            Usuarios activos: <strong className="text-ink tabular-nums">{bolsa.usuariosActivos} de {bolsa.cupoUsuarios} permitidos</strong>
+          </span>
+          {bolsa.usuariosActivos >= bolsa.cupoUsuarios && (
+            <span className="badge badge-warn ml-auto text-[10px]">Cupo completo</span>
+          )}
+        </div>
+      )}
+
       {errorGeneral && (
         <p role="alert" className="rounded-lg border border-bad/20 bg-bad-soft px-4 py-3 text-sm text-bad">
           {errorGeneral}
@@ -124,29 +162,35 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
 
       <Seccion titulo="Empresa y permisos" descripcion="La cuenta solo verá los registros de su empresa.">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Campo id="empresa" texto="Empresa" error={errors.empresa?.message}>
-            <select id="empresa" className={clase(errors.empresa?.message)} disabled={activas.length === 0} {...register('empresa')}>
-              <option value="">{activas.length === 0 ? 'No hay empresas activas' : 'Elige una empresa'}</option>
-              {activas.map((empresa) => (
-                <option key={empresa.id} value={empresa.nombre}>
-                  {empresa.nombre}
-                </option>
-              ))}
-            </select>
-            {activas.length === 0 && (
-              <p className="mt-1.5 text-xs text-brand-muted">
-                Primero agrega la empresa en{' '}
-                <button type="button" onClick={onIrAEmpresas} className="font-medium text-brand-navy underline underline-offset-2">
-                  Empresas
-                </button>
-                .
-              </p>
-            )}
-          </Campo>
+          {/* Si es Administrador de Empresa: no mostrar selector de empresas (se crea automáticamente en la suya) */}
+          {esAdminEmpresa ? (
+            <input type="hidden" {...register('empresa')} value={empresaAdmin} />
+          ) : (
+            <Campo id="empresa" texto="Empresa" error={errors.empresa?.message}>
+              <select id="empresa" className={clase(errors.empresa?.message)} disabled={activas.length === 0} {...register('empresa')}>
+                <option value="">{activas.length === 0 ? 'No hay empresas activas' : 'Elige una empresa'}</option>
+                {activas.map((empresa) => (
+                  <option key={empresa.id} value={empresa.nombre}>
+                    {empresa.nombre}
+                  </option>
+                ))}
+              </select>
+              {activas.length === 0 && (
+                <p className="mt-1.5 text-xs text-brand-muted">
+                  Primero agrega la empresa en{' '}
+                  <button type="button" onClick={onIrAEmpresas} className="font-medium text-brand-navy underline underline-offset-2">
+                    Empresas
+                  </button>
+                  .
+                </p>
+              )}
+            </Campo>
+          )}
+
           <Campo id="rolCodigo" texto="Rol" error={errors.rolCodigo?.message}>
             <select id="rolCodigo" className={clase(errors.rolCodigo?.message)} {...register('rolCodigo')}>
               <option value="">Elige un rol</option>
-              {roles.map((rol) => (
+              {rolesDisponibles.map((rol) => (
                 <option key={rol.codigo} value={rol.codigo}>
                   {rol.nombre}
                 </option>
@@ -197,7 +241,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
         <button type="button" onClick={onCancelar} className={botonSecundario}>
           Cancelar
         </button>
-        <button type="submit" disabled={isSubmitting || activas.length === 0} className={botonPrimario}>
+        <button type="submit" disabled={isSubmitting || (activas.length === 0 && !esAdminEmpresa)} className={botonPrimario}>
           {isSubmitting ? 'Creando…' : 'Crear cuenta'}
         </button>
       </div>

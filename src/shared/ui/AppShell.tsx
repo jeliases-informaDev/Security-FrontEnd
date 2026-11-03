@@ -7,6 +7,9 @@ import { ChevronRight, LogOut, Menu, ShieldCheck, Sparkles, X } from 'lucide-rea
 import type { UsuarioLoginResponse } from '@/modules/auth/services/authService';
 import { MODULOS_DASHBOARD, modulosVisibles } from '@/shared/lib/modulos';
 import { MARCA } from '@/shared/lib/marca';
+import { CreditosWidget } from '@/modules/licencias/components/CreditosWidget';
+import { NotificacionesBell } from '@/modules/licencias/components/NotificacionesBell';
+import { LicenciaBanner } from '@/modules/licencias/components/LicenciaBanner';
 
 /** Alto fijo de la barra superior: el panel de Indira y el menú móvil se acoplan debajo de ella. */
 export const ALTO_BARRA_PX = 64;
@@ -143,7 +146,13 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
               {moduloActual && (<><ChevronRight className="h-4 w-4 text-faint" aria-hidden="true" /><span className="truncate font-medium text-ink">{moduloActual.nombre}</span></>)}
             </nav>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
+              {/* Widget de saldo de tokens */}
+              <CreditosWidget />
+
+              {/* Centro de notificaciones / avisos */}
+              <NotificacionesBell />
+
               <button
                 id="boton-indira"
                 type="button"
@@ -167,6 +176,9 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
             </div>
           </div>
         </header>
+
+        {/* Banner de aviso de Licencia (solo cuando esté vencida / suspendida / en exceso) */}
+        <LicenciaBanner />
 
         {/* Contenido: en pantallas anchas se corre para dejarle sitio al chat de Indira (nada queda tapado) */}
         <div className={`transition-[padding] duration-200 ease-out ${indiraAbierta ? 'xl:pr-[26rem]' : ''}`}>{children}</div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 
@@ -13,15 +14,20 @@ interface ModalProps {
   /** Botones del pie (alineados a la derecha). */
   pie?: ReactNode;
   /** Ancho máximo de la ventana. */
-  tamano?: 'sm' | 'md' | 'lg';
+  tamano?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const ANCHO = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl' } as const;
+const ANCHO = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-4xl' } as const;
 
 /** Ventana emergente: se cierra con Escape o haciendo clic fuera, y al abrirse deja el cursor en el primer campo. */
 export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm' }: ModalProps) {
   const idTitulo = useId();
   const cuerpoRef = useRef<HTMLDivElement>(null);
+  const [montado, setMontado] = useState(false);
+
+  useEffect(() => {
+    setMontado(true);
+  }, []);
 
   useEffect(() => {
     const alPresionar = (evento: KeyboardEvent) => {
@@ -35,7 +41,7 @@ export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm
     cuerpoRef.current?.querySelector<HTMLElement>('select:not([disabled]), input:not([disabled]), textarea:not([disabled])')?.focus();
   }, []);
 
-  return (
+  const contenido = (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       onMouseDown={(evento) => evento.target === evento.currentTarget && onCerrar()}
@@ -65,4 +71,7 @@ export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm
       </div>
     </div>
   );
+
+  if (!montado) return null;
+  return createPortal(contenido, document.body);
 }

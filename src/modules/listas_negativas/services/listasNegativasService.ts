@@ -108,4 +108,11 @@ export const listasNegativasService = {
     const { data } = await apiClient.get<ResultadoBusquedaResponse>(`/listas-negativas/${entidadId}`);
     return data;
   },
+  async descargarPdf(entidadId: number): Promise<Blob> {
+    const { data } = await apiClient.get<Blob>(`/listas-negativas/${entidadId}/pdf`, {
+      responseType: 'blob',
+      headers: { Accept: 'application/pdf' },
+    });
+    return data;
+  },
 };

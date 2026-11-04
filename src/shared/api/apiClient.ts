@@ -62,7 +62,7 @@ apiClient.interceptors.response.use(
       const url = response.config.url.toLowerCase();
       const method = response.config.method?.toLowerCase();
       const esAccionConCobro =
-        url.includes('/listas-negativas/buscar') ||
+        url.includes('/listas-negativas') ||
         url.includes('/scoring/evaluar') ||
         url.includes('/matrices') ||
         url.includes('/denuncias') ||

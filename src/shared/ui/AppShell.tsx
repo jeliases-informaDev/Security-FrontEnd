@@ -61,7 +61,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
     <nav aria-label="Módulos" className="flex flex-col gap-[9px]">
       {menuVisible(usuario).map(({ grupo, opciones }) => (
         <div key={grupo} role="group" aria-label={grupo}>
-          <p className="eyebrow solo-abierta flex items-center gap-2 whitespace-nowrap pb-2 pl-3" aria-hidden="true">
+          <p className="eyebrow solo-abierta flex items-center gap-2 pb-2 pl-3" aria-hidden="true">
             <span className="h-[5px] w-[5px] rounded-full bg-ink" />
             {grupo}
           </p>
@@ -73,7 +73,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                   <li key={opcion.codigo}>
                     <span className="nav-item" aria-disabled="true" title="Próximamente">
                       <Icono />
-                      <span className="solo-abierta min-w-0 flex-1 whitespace-nowrap">{opcion.nombre}</span>
+                      <span className="solo-abierta min-w-0 flex-1">{opcion.nombre}</span>
                       <span className="solo-abierta badge badge-neutral px-2.5 py-[3px]">Pronto</span>
                     </span>
                   </li>
@@ -84,7 +84,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                 <li key={opcion.codigo}>
                   <Link href={opcion.href} aria-current={activo ? 'page' : undefined} className="nav-item" onClick={onNavegar}>
                     <Icono />
-                    <span className="solo-abierta min-w-0 whitespace-nowrap">{opcion.nombre}</span>
+                    <span className="solo-abierta min-w-0">{opcion.nombre}</span>
                   </Link>
                 </li>
               );

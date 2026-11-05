@@ -215,7 +215,8 @@
   (centro del riel = 38 px). Se usa :has(:focus-visible) y no :focus-within para que un clic con el mouse no lo deje abierto.
 */
 @media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
-  :root { --ancho-menu-reposo: var(--ancho-menu-plegado); }
+  /* Desplegado mide siempre el ancho del diseño (340 px): va por encima del contenido, así que ningún texto se corta */
+  :root { --ancho-menu-reposo: var(--ancho-menu-plegado); --ancho-menu-abierto: 21.25rem; }
 
   .barra-plegable {
     --retardo: 120ms; /* al cerrar */
@@ -227,7 +228,7 @@
   }
   .barra-plegable:is(:hover, :has(:focus-visible)) {
     --retardo: 80ms; /* al abrir */
-    width: var(--ancho-menu);
+    width: var(--ancho-menu-abierto);
     box-shadow: 0 24px 50px -14px rgb(14 17 22 / 0.18);
   }
   /* Fondo propio al desplegarse: papel translúcido con desenfoque y borde suave */
@@ -248,10 +249,11 @@
   .barra-plegable:is(:hover, :has(:focus-visible))::before { opacity: 1; }
 
   /* El interior no cambia de ancho: solo se recorta */
-  .barra-plegable-interior { position: relative; width: var(--ancho-menu); padding-left: 18px; }
+  .barra-plegable-interior { position: relative; width: var(--ancho-menu-abierto); padding-left: 18px; }
 
   /* Textos y rótulos: ocupan su lugar siempre y aparecen con opacidad */
   .barra-plegable .solo-abierta { opacity: 0; transition: opacity 160ms ease-out var(--retardo); }
+  .barra-plegable .nav-item .solo-abierta, .barra-plegable .eyebrow.solo-abierta { white-space: nowrap; }
   .barra-plegable:is(:hover, :has(:focus-visible)) .solo-abierta { opacity: 1; }
 
   /* Opciones: píldora de 40 px (icono centrado en el riel) que se alarga al desplegarse */

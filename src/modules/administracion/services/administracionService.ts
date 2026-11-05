@@ -93,8 +93,9 @@ export const administracionService = {
     return data;
   },
 
-  async crearEmpresa(nombre: string, ruc: string | null, sigla: string | null = null): Promise<Empresa> {
-    const { data } = await apiClient.post<Empresa>('/empresas', { nombre, ruc, sigla });
+  /** El uuid es opcional y solo lo acepta el administrador de Sulotec: sirve para igualarlo al de la empresa en la cuenta Sulotec. */
+  async crearEmpresa(nombre: string, ruc: string | null, sigla: string | null = null, uuid: string | null = null): Promise<Empresa> {
+    const { data } = await apiClient.post<Empresa>('/empresas', { nombre, ruc, sigla, ...(uuid ? { uuid } : {}) });
     return data;
   },
 
@@ -110,8 +111,9 @@ export const administracionService = {
     return data;
   },
 
-  async actualizarRuc(id: number, ruc: string | null): Promise<Empresa> {
-    const { data } = await apiClient.put<Empresa>(`/empresas/${id}`, { ruc });
+  /** Si no se manda uuid, el de la empresa no cambia. */
+  async actualizarEmpresa(id: number, cambios: { ruc: string | null; uuid?: string }): Promise<Empresa> {
+    const { data } = await apiClient.put<Empresa>(`/empresas/${id}`, cambios);
     return data;
   },
 

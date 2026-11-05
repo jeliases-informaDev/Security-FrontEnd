@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, RefreshCw, Users, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { EnlaceLicencia } from '@/modules/licencias/components/EnlaceLicencia';
+import { LineaCupo } from '@/modules/licencias/components/LineaCupo';
+import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
+import { motivoSinCrear } from '@/modules/licencias/lib/cupo';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
 import { generarClave } from '@/modules/administracion/lib/generarClave';
 import { botonPrimario, botonSecundario, botonTexto, campo, campoError } from '@/shared/ui/estilos';
@@ -42,10 +46,11 @@ interface NuevaCuentaFormProps {
 
 export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEmpresas }: NuevaCuentaFormProps) {
   const { usuario: usuarioActual } = useAuth();
-  const { bolsa } = useLicencia();
+  const { licencia, empresa: empresaDeLicencia, soloLectura, puedeCrear } = useLicencia();
+  const motivoLicencia = motivoSinCrear(licencia, soloLectura, puedeCrear);
   const activas = empresas.filter((empresa) => empresa.activa);
   const [mostrarClave, setMostrarClave] = useState(true);
-  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+  const [errorGeneral, setErrorGeneral] = useState<ReactNode>(null);
 
   const esAdminEmpresa = usuarioActual?.rol?.toUpperCase() === 'ADMINISTRADOR_EMPRESA';
 
@@ -55,7 +60,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
     : roles;
 
   // Empresa predeterminada para el Administrador de Empresa
-  const empresaAdmin = bolsa?.empresaNombre || (activas.length === 1 ? activas[0].nombre : '');
+  const empresaAdmin = empresaDeLicencia || (activas.length === 1 ? activas[0].nombre : '');
 
   const {
     register,
@@ -97,15 +102,13 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
       });
       onCreada(cuenta, valores.clave);
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      const dataResp = (err as { response?: { data?: { message?: string; mensaje?: string } } })?.response?.data;
-
-      // HTTP 409 (Conflict): Cupo máximo alcanzado
-      if (status === 409) {
+      // El plan ya no tiene usuarios libres: se muestra el mensaje del servidor con el enlace para ampliar.
+      if (esSinCupo(err)) {
         setErrorGeneral(
-          dataResp?.message ||
-          dataResp?.mensaje ||
-          'Se ha alcanzado el cupo máximo de usuarios activos permitidos en tu empresa. Desactiva usuarios inactivos o solicita una ampliación de cupo.'
+          <>
+            {mensajeDe(err, 'Tu plan llegó al máximo de usuarios activos.')}{' '}
+            <EnlaceLicencia enlace={enlaceDe(err)}>Ampliar licencia</EnlaceLicencia>
+          </>
         );
         return;
       }
@@ -121,17 +124,15 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
 
   return (
     <form onSubmit={crear} noValidate className="space-y-6">
-      {/* Contador de cupo de usuarios */}
-      {bolsa && (
-        <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-2/60 px-4 py-2.5 text-xs text-muted">
-          <Users className="h-4 w-4 text-brand" />
+      {/* Cupo de usuarios de la licencia y, si no se puede crear, el motivo */}
+      <LineaCupo />
+      {motivoLicencia && (
+        <p role="status" className="flex items-start gap-2 rounded-lg border border-warn/20 bg-warn-soft px-4 py-3 text-sm text-warn">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            Usuarios activos: <strong className="text-ink tabular-nums">{bolsa.usuariosActivos} de {bolsa.cupoUsuarios} permitidos</strong>
+            {motivoLicencia} <EnlaceLicencia enlace={licencia?.enlace}>{soloLectura ? 'Renovar en Sulotec' : 'Ampliar licencia'}</EnlaceLicencia>
           </span>
-          {bolsa.usuariosActivos >= bolsa.cupoUsuarios && (
-            <span className="badge badge-warn ml-auto text-[10px]">Cupo completo</span>
-          )}
-        </div>
+        </p>
       )}
 
       {errorGeneral && (
@@ -241,7 +242,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
         <button type="button" onClick={onCancelar} className={botonSecundario}>
           Cancelar
         </button>
-        <button type="submit" disabled={isSubmitting || (activas.length === 0 && !esAdminEmpresa)} className={botonPrimario}>
+        <button type="submit" disabled={isSubmitting || motivoLicencia !== null || (activas.length === 0 && !esAdminEmpresa)} title={motivoLicencia ?? undefined} className={botonPrimario}>
           {isSubmitting ? 'Creando…' : 'Crear cuenta'}
         </button>
       </div>

@@ -56,27 +56,7 @@ apiClient.interceptors.request.use(
 // ============================================================
 
 apiClient.interceptors.response.use(
-  (response) => {
-    // Si la petición es una acción que consume créditos, actualizar la bolsa en el frontend
-    if (typeof window !== "undefined" && response.config?.url) {
-      const url = response.config.url.toLowerCase();
-      const method = response.config.method?.toLowerCase();
-      const esAccionConCobro =
-        url.includes('/listas-negativas') ||
-        url.includes('/scoring/evaluar') ||
-        url.includes('/matrices') ||
-        url.includes('/denuncias') ||
-        url.includes('/operaciones');
-
-      if (
-        esAccionConCobro &&
-        (method === 'post' || method === 'put' || url.includes('/buscar') || url.includes('/pdf'))
-      ) {
-        window.dispatchEvent(new CustomEvent('licencia:actualizar'));
-      }
-    }
-    return response;
-  },
+  (response) => response,
   (error) => {
     /*
      * Si el backend devuelve 401, eliminamos la sesión local.
@@ -91,47 +71,27 @@ apiClient.interceptors.response.use(
     }
 
     /*
-     * HTTP 402 (PAYMENT_REQUIRED):
-     * Saldo de créditos insuficiente (bolsa + 10% tolerancia agotada).
+     * Licencia (servicio común de Sulotec). Se decide por el "code" que manda el servidor,
+     * nunca por el texto del mensaje.
+     *  - 402 LICENCIA_BOLSA_AGOTADA: la empresa gastó los tokens del mes -> abre el aviso global.
+     *  - 403 LICENCIA_*: solo lectura, suspendida o cancelada -> la franja se pone al día.
      */
-    if (error.response?.status === 402) {
-      if (typeof window !== "undefined") {
-        const mensaje =
-          error.response?.data?.message ||
-          error.response?.data?.mensaje ||
-          "La empresa ha agotado los créditos disponibles y el margen de tolerancia. Por favor, solicita una recarga o ampliación de plan.";
+    if (typeof window !== "undefined") {
+      const estado = error.response?.status;
+      const datos = error.response?.data;
+      const code: unknown = datos?.code;
 
+      if (estado === 402 && code === "LICENCIA_BOLSA_AGOTADA") {
         window.dispatchEvent(
           new CustomEvent("licencia:saldo-insuficiente", {
-            detail: { mensaje, data: error.response?.data },
+            detail: {
+              mensaje: datos?.message || datos?.mensaje || "",
+              enlace: datos?.enlace || "https://sulotec.com/mi-licencia",
+            },
           })
         );
-      }
-    }
-
-    /*
-     * HTTP 403 (FORBIDDEN):
-     * Licencia vencida en estado SOLO_LECTURA o SUSPENDIDA.
-     */
-    if (error.response?.status === 403) {
-      if (typeof window !== "undefined") {
-        const data = error.response?.data;
-        const mensaje = data?.message || data?.mensaje || "";
-        const esErrorLicencia =
-          /licencia|vencid|gracia|solo.?lectura|suspendid/i.test(mensaje) ||
-          data?.error === "LicenciaVencidaException";
-
-        if (esErrorLicencia) {
-          window.dispatchEvent(
-            new CustomEvent("licencia:vencida", {
-              detail: {
-                mensaje:
-                  mensaje ||
-                  "La licencia de su empresa ha vencido y las acciones que descuentan créditos están deshabilitadas.",
-              },
-            })
-          );
-        }
+      } else if (estado === 403 && typeof code === "string" && code.startsWith("LICENCIA_")) {
+        window.dispatchEvent(new CustomEvent("licencia:actualizar"));
       }
     }
 

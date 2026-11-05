@@ -39,15 +39,9 @@ export function DetalleEntidadModal({ persona, onClose }: { persona: ResultadoBu
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 402) {
-        setErrorDescarga('Créditos insuficientes para descargar el reporte en PDF. Contacte a su administrador para recargar su bolsa.');
-      } else if (status === 403) {
-        setErrorDescarga('Licencia vencida. Su cuenta está temporalmente en modo solo lectura.');
-      } else {
-        setErrorDescarga('Error al generar el reporte en PDF. Inténtalo de nuevo en un momento.');
-      }
+    } catch {
+      // El PDF no gasta tokens: cualquier falla es del reporte.
+      setErrorDescarga('Error al generar el reporte en PDF. Inténtalo de nuevo en un momento.');
     } finally {
       setDescargando(false);
     }

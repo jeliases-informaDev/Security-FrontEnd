@@ -4,9 +4,13 @@ import { useMemo, useState } from 'react';
 import { Check, Copy, KeyRound, MailPlus, Plus, Search, SearchX, UploadCloud, UserRound, Users } from 'lucide-react';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
 import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { EnlaceLicencia } from '@/modules/licencias/components/EnlaceLicencia';
+import { LineaCupo } from '@/modules/licencias/components/LineaCupo';
+import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
+import { motivoSinCrear } from '@/modules/licencias/lib/cupo';
 import { Modal } from '@/shared/ui/Modal';
 import { Panel } from '@/shared/ui/PageShell';
-import { Avatar, Boton, Esqueleto, EstadoVacio, Etiqueta, Paginacion } from '@/shared/ui/kit';
+import { Aviso as AvisoKit, Avatar, Boton, Esqueleto, EstadoVacio, Etiqueta, Paginacion } from '@/shared/ui/kit';
 import { AvisoBanner, type Aviso } from './AvisoBanner';
 import { EditarCuentaModal } from './EditarCuentaModal';
 import { NuevaCuentaForm } from './NuevaCuentaForm';
@@ -36,7 +40,9 @@ interface CuentasPanelProps {
 }
 
 export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoParaCrear, usuarioActual, onRecargar, onIrAEmpresas }: CuentasPanelProps) {
-  const { bolsa, refrescarBolsa } = useLicencia();
+  const { licencia, soloLectura, puedeCrear, refrescar } = useLicencia();
+  // Si la licencia no deja crear o reactivar cuentas, se dice por qué en vez de dejar el botón sin explicación.
+  const motivoLicencia = motivoSinCrear(licencia, soloLectura, puedeCrear);
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [editando, setEditando] = useState<Cuenta | null>(null);
@@ -75,13 +81,18 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
         texto: activo ? `La cuenta ${cuenta.usuario} está activa de nuevo.` : `La cuenta ${cuenta.usuario} quedó desactivada: ya no puede entrar.`,
       });
       onRecargar();
-      refrescarBolsa();
+      void refrescar();
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status;
-      if (status === 409) {
+      if (esSinCupo(err)) {
+        // El servidor dice cuántos usuarios hay y cuántos permite el plan: se muestra tal cual.
         setAviso({
           tipo: 'error',
-          texto: 'Cupo de usuarios excedido (HTTP 409): No se puede activar la cuenta porque tu empresa ha alcanzado el límite máximo contratado.',
+          texto: (
+            <>
+              {mensajeDe(err, 'Tu plan llegó al máximo de usuarios activos.')}{' '}
+              <EnlaceLicencia enlace={enlaceDe(err)}>Ampliar licencia</EnlaceLicencia>
+            </>
+          ),
         });
       } else {
         setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo cambiar el estado de la cuenta. Inténtalo de nuevo.') });
@@ -126,7 +137,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
           setCopiado(false);
           setVista({ tipo: 'creada', cuenta, clave });
           onRecargar();
-          refrescarBolsa();
+          void refrescar();
         }}
         onIrAEmpresas={onIrAEmpresas}
       />
@@ -141,7 +152,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
         onVolver={() => setVista({ tipo: 'lista' })}
         onCreadas={() => {
           onRecargar();
-          refrescarBolsa();
+          void refrescar();
         }}
       />
     );
@@ -216,26 +227,21 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
           </select>
         </div>
 
-        {/* Cupo de usuarios activo (compacto y sutil) */}
-        {bolsa && (
-          <span className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-muted">
-            <Users className="h-3.5 w-3.5 text-brand" />
-            <span>
-              Usuarios activos:{' '}
-              <strong className="text-ink tabular-nums">
-                {bolsa.usuariosActivos} de {bolsa.cupoUsuarios} permitidos
-              </strong>
-            </span>
-          </span>
-        )}
-
-        <Boton variante="secundario" icono={UploadCloud} onClick={() => { setAviso(null); setVista({ tipo: 'masiva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
+        <Boton variante="secundario" icono={UploadCloud} onClick={() => { setAviso(null); setVista({ tipo: 'masiva' }); }} disabled={!listoParaCrear || motivoLicencia !== null} title={motivoLicencia ?? (listoParaCrear ? undefined : 'Cargando las empresas y los roles…')}>
           Carga masiva
         </Boton>
-        <Boton icono={Plus} onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }} disabled={!listoParaCrear} title={listoParaCrear ? undefined : 'Cargando las empresas y los roles…'}>
+        <Boton icono={Plus} onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }} disabled={!listoParaCrear || motivoLicencia !== null} title={motivoLicencia ?? (listoParaCrear ? undefined : 'Cargando las empresas y los roles…')}>
           Nueva cuenta
         </Boton>
       </div>
+
+      {/* Cupo de usuarios de la licencia y, si no se puede crear, el motivo */}
+      <LineaCupo className="-mt-1 mb-4" />
+      {motivoLicencia && (
+        <AvisoKit aviso={{ tipo: soloLectura ? 'aviso' : 'info', texto: motivoLicencia }} className="mb-4">
+          <EnlaceLicencia enlace={licencia?.enlace} className="mt-1">{soloLectura ? 'Renovar en Sulotec' : 'Ampliar licencia'}</EnlaceLicencia>
+        </AvisoKit>
+      )}
 
       {error ? (
         <Panel>
@@ -322,7 +328,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
                               Desactivar
                             </button>
                           ) : (
-                            <button type="button" onClick={() => cambiarEstado(cuenta, true)} disabled={procesando === cuenta.id} className="btn btn-ghost btn-sm whitespace-nowrap">
+                            <button type="button" onClick={() => cambiarEstado(cuenta, true)} disabled={procesando === cuenta.id || motivoLicencia !== null} title={motivoLicencia ?? undefined} className="btn btn-ghost btn-sm whitespace-nowrap">
                               Activar
                             </button>
                           )}
@@ -358,7 +364,7 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             setEditando(null);
             setAviso({ tipo: 'ok', texto: `Se actualizó la cuenta ${cuenta.usuario}: ${resumen}.` });
             onRecargar();
-            refrescarBolsa();
+            void refrescar();
           }}
         />
       )}

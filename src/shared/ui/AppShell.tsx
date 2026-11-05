@@ -7,8 +7,7 @@ import { ChevronRight, LogOut, Menu, ShieldCheck, Sparkles, X } from 'lucide-rea
 import type { UsuarioLoginResponse } from '@/modules/auth/services/authService';
 import { MODULOS_DASHBOARD, modulosVisibles } from '@/shared/lib/modulos';
 import { MARCA } from '@/shared/lib/marca';
-import { CreditosWidget } from '@/modules/licencias/components/CreditosWidget';
-import { NotificacionesBell } from '@/modules/licencias/components/NotificacionesBell';
+import { MedidorTokens } from '@/modules/licencias/components/MedidorTokens';
 import { LicenciaBanner } from '@/modules/licencias/components/LicenciaBanner';
 
 /** Alto fijo de la barra superior: el panel de Indira y el menú móvil se acoplan debajo de ella. */
@@ -147,11 +146,8 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
             </nav>
 
             <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
-              {/* Widget de saldo de tokens */}
-              <CreditosWidget />
-
-              {/* Centro de notificaciones / avisos */}
-              <NotificacionesBell />
+              {/* Tokens del mes (administrador de la empresa) o «sin límite» (Sulotec) */}
+              <MedidorTokens />
 
               <button
                 id="boton-indira"
@@ -177,7 +173,7 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
           </div>
         </header>
 
-        {/* Banner de aviso de Licencia (solo cuando esté vencida / suspendida / en exceso) */}
+        {/* Franja de licencia: solo aparece si hay algo que avisar (bloqueo, tokens o vencimiento) */}
         <LicenciaBanner />
 
         {/* Contenido: en pantallas anchas se corre para dejarle sitio al chat de Indira (nada queda tapado) */}

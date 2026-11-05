@@ -14,6 +14,8 @@ import {
 import { ManchaCard } from '@/modules/listas_negativas/components/ManchaCard';
 import { DetalleEntidadModal } from '@/modules/listas_negativas/components/DetalleEntidadModal';
 import { HistorialBusquedas } from '@/modules/listas_negativas/components/HistorialBusquedas';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { esBolsaAgotada, mensajeDe } from '@/modules/licencias/lib/errores';
 import { TrabajandoEnElloModal } from '@/shared/ui/TrabajandoEnElloModal';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
 import { Avatar, Aviso, Boton, EstadoVacio, Paginacion } from '@/shared/ui/kit';
@@ -82,6 +84,7 @@ function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children
 }
 
 export function BuscadorListasNegativas() {
+  const { refrescar } = useLicencia();
   const [resultados, setResultados] = useState<PaginaResultados | null>(null);
   // Criterios de la última búsqueda: las páginas siguientes los reusan aunque después se edite el formulario
   const [criterios, setCriterios] = useState<BusquedaFormValues | null>(null);
@@ -110,11 +113,11 @@ export function BuscadorListasNegativas() {
       setResultados(data);
       setCriterios(valores);
       if (data.items.length > 0) setRecargarHistorial((n) => n + 1);
+      // Solo la primera página gasta un token: se actualiza el medidor.
+      if (pagina === 0) void refrescar();
     } catch (err: unknown) {
-      const mensaje =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'No se pudo completar la búsqueda. Inténtalo de nuevo en un momento.';
-      setErrorServidor(mensaje);
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      setErrorServidor(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la búsqueda. Inténtalo de nuevo en un momento.'));
       // Si falla la primera página no hay nada que mostrar; si falla una siguiente, se conserva la que ya se veía
       if (pagina === 0) setResultados(null);
     }

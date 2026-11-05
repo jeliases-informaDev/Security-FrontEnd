@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Building2, Plus } from 'lucide-react';
+import { Building2, Check, Copy, Plus } from 'lucide-react';
+import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { administracionService, mensajeDeError, type Empresa } from '@/modules/administracion/services/administracionService';
+import { UUID } from '@/modules/administracion/lib/formatos';
 import { Panel } from '@/shared/ui/PageShell';
 import { Boton, Esqueleto, EstadoVacio, Etiqueta } from '@/shared/ui/kit';
 import { AvisoBanner, type Aviso } from './AvisoBanner';
@@ -23,6 +25,12 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
   const [nombre, setNombre] = useState('');
   const [ruc, setRuc] = useState('');
   const [sigla, setSigla] = useState('');
+  const [uuid, setUuid] = useState('');
+  const [errorUuid, setErrorUuid] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState<number | null>(null);
+  // Solo el administrador de Sulotec puede fijar el UUID de una empresa.
+  const { usuario } = useAuth();
+  const esSulotec = usuario?.rol?.trim().toUpperCase() === 'ADMINISTRADOR';
   const [errorSigla, setErrorSigla] = useState<string | null>(null);
   const [errorNombre, setErrorNombre] = useState<string | null>(null);
   const [errorRuc, setErrorRuc] = useState<string | null>(null);
@@ -39,21 +47,36 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
     setErrorRuc(rucLimpio !== '' && !RUC.test(rucLimpio) ? 'El RUC debe tener 11 dígitos.' : null);
     const siglaLimpia = sigla.trim().toUpperCase();
     setErrorSigla(siglaLimpia !== '' && !SIGLA.test(siglaLimpia) ? 'De 2 a 8 letras o números.' : null);
-    if (nombreLimpio === '' || (rucLimpio !== '' && !RUC.test(rucLimpio)) || (siglaLimpia !== '' && !SIGLA.test(siglaLimpia))) return;
+    const uuidLimpio = uuid.trim();
+    const uuidMalo = esSulotec && uuidLimpio !== '' && !UUID.test(uuidLimpio);
+    setErrorUuid(uuidMalo ? 'No tiene formato de UUID. Ejemplo: 123e4567-e89b-12d3-a456-426614174000.' : null);
+    if (nombreLimpio === '' || (rucLimpio !== '' && !RUC.test(rucLimpio)) || (siglaLimpia !== '' && !SIGLA.test(siglaLimpia)) || uuidMalo) return;
 
     setGuardando(true);
     setAviso(null);
     try {
-      const creada = await administracionService.crearEmpresa(nombreLimpio, rucLimpio === '' ? null : rucLimpio, siglaLimpia === '' ? null : siglaLimpia);
+      const creada = await administracionService.crearEmpresa(nombreLimpio, rucLimpio === '' ? null : rucLimpio, siglaLimpia === '' ? null : siglaLimpia, esSulotec && uuidLimpio !== '' ? uuidLimpio : null);
       setNombre('');
       setRuc('');
       setSigla('');
+      setUuid('');
       setAviso({ tipo: 'ok', texto: `Se agregó la empresa ${creada.nombre} con la sigla ${creada.sigla ?? '—'}. Ya puedes elegirla al crear cuentas.` });
       onRecargar();
     } catch (err) {
       setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo agregar la empresa. Inténtalo de nuevo.') });
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const copiarUuid = async (empresa: Empresa) => {
+    if (!empresa.uuid) return;
+    try {
+      await navigator.clipboard.writeText(empresa.uuid);
+      setCopiado(empresa.id);
+      setTimeout(() => setCopiado(null), 2000);
+    } catch {
+      setAviso({ tipo: 'error', texto: 'No se pudo copiar. Selecciona el UUID y cópialo a mano.' });
     }
   };
 
@@ -129,6 +152,26 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
             {errorSigla && <p role="alert" className="error-text">{errorSigla}</p>}
           </div>
           <Boton type="submit" icono={Plus} cargando={guardando} className="sm:mt-7">{guardando ? 'Agregando…' : 'Agregar'}</Boton>
+          {esSulotec && (
+            <div className="sm:col-span-4">
+              <label htmlFor="empresa-uuid" className="label">UUID (opcional)</label>
+              <input
+                id="empresa-uuid"
+                name="uuid"
+                value={uuid}
+                onChange={(evento) => setUuid(evento.target.value.trim())}
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={36}
+                placeholder="Se genera solo si lo dejas vacío…"
+                aria-invalid={Boolean(errorUuid)}
+                aria-describedby="empresa-uuid-ayuda"
+                className={`input font-mono ${errorUuid ? 'input-error' : ''}`}
+              />
+              <p id="empresa-uuid-ayuda" className="hint">Usa el mismo UUID de la empresa en la cuenta Sulotec.</p>
+              {errorUuid && <p role="alert" className="error-text">{errorUuid}</p>}
+            </div>
+          )}
         </form>
         <p className="hint mt-3">
           El nombre y la sigla no se pueden cambiar después. La sigla (2 a 8 letras) va delante del usuario interno de cada cuenta, por ejemplo <span className="font-mono">hcyo.jperez</span>; si te equivocas, agrega la empresa correcta, pasa las cuentas a ella y desactiva la anterior.
@@ -150,12 +193,13 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
       ) : (
         <Panel className={cargando ? 'opacity-70 transition-opacity' : 'transition-opacity'}>
           <div className="overflow-x-auto">
-            <table className="tabla min-w-[40rem]">
+            <table className="tabla min-w-[56rem]">
               <thead>
                 <tr>
                   <th scope="col">Empresa</th>
                   <th scope="col">Sigla</th>
                   <th scope="col">RUC</th>
+                  <th scope="col">UUID</th>
                   <th scope="col" className="text-right">Cuentas</th>
                   <th scope="col">Estado</th>
                   <th scope="col" className="text-right">Acciones</th>
@@ -174,13 +218,25 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
                     </td>
                     <td className="font-mono text-[13px] text-ink" title={empresa.uuid ?? undefined}>{empresa.sigla ?? '—'}</td>
                     <td className="font-mono text-[13px] text-muted">{empresa.ruc ?? '—'}</td>
+                    <td>
+                      {empresa.uuid ? (
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono text-[12px] text-muted">{empresa.uuid}</span>
+                          <button type="button" onClick={() => copiarUuid(empresa)} aria-label={`Copiar el UUID de ${empresa.nombre}`} title="Copiar UUID" className="btn btn-ghost btn-icon h-7 w-7 text-muted">
+                            {copiado === empresa.id ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
                     <td className="text-right tabular-nums text-ink">{empresa.cuentas}</td>
                     <td>
                       <Etiqueta tono={empresa.activa ? 'ok' : 'neutral'} punto>{empresa.activa ? 'Activa' : 'Inactiva'}</Etiqueta>
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
-                        <button type="button" onClick={() => setEditando(empresa)} className="btn btn-ghost btn-sm whitespace-nowrap">Editar RUC</button>
+                        <button type="button" onClick={() => setEditando(empresa)} className="btn btn-ghost btn-sm whitespace-nowrap">Editar</button>
                         <button type="button" onClick={() => alternarEstado(empresa)} disabled={cambiando === empresa.id} className="btn btn-ghost btn-sm whitespace-nowrap">
                           {empresa.activa ? 'Desactivar' : 'Activar'}
                         </button>
@@ -200,7 +256,7 @@ export function EmpresasPanel({ empresas, cargando, error, onRecargar }: Empresa
           onCerrar={() => setEditando(null)}
           onGuardado={(empresa) => {
             setEditando(null);
-            setAviso({ tipo: 'ok', texto: `Se guardó el RUC de ${empresa.nombre}.` });
+            setAviso({ tipo: 'ok', texto: `Se guardaron los cambios de ${empresa.nombre}.` });
             onRecargar();
           }}
         />

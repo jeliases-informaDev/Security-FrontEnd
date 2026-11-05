@@ -63,7 +63,9 @@
 }
 
 @media (min-width: 64rem) {
-  :root { --alto-barra: 7rem; }
+  :root { --alto-barra: 5.5rem; }
+  /* Una sola barra de desplazamiento: la del panel principal, fina y discreta */
+  .panel-desplazable { scrollbar-width: thin; scrollbar-color: rgb(14 17 22 / 0.18) transparent; }
 }
 
 @theme inline {

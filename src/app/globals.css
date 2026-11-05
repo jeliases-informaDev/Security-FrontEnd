@@ -1,53 +1,76 @@
 @import "tailwindcss";
 
 /*
-  Sistema visual de PLAFT (claro, limpio y con una sola familia de colores).
+  Sistema visual de PLAFT: «Propuesta suave» (Figma PLAFT, noviembre de 2026).
+  Claro y sereno: un fondo que baja de blanco a un azul muy suave, superficies blancas muy redondeadas, tinta casi
+  negra, azul marino en títulos y botones, y lavanda en los acentos. Tres tipografías: DM Sans (texto), Fragment Mono
+  (rótulos y cifras) e Instrument Serif (títulos).
   Todo sale de estas variables: los componentes usan los nombres (brand, ink, line…) y nunca valores sueltos.
 */
 :root {
   color-scheme: light;
 
-  /* Superficies y texto */
-  --canvas: #f4f6fa;
-  --surface: #ffffff;
-  --surface-2: #eef2f7;
-  --line: #e2e7ef;
-  --line-strong: #c9d2df;
-  --ink: #101828;
-  --muted: #5b6778;
-  --faint: #98a2b3;
+  /* Fondo del marco: de blanco (arriba) a azulado (abajo) */
+  --fondo-arriba: #ffffff;
+  --fondo-abajo: #d9ddec;
 
-  /* Marca: verde petróleo (confianza, cumplimiento) con un acento ámbar para avisos y resaltes */
-  --brand: #0f766e;
-  --brand-hover: #0b5f59;
-  --brand-soft: #e4f3f0;
-  --brand-ink: #0a4a45;
-  --accent: #d97706;
-  --accent-soft: #fdf1dc;
+  /* Superficies y texto */
+  --canvas: #f4f5fa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f0;
+  --paper: #fafaf7;
+  --line: rgb(14 17 22 / 0.08);
+  --line-strong: rgb(14 17 22 / 0.16);
+  --ink: #0e1116;
+  --muted: rgb(14 17 22 / 0.62);
+  --faint: rgb(14 17 22 / 0.4);
+
+  /* Marca: azul marino para títulos y botones; lavanda suave para cajas de icono y estados activos */
+  --brand: #112342;
+  --brand-hover: #0a1830;
+  --brand-soft: #f2eefe;
+  --brand-ink: #112342;
+  --accent: #6c3df4;
+  --accent-soft: #f2eefe;
+  --noche: #131212; /* casi negro: Indira */
+  --crema: #f1e9d9; /* avatares con iniciales */
+  --vivo: #2db757;  /* punto verde de «datos en vivo» */
 
   /* Estados */
-  --ok: #15803d; --ok-soft: #dcfce7;
-  --warn: #b45309; --warn-soft: #fef3c7;
-  --bad: #b91c1c; --bad-soft: #fee2e2;
-  --info: #1d4ed8; --info-soft: #dbeafe;
+  --ok: #0d7238; --ok-soft: #e5f5ec;
+  --warn: #8a6a00; --warn-soft: #fdf6dc;
+  --bad: #c3262a; --bad-soft: #fdeaea; --bad-solid: #d62b2e;
+  --info: #2a4b9b; --info-soft: #e9eefb;
 
-  --sombra-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 1px rgba(16, 24, 40, 0.04);
-  --sombra-md: 0 8px 24px -12px rgba(16, 24, 40, 0.18), 0 2px 6px rgba(16, 24, 40, 0.06);
-  --sombra-lg: 0 24px 60px -24px rgba(16, 24, 40, 0.28), 0 6px 18px rgba(16, 24, 40, 0.08);
+  --sombra-sm: 0 8px 20px -8px rgb(14 17 22 / 0.07);
+  --sombra-md: 0 16px 34px -14px rgb(14 17 22 / 0.1);
+  --sombra-lg: 0 24px 50px -14px rgb(14 17 22 / 0.16);
+
+  /* Medidas del marco: ancho del menú lateral y alto de la barra superior (el chat de Indira se acopla debajo de ella) */
+  --ancho-menu: clamp(15.5rem, 17.66vw, 21.25rem);
+  --alto-barra: 4.5rem;
+  /* Alto de cada opción del menú: se encoge en pantallas bajas para que el menú completo entre sin desplazarse */
+  --alto-opcion: clamp(2.5rem, 4.8vh, 3.25rem);
 
   --background: var(--canvas);
   --foreground: var(--ink);
 }
 
+@media (min-width: 64rem) {
+  :root { --alto-barra: 7rem; }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-mono: "Fragment Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
 
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-paper: var(--paper);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
@@ -60,13 +83,16 @@
   --color-brand-ink: var(--brand-ink);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-noche: var(--noche);
+  --color-crema: var(--crema);
+  --color-vivo: var(--vivo);
 
   --color-ok: var(--ok); --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn); --color-warn-soft: var(--warn-soft);
-  --color-bad: var(--bad); --color-bad-soft: var(--bad-soft);
+  --color-bad: var(--bad); --color-bad-soft: var(--bad-soft); --color-bad-solid: var(--bad-solid);
   --color-info: var(--info); --color-info-soft: var(--info-soft);
 
-  /* Nombres heredados de la primera versión: siguen funcionando y ahora apuntan a la paleta nueva. */
+  /* Nombres heredados de la primera versión: siguen funcionando y apuntan a la paleta actual. */
   --color-brand-navy: var(--brand);
   --color-brand-navy-2: var(--brand-hover);
   --color-brand-paper: var(--canvas);
@@ -87,6 +113,7 @@
     background: var(--canvas);
     color: var(--ink);
     font-family: var(--font-sans);
+    font-variation-settings: "opsz" 14;
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4 { letter-spacing: -0.01em; text-wrap: balance; }
@@ -94,64 +121,82 @@
   button, [role="button"], a, input, select, textarea { touch-action: manipulation; }
   ::selection { background: var(--brand-soft); color: var(--brand-ink); }
   /* Foco de teclado visible y parejo en toda la aplicación */
-  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
   /* Barras de desplazamiento discretas */
   * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 }
 
 @layer components {
-  /* ---- Botones ---- */
+  /* ---- Botones (píldoras) ---- */
   .btn {
-    @apply inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150;
+    @apply inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150;
     @apply disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
   }
-  .btn-primary { @apply bg-brand text-white shadow-sm hover:bg-brand-hover; }
-  .btn-secondary { @apply border border-line-strong bg-surface text-ink hover:border-brand hover:bg-brand-soft/40 hover:text-brand-ink; }
-  .btn-ghost { @apply text-brand-ink hover:bg-brand-soft; }
-  .btn-danger { @apply bg-bad text-white hover:bg-red-800; }
-  .btn-sm { @apply h-8 rounded-lg px-3 text-[13px]; }
-  .btn-lg { @apply h-11 px-5 text-[15px]; }
-  .btn-icon { @apply h-9 w-9 rounded-lg p-0; }
+  .btn-primary { @apply bg-brand text-paper shadow-[0_14px_26px_-10px_rgb(14_17_22/0.28)] hover:bg-brand-hover; }
+  .btn-secondary { @apply border border-line bg-surface text-ink shadow-sm hover:border-line-strong hover:bg-paper; }
+  .btn-ghost { @apply text-ink hover:bg-ink/5; }
+  .btn-danger { @apply bg-bad-solid text-white hover:bg-bad; }
+  .btn-noche { @apply bg-noche text-paper shadow-[0_14px_28px_-10px_rgb(14_17_22/0.28)] hover:bg-ink; }
+  .btn-sm { @apply h-8 px-3.5 text-[13px]; }
+  .btn-lg { @apply h-[3.25rem] px-7 text-[15px]; }
+  .btn-icon { @apply h-10 w-10 rounded-[10px] p-0; }
+  .btn-sm.btn-icon { @apply h-8 w-8 rounded-lg; }
 
   /* ---- Campos ---- */
   .label { @apply mb-1.5 block text-sm font-medium text-ink; }
   .input {
-    @apply h-10 w-full rounded-xl border border-line-strong bg-surface px-3 text-sm text-ink shadow-sm transition-[border-color,box-shadow] duration-150 placeholder:text-faint;
-    @apply hover:border-brand/50 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15 disabled:bg-surface-2 disabled:text-muted;
+    @apply h-11 w-full rounded-xl border border-line-strong bg-surface px-3.5 text-sm text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-faint;
+    @apply hover:border-ink/30 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10 disabled:bg-surface-2 disabled:text-muted;
   }
   .input-error { @apply border-bad focus:border-bad focus:ring-bad/15; }
   .hint { @apply mt-1 text-xs text-muted; }
   .error-text { @apply mt-1 text-xs font-medium text-bad; }
 
-  /* ---- Etiquetas de estado ---- */
-  .badge { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold; }
-  .badge-neutral { @apply bg-surface-2 text-muted; }
+  /* ---- Etiquetas (rótulos en Fragment Mono) ---- */
+  .badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 font-mono text-[11px] font-normal uppercase leading-[1.5] tracking-[0.04em]; }
+  .badge-neutral { @apply border border-line bg-paper text-muted; }
   .badge-brand { @apply bg-brand-soft text-brand-ink; }
   .badge-ok { @apply bg-ok-soft text-ok; }
   .badge-warn { @apply bg-warn-soft text-warn; }
   .badge-bad { @apply bg-bad-soft text-bad; }
+  .badge-bad-solid { @apply bg-bad-solid text-white; }
   .badge-info { @apply bg-info-soft text-info; }
+  .badge-noche { @apply bg-white/12 text-paper; }
 
   /* ---- Superficies ---- */
-  .card { @apply rounded-2xl border border-line bg-surface shadow-sm; }
-  .card-hover { @apply transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md; }
-  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted; }
+  .card { @apply rounded-[20px] border border-white bg-white/90 shadow-md sm:rounded-[28px]; }
+  .card-hover { @apply transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
+  .eyebrow { @apply font-mono text-[12px] font-normal uppercase tracking-[0.18em] text-muted; }
+  /* Rótulo pequeño en mayúsculas (Mono/Caption del diseño) */
+  .rotulo { @apply font-mono text-[11px] font-normal uppercase leading-[1.5] tracking-[0.12em] text-muted; }
+  /* Títulos con serif (Instrument Serif) */
+  .titulo-serif { @apply font-serif font-normal leading-[0.98] tracking-[-0.02em] text-brand; }
 
   /* ---- Tablas ---- */
   .tabla { @apply w-full border-collapse text-sm; }
-  .tabla th { @apply sticky top-0 z-[1] border-b border-line bg-surface-2/80 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-muted backdrop-blur; }
+  .tabla th { @apply sticky top-0 z-[1] border-b border-line bg-paper/90 px-4 py-3 text-left font-mono text-[11px] font-normal uppercase tracking-[0.12em] text-muted backdrop-blur; }
   .tabla td { @apply border-b border-line px-4 py-3 align-middle text-ink; }
   .tabla tbody tr:last-child td { @apply border-b-0; }
-  .tabla tbody tr { @apply transition-colors hover:bg-brand-soft/30; }
+  .tabla tbody tr { @apply transition-colors hover:bg-brand-soft/40; }
   .tabla .num { @apply text-right tabular-nums; }
 
-  /* ---- Navegación lateral ---- */
-  .nav-item { @apply relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-ink; }
-  .nav-item[aria-current="page"] { @apply bg-brand-soft text-brand-ink; }
-  .nav-item[aria-current="page"]::before { content: ""; @apply absolute bottom-2 left-0 top-2 w-1 rounded-full bg-brand; }
+  /* ---- Marco: fondo, menú lateral y panel principal ---- */
+  .marco-fondo { background: linear-gradient(180deg, var(--fondo-arriba) 0%, var(--fondo-abajo) 100%) fixed; }
+  .panel-principal { @apply border border-white/95 bg-white/60 shadow-[0_30px_35px_rgb(14_17_22/0.1)]; }
+  /* Sombra con un toque cálido: la tarjeta grande de Listas Negativas de la página principal */
+  .sombra-calida { box-shadow: 0 24px 50px -16px rgb(229 140 89 / 0.18); }
+  .nav-item {
+    @apply relative flex w-full items-center gap-3.5 rounded-[20px] px-4 text-[15px] font-medium leading-[22px] text-ink transition-[background-color,box-shadow,color] duration-150 hover:bg-white/60;
+    min-height: var(--alto-opcion);
+  }
+  .nav-item > svg { @apply shrink-0 text-muted; }
+  .nav-item[aria-current="page"] { @apply bg-white shadow-[0_8px_20px_-6px_rgb(14_17_22/0.08)]; }
+  .nav-item[aria-current="page"] > svg { @apply text-ink; }
+  .nav-item[aria-disabled="true"] { @apply cursor-not-allowed text-muted hover:bg-transparent; }
+  .nav-item[aria-disabled="true"] > svg { @apply text-faint; }
 
   /* ---- Esqueletos de carga ---- */
-  .skeleton { @apply animate-pulse rounded-lg bg-surface-2; }
+  .skeleton { @apply animate-pulse rounded-lg bg-ink/5; }
 }
 
 /* ---- Movimiento (solo transform/opacity) ---- */

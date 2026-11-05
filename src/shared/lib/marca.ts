@@ -2,6 +2,8 @@
 export const MARCA = {
   nombre: 'PLAFT',
   producto: 'Prevención de Lavado de Activos',
+  /** Versión corta, para el rótulo bajo el nombre en el menú. */
+  corto: 'Prevención LA/FT',
   por: 'Sulotec',
   lema: 'Cumplimiento con trazabilidad, en un solo lugar.',
 } as const;

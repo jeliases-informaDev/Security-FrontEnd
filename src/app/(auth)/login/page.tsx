@@ -14,7 +14,7 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen bg-canvas lg:grid-cols-[1.1fr_1fr]">
       {/* Lado de marca */}
-      <section className="relative hidden overflow-hidden bg-gradient-to-br from-brand-hover via-brand to-[#159e91] text-white lg:flex lg:flex-col lg:justify-between lg:p-12" aria-hidden="true">
+      <section className="relative hidden overflow-hidden bg-gradient-to-br from-noche via-brand to-brand text-white lg:flex lg:flex-col lg:justify-between lg:p-12" aria-hidden="true">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(55% 45% at 15% 15%, rgba(255,255,255,.14) 0, transparent 60%), radial-gradient(45% 45% at 88% 85%, rgba(253,241,220,.35) 0, transparent 60%)' }} />
         <div className="pointer-events-none absolute -right-24 top-1/3 h-96 w-96 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -right-8 top-1/4 h-72 w-72 rounded-full border border-white/10" />

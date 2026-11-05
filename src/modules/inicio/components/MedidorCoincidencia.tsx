@@ -2,12 +2,12 @@
  * Semirrueda del porcentaje de coincidencia (página principal, diseño «Propuesta suave»): 61 marcas que van del verde al rojo,
  * una aguja y la cifra al centro. Las medidas son las del diseño (392 × 282) y todo se escala junto.
  *
- * El producto todavía no calcula ese porcentaje: sin `valor`, la rueda se muestra apagada y marcada «Pronto», sin cifra
- * inventada. Cuando el servidor lo entregue, basta pasar el número para que se encienda como en el diseño.
+ * Muestra el mayor porcentaje de las últimas consultas de Listas Negativas. Sin valor, la rueda queda apagada y sin cifra inventada.
+ * Si además se sabe que no hay consultas, lo dice con una insignia.
  */
 
 // Colores de las 61 marcas, de «bajo» (verde) a «alto» (rojo), tal como están en el diseño: es la escala del medidor.
-const COLORES = [
+export const COLORES_MEDIDOR = [
   '#2db757', '#35b954', '#3dbb51', '#45be4e', '#4dc04b', '#55c248', '#5dc445', '#65c642', '#6ec940', '#76cb3d',
   '#7ecd3a', '#86cf37', '#8ed134', '#96d431', '#9ed62e', '#a6d82b', '#abd72b', '#b1d62b', '#b6d52a', '#bcd42a',
   '#c1d32a', '#c6d22a', '#ccd12a', '#d1d029', '#d7cf29', '#dcce29', '#e1cd29', '#e7cc29', '#eccb28', '#f2ca28',
@@ -16,16 +16,18 @@ const COLORES = [
   '#e96c1e', '#e7661e', '#e5601e', '#e3591f', '#e1531f', '#df4d1f', '#dd471f', '#dc411f', '#da3b1f', '#d8351f',
   '#d62f1f',
 ];
-const ULTIMA = COLORES.length - 1;
+const ULTIMA = COLORES_MEDIDOR.length - 1;
 
 const ROTULO = 'fill-muted font-mono text-[11px] uppercase tracking-[0.12em]';
 
 interface MedidorCoincidenciaProps {
-  /** Porcentaje de coincidencia, de 0 a 100. Sin valor, la rueda queda apagada y marcada «Pronto». */
+  /** Porcentaje de coincidencia, de 0 a 100. Sin valor, la rueda queda apagada. */
   valor?: number | null;
+  /** Ya se sabe que no hay consultas: la rueda apagada lo dice con una insignia. */
+  sinConsultas?: boolean;
 }
 
-export function MedidorCoincidencia({ valor = null }: MedidorCoincidenciaProps) {
+export function MedidorCoincidencia({ valor = null, sinConsultas = false }: MedidorCoincidenciaProps) {
   const hayValor = typeof valor === 'number' && Number.isFinite(valor);
   const v = hayValor ? Math.min(100, Math.max(0, valor)) : 0;
   const ultimaEncendida = Math.round((v / 100) * ULTIMA);
@@ -34,16 +36,16 @@ export function MedidorCoincidencia({ valor = null }: MedidorCoincidenciaProps) 
     <div className="min-w-0">
       <div className="flex min-h-[22px] items-center justify-between gap-3 pl-6 pr-1">
         <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Porcentaje de coincidencia</p>
-        {!hayValor && <span className="badge badge-neutral px-2.5 py-[3px]">Pronto</span>}
+        {!hayValor && sinConsultas && <span className="badge badge-neutral px-2.5 py-[3px]">Sin consultas</span>}
       </div>
       <svg
         viewBox="0 0 392 282"
         className="mx-auto mt-[22px] block h-auto w-full max-w-[392px]"
         role="img"
-        aria-label={hayValor ? `Coincidencia: ${Math.round(v)} por ciento` : 'Porcentaje de coincidencia: próximamente'}
+        aria-label={hayValor ? `Coincidencia: ${Math.round(v)} por ciento` : 'Porcentaje de coincidencia: sin datos'}
       >
         {/* Marcas: de la izquierda (bajo) a la derecha (alto), una cada 3 grados alrededor del centro (196, 196) */}
-        {COLORES.map((color, i) => (
+        {COLORES_MEDIDOR.map((color, i) => (
           <rect
             key={color}
             x={-2.5}

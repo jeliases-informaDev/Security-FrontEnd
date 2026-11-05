@@ -1,57 +1,21 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { listasNegativasService, type HistorialConsultaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
+import type { FilaHistorial } from '@/modules/listas_negativas/services/listasNegativasService';
+import { cuando, iniciales } from '@/modules/listas_negativas/lib/formato';
+import { InsigniaResultado } from '@/modules/listas_negativas/components/piezas';
 import { IconoDerecha } from '@/shared/ui/iconos';
 
-/** Cuántas búsquedas se muestran en la página principal. */
+/** Cuántas búsquedas se muestran en la página principal (el servidor manda las tres últimas). */
 const CUANTAS = 3;
 
-const formatoHora = new Intl.DateTimeFormat('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
-const formatoDia = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' });
+export type EstadoUltimas = { fase: 'cargando' } | { fase: 'error' } | { fase: 'listo'; items: FilaHistorial[] };
 
-/** «Hoy 16:32», «Ayer 09:10» o «29 oct». */
-function cuando(fechaIso: string): string {
-  const fecha = new Date(fechaIso);
-  if (Number.isNaN(fecha.getTime())) return '';
-  const ahora = new Date();
-  const inicioDeHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).getTime();
-  if (fecha.getTime() >= inicioDeHoy) return `Hoy ${formatoHora.format(fecha)}`;
-  if (fecha.getTime() >= inicioDeHoy - 86_400_000) return `Ayer ${formatoHora.format(fecha)}`;
-  return formatoDia.format(fecha).replace('.', '');
-}
-
-const iniciales = (nombre: string) => nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || '·';
-
-/** Lo que el producto sabe hoy de cada búsqueda: si la persona es PEP y en cuántas listas aparece (no hay porcentaje todavía). */
-function Coincidencias({ item }: { item: HistorialConsultaResponse }) {
-  const manchas = item.resultado.manchas ?? [];
-  if (manchas.length === 0) return <span className="badge badge-ok">Sin coincidencias</span>;
-  if (manchas.some((mancha) => mancha.esPep)) return <span className="badge badge-bad">PEP</span>;
-  return <span className="badge badge-warn">{manchas.length} {manchas.length === 1 ? 'coincidencia' : 'coincidencias'}</span>;
-}
-
-type Estado = { fase: 'cargando' } | { fase: 'error' } | { fase: 'listo'; items: HistorialConsultaResponse[] };
-
-/** Tarjeta «Últimas búsquedas» de la página principal: las más recientes del historial real de Listas Negativas. */
-export function UltimasBusquedas() {
-  const [estado, setEstado] = useState<Estado>({ fase: 'cargando' });
-
-  useEffect(() => {
-    let vigente = true;
-    listasNegativasService
-      .obtenerHistorial(0, CUANTAS)
-      .then((pagina) => { if (vigente) setEstado({ fase: 'listo', items: (pagina.content ?? []).slice(0, CUANTAS) }); })
-      .catch(() => { if (vigente) setEstado({ fase: 'error' }); });
-    return () => { vigente = false; };
-  }, []);
-
+/** Tarjeta «Últimas búsquedas» de la página principal: las consultas más recientes de Listas Negativas, con su porcentaje y clasificación. */
+export function UltimasBusquedas({ estado }: { estado: EstadoUltimas }) {
   return (
     <section className="card px-5 pb-[22px] pt-6 sm:px-7" aria-labelledby="titulo-ultimas-busquedas">
       <div className="flex items-center gap-2.5">
         <h2 id="titulo-ultimas-busquedas" className="min-w-0 flex-1 text-[17px] font-semibold leading-[1.5] tracking-[-0.01em] text-ink">Últimas búsquedas</h2>
-        <Link href="/listas-negativas" className="inline-flex shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold leading-5 text-ink underline-offset-4 hover:underline">
+        <Link href="/listas-negativas/historial" className="inline-flex shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold leading-5 text-ink underline-offset-4 hover:underline">
           Ver todas <IconoDerecha className="h-3.5 w-3.5" />
         </Link>
       </div>
@@ -81,17 +45,17 @@ export function UltimasBusquedas() {
 
       {estado.fase === 'listo' && estado.items.length > 0 && (
         <ul className="mt-2.5 flex flex-col gap-2.5">
-          {estado.items.map((item) => (
+          {estado.items.slice(0, CUANTAS).map((item) => (
             <li key={item.id} className="flex items-center gap-3 py-[7px]">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crema text-xs font-semibold text-ink" aria-hidden="true">
-                {iniciales(item.resultado.nombreCompleto)}
+                {iniciales(item.consultado)}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-medium leading-[22px] text-ink">{item.resultado.nombreCompleto}</span>
-                <span className="rotulo block truncate">{item.resultado.tipoDocumento ?? 'Doc.'} {item.resultado.documento}</span>
+                <span className="block truncate text-[15px] font-medium leading-[22px] text-ink">{item.consultado}</span>
+                <span className="rotulo block truncate">{item.documento ? `${item.tipoDocumento ?? 'Doc.'} ${item.documento}` : item.tipoConsultaNombre}</span>
               </span>
-              <Coincidencias item={item} />
-              <span className="rotulo hidden shrink-0 sm:block">{cuando(item.fechaConsulta)}</span>
+              <InsigniaResultado clasificacion={item.clasificacion} nombre={item.clasificacionNombre} porcentaje={item.porcentaje} />
+              <span className="rotulo hidden shrink-0 sm:block">{cuando(item.fecha)}</span>
             </li>
           ))}
         </ul>

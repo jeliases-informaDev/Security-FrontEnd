@@ -1,5 +1,11 @@
-import { BuscadorListasNegativas } from '@/modules/listas_negativas/components/BuscadorListasNegativas';
+import { Suspense } from 'react';
+import { ConsultaListas } from '@/modules/listas_negativas/components/ConsultaListas';
 
 export default function ListasNegativasPage() {
-  return <BuscadorListasNegativas />;
+  // ConsultaListas lee ?consulta=… de la dirección: useSearchParams exige Suspense al prerenderizar.
+  return (
+    <Suspense fallback={null}>
+      <ConsultaListas />
+    </Suspense>
+  );
 }

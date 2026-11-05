@@ -41,6 +41,9 @@
   --warn: #8a6a00; --warn-soft: #fdf6dc;
   --bad: #c3262a; --bad-soft: #fdeaea; --bad-solid: #d62b2e;
   --info: #2a4b9b; --info-soft: #e9eefb;
+  /* Listas negativas: «crítica» (vinotinto) y «media» (amarillo) del diseño */
+  --critica: #7d1236; --critica-soft: rgb(125 18 54 / 0.12);
+  --media: #f7c928; --media-soft: rgb(247 201 40 / 0.16); --media-aviso: rgb(247 201 40 / 0.14);
 
   --sombra-sm: 0 8px 20px -8px rgb(14 17 22 / 0.07);
   --sombra-md: 0 16px 34px -14px rgb(14 17 22 / 0.1);
@@ -91,6 +94,8 @@
   --color-warn: var(--warn); --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad); --color-bad-soft: var(--bad-soft); --color-bad-solid: var(--bad-solid);
   --color-info: var(--info); --color-info-soft: var(--info-soft);
+  --color-critica: var(--critica); --color-critica-soft: var(--critica-soft);
+  --color-media: var(--media); --color-media-soft: var(--media-soft); --color-media-aviso: var(--media-aviso);
 
   /* Nombres heredados de la primera versión: siguen funcionando y apuntan a la paleta actual. */
   --color-brand-navy: var(--brand);
@@ -161,6 +166,7 @@
   .badge-bad { @apply bg-bad-soft text-bad; }
   .badge-bad-solid { @apply bg-bad-solid text-white; }
   .badge-info { @apply bg-info-soft text-info; }
+  .badge-critica { @apply bg-critica text-white; }
   .badge-noche { @apply bg-white/12 text-paper; }
 
   /* ---- Superficies ---- */

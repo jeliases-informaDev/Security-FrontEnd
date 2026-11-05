@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType, ReactNode, SVGProps } from 'react';
 
 /**
  * Estructura común de todas las pantallas del panel: un solo ancho de contenido y un solo encabezado de página
@@ -7,7 +6,7 @@ import type { LucideIcon } from 'lucide-react';
  */
 export function PageShell({ children, className = '', ancho = 'normal' }: { children: ReactNode; className?: string; ancho?: 'normal' | 'amplio' }) {
   return (
-    <main className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8 ${ancho === 'amplio' ? 'max-w-[1400px]' : 'max-w-6xl'} ${className}`}>
+    <main className={`mx-auto w-full px-4 pb-10 pt-4 sm:px-6 lg:px-10 lg:pb-12 lg:pt-6 ${ancho === 'amplio' ? 'max-w-[1500px]' : 'max-w-6xl'} ${className}`}>
       {children}
     </main>
   );
@@ -19,24 +18,26 @@ interface PageHeaderProps {
   acciones?: ReactNode;
   /** Texto pequeño sobre el título (el módulo o la sección a la que pertenece la pantalla). */
   antetitulo?: string;
-  icono?: LucideIcon;
+  /** Icono de la pantalla: cualquier componente SVG (lucide o los de shared/ui/iconos). */
+  icono?: ComponentType<SVGProps<SVGSVGElement>>;
   /** Sin la línea inferior: para pantallas que ponen pestañas justo debajo (las pestañas traen su propia línea). */
   sinLinea?: boolean;
 }
 
+/** Encabezado de pantalla del diseño «Propuesta suave»: caja de icono lavanda, antetítulo en mono y título en serif azul marino. */
 export function PageHeader({ titulo, descripcion, acciones, antetitulo, icono: Icono, sinLinea = false }: PageHeaderProps) {
   return (
-    <header className={`aparece flex flex-wrap items-end justify-between gap-x-6 gap-y-3 ${sinLinea ? 'mb-5' : 'mb-6 border-b border-line pb-5'}`}>
-      <div className="flex min-w-0 items-start gap-4">
+    <header className={`aparece flex flex-wrap items-end justify-between gap-x-6 gap-y-4 ${sinLinea ? 'mb-6' : 'mb-7 border-b border-line pb-6'}`}>
+      <div className="flex min-w-0 items-start gap-4 sm:gap-5">
         {Icono && (
-          <span className="mt-0.5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand-ink sm:flex" aria-hidden="true">
-            <Icono className="h-5 w-5" />
+          <span className="mt-1 hidden h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-brand-soft text-ink sm:flex" aria-hidden="true">
+            <Icono className="h-6 w-6" />
           </span>
         )}
         <div className="min-w-0">
-          {antetitulo && <p className="eyebrow mb-1">{antetitulo}</p>}
-          <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[1.65rem]">{titulo}</h1>
-          {descripcion && <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted">{descripcion}</p>}
+          {antetitulo && <p className="eyebrow mb-1.5">{antetitulo}</p>}
+          <h1 className="titulo-serif text-[clamp(2.25rem,2.9vw,3.25rem)]">{titulo}</h1>
+          {descripcion && <p className="mt-2.5 max-w-3xl text-[15px] leading-relaxed text-muted sm:text-base">{descripcion}</p>}
         </div>
       </div>
       {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
@@ -60,15 +61,15 @@ export function Panel({ children, className = '', titulo, descripcion, acciones,
   return (
     <section className={`card overflow-hidden ${className}`}>
       {(titulo || acciones) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-6 sm:py-5">
           <div className="min-w-0">
-            {titulo && <h2 className="text-base font-semibold text-ink">{titulo}</h2>}
+            {titulo && <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">{titulo}</h2>}
             {descripcion && <p className="mt-0.5 text-sm text-muted">{descripcion}</p>}
           </div>
           {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
         </div>
       )}
-      <div className={relleno ? 'p-5' : ''}>{children}</div>
+      <div className={relleno ? 'p-5 sm:p-6' : ''}>{children}</div>
     </section>
   );
 }

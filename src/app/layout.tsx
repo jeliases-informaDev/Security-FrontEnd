@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-// Tipografia propia del sitio (sin pedir nada a Google en cada visita): IBM Plex Sans para el texto y Plex Mono para cifras y codigos.
-import "@fontsource/ibm-plex-sans/latin-400.css";
-import "@fontsource/ibm-plex-sans/latin-500.css";
-import "@fontsource/ibm-plex-sans/latin-600.css";
-import "@fontsource/ibm-plex-mono/latin-400.css";
-import "@fontsource/ibm-plex-mono/latin-500.css";
+// Tipografia propia del sitio (sin pedir nada a Google en cada visita): DM Sans para el texto, Fragment Mono para rotulos y
+// cifras e Instrument Serif para los titulos. Son las tres familias del diseno «Propuesta suave».
+import "@fontsource-variable/dm-sans/opsz.css";
+import "@fontsource/fragment-mono/latin-400.css";
+import "@fontsource/instrument-serif/latin-400.css";
+import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
 import { MARCA } from "@/shared/lib/marca";
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow", // Cambiaremos esto cuando vayamos a producción pública
 };
 
-export const viewport: Viewport = { themeColor: "#f4f6fa", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({
   children,

@@ -64,7 +64,7 @@ interface IndiraPanelProps {
   abierto: boolean;
   onCerrar: () => void;
   /** Distancia desde arriba (la altura de la barra superior): el panel queda debajo de ella. */
-  top?: number;
+  top?: number | string;
 }
 
 /**
@@ -203,10 +203,10 @@ export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
         role="dialog"
         aria-label="Chat con Indira"
         style={{ top, overscrollBehavior: 'contain' }}
-        className="fixed bottom-0 right-0 z-40 flex w-full animate-[panel-entra_180ms_ease-out] flex-col border-l border-line bg-surface shadow-lg sm:w-[26rem] xl:shadow-none"
+        className="fixed bottom-0 right-0 z-40 flex w-full animate-[panel-entra_180ms_ease-out] flex-col border border-white bg-white/95 shadow-lg backdrop-blur-xl sm:w-[26rem] lg:rounded-tl-[28px]"
       >
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-amber-500 text-white" aria-hidden="true">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-noche text-white" aria-hidden="true">
             <Sparkles className="h-4 w-4" />
           </span>
           <div className="min-w-0 leading-tight">

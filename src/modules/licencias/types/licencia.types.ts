@@ -32,6 +32,16 @@ export interface Licencia {
   enlace: string;
 }
 
+/** Una acción que descuenta tokens, con el costo que fija Sulotec. */
+export interface TarifaToken {
+  tipo: string;
+  nombre: string;
+  /** Tokens que descuenta cada vez (0 = sin costo). */
+  tokens: number;
+  /** true si, al agotarse la bolsa, esta acción se bloquea. */
+  bloquea: boolean;
+}
+
 export interface LicenciaResponse {
   /** true si quien consulta es el administrador de Sulotec (nunca se bloquea). */
   exento: boolean;
@@ -39,6 +49,8 @@ export interface LicenciaResponse {
   empresa: string | null;
   /** null = licencias apagadas o sin información: el front no muestra nada. */
   licencia: Licencia | null;
+  /** Costo de cada acción. Puede faltar o venir vacía: el front no muestra la sección. */
+  tarifas?: TarifaToken[] | null;
 }
 
 /** Datos que viajan en el evento 'licencia:saldo-insuficiente'. */

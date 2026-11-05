@@ -1,0 +1,24 @@
+import { ShieldCheck } from 'lucide-react';
+import { SsoFlujo } from '@/modules/auth/components/SsoFlujo';
+import { MARCA } from '@/shared/lib/marca';
+
+// Pública: no exige sesión (es justo donde se consigue).
+export default function SsoPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10 sm:px-8">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex items-center gap-3" translate="no">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-hover text-white"><ShieldCheck className="h-5 w-5" aria-hidden="true" /></span>
+          <span className="leading-tight"><span className="block font-semibold text-ink">{MARCA.nombre}</span><span className="block text-xs text-muted">{MARCA.producto}</span></span>
+        </div>
+        <div className="card aparece p-7 sm:p-8">
+          <p className="eyebrow">Acceso</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Cuenta Sulotec</h1>
+          <div className="mt-5">
+            <SsoFlujo />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Building2, Plus, Receipt } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
+import { mensajeDeFalla } from '@/modules/licencias/lib/consumo';
 import {
   operacionesService,
   mensajeDeErrorOperaciones,
@@ -65,8 +66,10 @@ export function OperacionesWorkspace() {
       enlace.click();
       enlace.remove();
       setTimeout(() => URL.revokeObjectURL(direccion), 10_000);
-    } catch {
-      setAviso({ tipo: 'error', texto: 'No se pudo generar el PDF de ese registro. Inténtalo de nuevo.' });
+    } catch (err) {
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      const texto = mensajeDeFalla(err, 'No se pudo generar el PDF de ese registro. Inténtalo de nuevo.');
+      if (texto) setAviso({ tipo: 'error', texto });
     }
   };
 

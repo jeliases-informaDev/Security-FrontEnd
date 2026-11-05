@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Download } from 'lucide-react';
 import type { ResultadoBusquedaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
 import { listasNegativasService } from '@/modules/listas_negativas/services/listasNegativasService';
+import { mensajeDeFalla } from '@/modules/licencias/lib/consumo';
 import { ManchaCard, formatearFecha } from '@/modules/listas_negativas/components/ManchaCard';
 import { Modal } from '@/shared/ui/Modal';
 import { Avatar, Aviso, Boton } from '@/shared/ui/kit';
@@ -39,9 +40,9 @@ export function DetalleEntidadModal({ persona, onClose }: { persona: ResultadoBu
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch {
-      // El PDF no gasta tokens: cualquier falla es del reporte.
-      setErrorDescarga('Error al generar el reporte en PDF. Inténtalo de nuevo en un momento.');
+    } catch (err) {
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      setErrorDescarga(mensajeDeFalla(err, 'Error al generar el reporte en PDF. Inténtalo de nuevo en un momento.'));
     } finally {
       setDescargando(false);
     }

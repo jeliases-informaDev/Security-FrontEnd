@@ -15,6 +15,7 @@ import {
 import {
   matrizRiesgoService,
 } from '../../services/matrizRiesgo.service';
+import { mensajeDeFalla } from '@/modules/licencias/lib/consumo';
 
 import type {
   HeatmapMatrizResponse,
@@ -276,7 +277,10 @@ export function RiskHeatmap({
       );
 
       setErrorPdf(
-        'No fue posible descargar el PDF de la evaluación.'
+        mensajeDeFalla(
+          err,
+          'No fue posible descargar el PDF de la evaluación.'
+        )
       );
     } finally {
       setDescargandoPdf(

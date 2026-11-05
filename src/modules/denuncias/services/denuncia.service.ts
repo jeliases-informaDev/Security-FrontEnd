@@ -1,4 +1,5 @@
 import { apiClient } from "@/shared/api/apiClient";
+import { conConsumo } from "@/modules/licencias/lib/consumo";
 
 import type {
   ActualizarEstadoDenunciaRequest,
@@ -25,15 +26,19 @@ async function registrarDenuncia(
   request: CrearDenunciaRequest
 ): Promise<CrearDenunciaResponse> {
 
-  const { data } =
-    await apiClient.post<
-      CrearDenunciaResponse
-    >(
-      BASE_URL,
-      request
-    );
+  // Registrar una denuncia descuenta tokens según la tarifa de Sulotec.
+  return conConsumo(async () => {
 
-  return data;
+    const { data } =
+      await apiClient.post<
+        CrearDenunciaResponse
+      >(
+        BASE_URL,
+        request
+      );
+
+    return data;
+  });
 }
 
 
@@ -71,15 +76,19 @@ async function subirDocumentos(
       codigoSeguimiento
     );
 
-  const { data } =
-    await apiClient.post<
-      DenunciaArchivo[]
-    >(
-      `${BASE_URL}/${codigo}/archivos`,
-      formData
-    );
+  // Subir los archivos de una denuncia descuenta tokens según la tarifa de Sulotec.
+  return conConsumo(async () => {
 
-  return data;
+    const { data } =
+      await apiClient.post<
+        DenunciaArchivo[]
+      >(
+        `${BASE_URL}/${codigo}/archivos`,
+        formData
+      );
+
+    return data;
+  });
 }
 
 

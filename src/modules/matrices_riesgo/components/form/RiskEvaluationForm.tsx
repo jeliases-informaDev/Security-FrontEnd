@@ -23,6 +23,7 @@ import {
 import {
   matrizRiesgoService,
 } from "../../services/matrizRiesgo.service";
+import { mensajeDeFalla } from "@/modules/licencias/lib/consumo";
 
 import type {
   CatalogoMatriz,
@@ -2002,10 +2003,14 @@ export function RiskEvaluationForm({
        * Nueva evaluación
        */
 
-    } catch {
+    } catch (errorRegistro) {
 
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
       setError(
-        "No fue posible registrar la evaluación. Verifica los campos obligatorios."
+        mensajeDeFalla(
+          errorRegistro,
+          "No fue posible registrar la evaluación. Verifica los campos obligatorios."
+        )
       );
 
     } finally {
@@ -2099,10 +2104,13 @@ export function RiskEvaluationForm({
         1000
       );
 
-    } catch {
+    } catch (errorPdf) {
 
       setError(
-        "No fue posible descargar el PDF de la evaluación."
+        mensajeDeFalla(
+          errorPdf,
+          "No fue posible descargar el PDF de la evaluación."
+        )
       );
 
     } finally {

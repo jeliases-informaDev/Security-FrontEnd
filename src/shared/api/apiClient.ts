@@ -57,14 +57,33 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    /*
+     * Descargas de archivos (responseType "blob"): si el servidor contesta un error en JSON,
+     * llega envuelto en un Blob. Se lee aquí para que "code" y "message" estén disponibles
+     * igual que en cualquier otra petición.
+     */
+    const cuerpoCrudo = error.response?.data;
+    if (
+      typeof Blob !== "undefined" &&
+      cuerpoCrudo instanceof Blob &&
+      cuerpoCrudo.type.includes("json")
+    ) {
+      try {
+        error.response.data = JSON.parse(await cuerpoCrudo.text());
+      } catch {
+        /* no era JSON válido: se deja tal cual */
+      }
+    }
+
     /*
      * Si el backend devuelve 401, eliminamos la sesión local.
      */
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("tenant_token");
-        if (window.location.pathname !== "/login") {
+        // /sso es pública y muestra sus propios errores: no se la debe sacar de ahí.
+        if (window.location.pathname !== "/login" && window.location.pathname !== "/sso") {
           window.location.href = "/login";
         }
       }

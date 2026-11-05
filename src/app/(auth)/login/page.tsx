@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import { FileSearch, Lock, ShieldCheck, Sparkles, Waypoints } from 'lucide-react';
 import { LoginForm } from '@/modules/auth/components/LoginForm';
+import { SsoAcceso } from '@/modules/auth/components/SsoAcceso';
 import { MARCA } from '@/shared/lib/marca';
 
 const PILARES = [
@@ -47,6 +49,9 @@ export default function LoginPage() {
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
             <p className="mb-6 mt-1 text-sm text-muted">Entra con tu correo (o tu usuario) y tu contraseña.</p>
             <LoginForm />
+            <Suspense fallback={null}>
+              <SsoAcceso />
+            </Suspense>
           </div>
 
           <p className="mt-6 text-center text-xs text-faint">Acceso restringido. La actividad en la plataforma queda registrada. · {MARCA.nombre} por {MARCA.por}</p>

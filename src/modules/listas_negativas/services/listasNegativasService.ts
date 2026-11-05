@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api/apiClient';
+import { conConsumo } from '@/modules/licencias/lib/consumo';
 
 export interface ManchaResponse {
   id: number;
@@ -109,10 +110,13 @@ export const listasNegativasService = {
     return data;
   },
   async descargarPdf(entidadId: number): Promise<Blob> {
-    const { data } = await apiClient.get<Blob>(`/listas-negativas/${entidadId}/pdf`, {
-      responseType: 'blob',
-      headers: { Accept: 'application/pdf' },
+    // El PDF de una coincidencia descuenta tokens según la tarifa de Sulotec.
+    return conConsumo(async () => {
+      const { data } = await apiClient.get<Blob>(`/listas-negativas/${entidadId}/pdf`, {
+        responseType: 'blob',
+        headers: { Accept: 'application/pdf' },
+      });
+      return data;
     });
-    return data;
   },
 };

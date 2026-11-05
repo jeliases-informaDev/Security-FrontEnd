@@ -19,15 +19,36 @@ export interface LoginCredentials {
   clave: string;
 }
 
+/** Configuración pública del inicio de sesión con la cuenta Sulotec (la manda el servidor). */
+export type SsoConfig =
+  | { activo: false }
+  | { activo: true; issuer: string; clientId: string; redirectUri: string };
+
 const TOKEN_KEY = 'tenant_token';
+
+/** Guarda la sesión que devolvió el servidor. La usan el login con contraseña y el de la cuenta Sulotec. */
+function guardarSesion(data: LoginResponse): LoginResponse {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TOKEN_KEY, data.accessToken);
+  }
+  return data;
+}
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     const { data } = await apiClient.post<LoginResponse>('/auth/login', credentials);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(TOKEN_KEY, data.accessToken);
-    }
+    return guardarSesion(data);
+  },
+
+  async ssoConfig(): Promise<SsoConfig> {
+    const { data } = await apiClient.get<SsoConfig>('/auth/sso/config');
     return data;
+  },
+
+  /** Canjea el código de Keycloak (PKCE) por la sesión del panel; la respuesta es la misma del login. */
+  async loginSso(code: string, codeVerifier: string): Promise<LoginResponse> {
+    const { data } = await apiClient.post<LoginResponse>('/auth/sso', { code, codeVerifier });
+    return guardarSesion(data);
   },
 
   async me(): Promise<UsuarioLoginResponse> {

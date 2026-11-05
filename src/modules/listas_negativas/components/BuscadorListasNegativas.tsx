@@ -113,7 +113,7 @@ export function BuscadorListasNegativas() {
       setResultados(data);
       setCriterios(valores);
       if (data.items.length > 0) setRecargarHistorial((n) => n + 1);
-      // Solo la primera página gasta un token: se actualiza el medidor.
+      // Solo la primera página descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
       if (pagina === 0) void refrescar();
     } catch (err: unknown) {
       // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.

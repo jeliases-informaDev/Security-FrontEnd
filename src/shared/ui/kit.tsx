@@ -7,7 +7,7 @@ export function Avatar({ nombre, tamano = 'md', className = '' }: { nombre: stri
   const iniciales = nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || '·';
   const medida = tamano === 'sm' ? 'h-8 w-8 text-[11px]' : tamano === 'lg' ? 'h-12 w-12 text-sm' : 'h-10 w-10 text-xs';
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-hover font-semibold text-white ${medida} ${className}`} aria-hidden="true">
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-crema font-semibold text-ink ${medida} ${className}`} aria-hidden="true">
       {iniciales}
     </span>
   );

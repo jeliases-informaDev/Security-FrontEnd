@@ -138,7 +138,7 @@ export interface ReglaActivada {
 }
 
 export interface DecisionAnalista {
-  accion: 'ENVIAR_A_APROBACION' | 'RECHAZAR';
+  accion: 'APROBAR' | 'ENVIAR_A_APROBACION' | 'RECHAZAR';
   comentario: string | null;
   por: string;
   fecha: string;

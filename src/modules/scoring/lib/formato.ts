@@ -61,8 +61,9 @@ export function fechaConsulta(valor: string | null | undefined): string {
 /** Texto de la decisión de una evaluación (o de una fila del historial). */
 export function decisionTexto(decision: DecisionAnalista | null | undefined): string {
   const accion = decision?.accion;
-  if (accion === 'ENVIAR_A_APROBACION') return 'Enviada a aprobación';
-  if (accion === 'RECHAZAR') return 'Rechazada';
+  if (accion === 'APROBAR') return 'Aprobado';
+  if (accion === 'ENVIAR_A_APROBACION') return 'Enviado a aprobación';
+  if (accion === 'RECHAZAR') return 'Rechazado';
   return 'Sin decisión';
 }
 

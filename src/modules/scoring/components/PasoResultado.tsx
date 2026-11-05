@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { AlertTriangle, ArrowRight, CalendarDays, Check, Download, Flag, Info, RefreshCw, ShieldCheck } from 'lucide-react';
-import { scoringService, type BandaNivel, type ResultadoScoring } from '../services/scoringService';
+import { scoringService, type BandaNivel, type DecisionAnalista, type ResultadoScoring } from '../services/scoringService';
 import { esBolsaAgotada, mensajeDe } from '@/modules/licencias/lib/errores';
 import { Aviso, Boton } from '@/shared/ui/kit';
 import { BarraBandas } from './BarraBandas';
@@ -33,7 +33,7 @@ function CajaIcono({ children }: { children: React.ReactNode }) {
 export function PasoResultado({ resultado, bandas, onResultado, onOtro }: Props) {
   const [comentario, setComentario] = useState('');
   const [marcados, setMarcados] = useState<Set<string>>(new Set());
-  const [decidiendo, setDecidiendo] = useState<'RECHAZAR' | 'ENVIAR_A_APROBACION' | null>(null);
+  const [decidiendo, setDecidiendo] = useState<DecisionAnalista['accion'] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [descargando, setDescargando] = useState(false);
   const nivel = NIVEL[resultado.nivel];
@@ -42,7 +42,7 @@ export function PasoResultado({ resultado, bandas, onResultado, onOtro }: Props)
   const c = resultado.cliente;
   const escalaMaxima = bandas.length > 0 ? bandas[bandas.length - 1].hasta : null;
 
-  const decidir = async (accion: 'RECHAZAR' | 'ENVIAR_A_APROBACION') => {
+  const decidir = async (accion: DecisionAnalista['accion']) => {
     setDecidiendo(accion);
     setError(null);
     try {
@@ -81,6 +81,8 @@ export function PasoResultado({ resultado, bandas, onResultado, onOtro }: Props)
       return n;
     });
 
+  // Con nivel Alto la decisión final no es del analista: envía a aprobación; con Bajo o Medio, aprueba él.
+  const accionPrincipal: DecisionAnalista['accion'] = esAlto ? 'ENVIAR_A_APROBACION' : 'APROBAR';
   const sinComentario = esAlto && comentario.trim() === '';
 
   return (
@@ -252,7 +254,7 @@ export function PasoResultado({ resultado, bandas, onResultado, onOtro }: Props)
                 />
                 <div className="flex flex-wrap gap-2.5">
                   <Boton variante="secundario" cargando={decidiendo === 'RECHAZAR'} disabled={decidiendo !== null || sinComentario} onClick={() => decidir('RECHAZAR')}>Rechazar</Boton>
-                  <Boton cargando={decidiendo === 'ENVIAR_A_APROBACION'} disabled={decidiendo !== null || sinComentario} onClick={() => decidir('ENVIAR_A_APROBACION')}>
+                  <Boton cargando={decidiendo === accionPrincipal} disabled={decidiendo !== null || sinComentario} onClick={() => decidir(accionPrincipal)}>
                     {esAlto ? 'Enviar a aprobación' : 'Aprobar'}<ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Boton>
                 </div>

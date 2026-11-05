@@ -11,6 +11,11 @@ import {
   type Empresa,
   type Rol,
 } from '@/modules/administracion/services/administracionService';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { EnlaceLicencia } from '@/modules/licencias/components/EnlaceLicencia';
+import { LineaCupo } from '@/modules/licencias/components/LineaCupo';
+import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
+import { motivoSinCrear } from '@/modules/licencias/lib/cupo';
 import { Panel } from '@/shared/ui/PageShell';
 import { Boton, Etiqueta } from '@/shared/ui/kit';
 import { AvisoBanner, type Aviso } from './AvisoBanner';
@@ -67,6 +72,8 @@ function interpretar(texto: string, roles: Rol[]): { cuentas: CuentaMasiva[]; av
 }
 
 export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: CargaMasivaPanelProps) {
+  const { licencia, soloLectura, puedeCrear: licenciaPermite } = useLicencia();
+  const motivoLicencia = motivoSinCrear(licencia, soloLectura, licenciaPermite);
   const activas = empresas.filter((e) => e.activa);
   const [empresa, setEmpresa] = useState(activas.length === 1 ? activas[0].nombre : '');
   const [texto, setTexto] = useState('');
@@ -112,7 +119,20 @@ export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: Carga
         onCreadas();
       }
     } catch (err) {
-      setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo procesar la carga. Inténtalo de nuevo.') });
+      if (esSinCupo(err)) {
+        // El lote no cabe en el plan: el servidor dice cuántas cuentas crea y cuántas quedan libres.
+        setAviso({
+          tipo: 'error',
+          texto: (
+            <>
+              {mensajeDe(err, 'La carga no cabe en tu plan.')}{' '}
+              <EnlaceLicencia enlace={enlaceDe(err)}>Ampliar licencia</EnlaceLicencia>
+            </>
+          ),
+        });
+      } else {
+        setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo procesar la carga. Inténtalo de nuevo.') });
+      }
     } finally {
       setOcupado(null);
     }
@@ -187,6 +207,7 @@ export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: Carga
       {aviso && <AvisoBanner aviso={aviso} onCerrar={() => setAviso(null)} />}
 
       <Panel titulo="Carga masiva de cuentas" descripcion="Elige la empresa, pega las filas de tu Excel (o sube un CSV) y revisa antes de crear. El usuario interno se arma solo con la sigla de la empresa; cada persona entra con su correo." relleno>
+        <LineaCupo className="mb-4" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
           <div>
             <label htmlFor="masiva-empresa" className="label">Empresa</label>
@@ -221,10 +242,10 @@ export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: Carga
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Boton variante="secundario" icono={ClipboardList} onClick={() => enviar(true)} cargando={ocupado === 'revisar'} disabled={cuentas.length === 0 || !empresa}>
+          <Boton variante="secundario" icono={ClipboardList} onClick={() => enviar(true)} cargando={ocupado === 'revisar'} disabled={cuentas.length === 0 || !empresa || motivoLicencia !== null} title={motivoLicencia ?? undefined}>
             Revisar {cuentas.length > 0 ? `${cuentas.length} fila${cuentas.length === 1 ? '' : 's'}` : ''}
           </Boton>
-          <Boton icono={UploadCloud} onClick={() => enviar(false)} cargando={ocupado === 'crear'} disabled={!puedeCrear} title={puedeCrear ? undefined : 'Primero revisa las filas; todas deben estar bien'}>
+          <Boton icono={UploadCloud} onClick={() => enviar(false)} cargando={ocupado === 'crear'} disabled={!puedeCrear || motivoLicencia !== null} title={motivoLicencia ?? (puedeCrear ? undefined : 'Primero revisa las filas; todas deben estar bien')}>
             Crear {listas > 0 ? `${listas} cuenta${listas === 1 ? '' : 's'}` : 'cuentas'}
           </Boton>
           <Boton variante="fantasma" icono={ArrowLeft} onClick={onVolver}>Volver</Boton>

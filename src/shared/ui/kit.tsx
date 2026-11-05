@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { AlertCircle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
 
 /** Iniciales de una persona o institución (dos letras) en un círculo de color de marca. */
 export function Avatar({ nombre, tamano = 'md', className = '' }: { nombre: string; tamano?: 'sm' | 'md' | 'lg'; className?: string }) {
@@ -13,12 +13,12 @@ export function Avatar({ nombre, tamano = 'md', className = '' }: { nombre: stri
   );
 }
 
-export interface AvisoDatos { tipo: 'ok' | 'error' | 'info'; texto: ReactNode }
+export interface AvisoDatos { tipo: 'ok' | 'error' | 'info' | 'aviso'; texto: ReactNode }
 
-/** Franja de confirmación (verde), de error (roja) o informativa (azul) con botón para cerrarla. */
+/** Franja de confirmación (verde), de error (roja), informativa (azul) o de aviso (ámbar) con botón para cerrarla. */
 export function Aviso({ aviso, onCerrar, children, className = '' }: { aviso: AvisoDatos; onCerrar?: () => void; children?: ReactNode; className?: string }) {
-  const estilo = aviso.tipo === 'error' ? 'border-bad/20 bg-bad-soft text-bad' : aviso.tipo === 'info' ? 'border-info/20 bg-info-soft text-info' : 'border-ok/20 bg-ok-soft text-ok';
-  const Icono = aviso.tipo === 'error' ? AlertCircle : aviso.tipo === 'info' ? Info : CheckCircle2;
+  const estilo = aviso.tipo === 'error' ? 'border-bad/20 bg-bad-soft text-bad' : aviso.tipo === 'aviso' ? 'border-warn/20 bg-warn-soft text-warn' : aviso.tipo === 'info' ? 'border-info/20 bg-info-soft text-info' : 'border-ok/20 bg-ok-soft text-ok';
+  const Icono = aviso.tipo === 'error' ? AlertCircle : aviso.tipo === 'aviso' ? AlertTriangle : aviso.tipo === 'info' ? Info : CheckCircle2;
   return (
     <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`aparece flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${estilo} ${className}`}>
       <Icono className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />

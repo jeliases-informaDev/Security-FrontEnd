@@ -5,181 +5,124 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
-import { licenciasService } from '../services/licenciasService';
-import type {
-  BolsaEmpresaResponse,
-  AvisoLicencia,
-  EstadoLicencia,
-} from '../types/licencia.types';
+import { licenciaService } from '../services/licenciaService';
+import { ENLACE_LICENCIA } from '../lib/errores';
+import type { DetalleSaldoInsuficiente, Licencia, LicenciaResponse } from '../types/licencia.types';
+
+interface BolsaAgotada {
+  abierta: boolean;
+  mensaje: string;
+  enlace: string;
+}
 
 interface LicenciaContextValue {
-  bolsa: BolsaEmpresaResponse | null;
+  /** null = licencias apagadas, sin información o aún sin cargar: no se muestra nada. */
+  licencia: Licencia | null;
+  /** true si el usuario es el administrador de Sulotec (nunca se bloquea). */
+  exento: boolean;
+  /** Nombre de la empresa del usuario. */
+  empresa: string | null;
   cargando: boolean;
-  error: string | null;
-  refrescarBolsa: () => Promise<void>;
-  avisos: AvisoLicencia[];
-  avisosNoLeidos: number;
-  refrescarAvisos: () => Promise<void>;
-  modalSaldoAbierto: boolean;
-  mensajeSaldo: string | null;
-  abrirModalSaldo: (mensaje?: string) => void;
-  cerrarModalSaldo: () => void;
-  bannerEstado: EstadoLicencia | null;
-  mensajeBanner: string | null;
-  descartarBanner: () => void;
+  /** Vuelve a leer la licencia al servidor (por ejemplo, tras gastar un token). */
+  refrescar: () => Promise<void>;
+  /** Las escrituras están bloqueadas: solo lectura, suspendida o cancelada. */
+  soloLectura: boolean;
+  /** Se pueden crear o reactivar cuentas (hay cupo, o no hay licencia que lo limite). */
+  puedeCrear: boolean;
+  bolsaAgotada: BolsaAgotada;
+  cerrarBolsaAgotada: () => void;
 }
 
 const LicenciaContext = createContext<LicenciaContextValue | null>(null);
 
+const BOLSA_CERRADA: BolsaAgotada = { abierta: false, mensaje: '', enlace: ENLACE_LICENCIA };
+
 export function LicenciaProvider({ children }: { children: ReactNode }) {
   const { usuario } = useAuth();
-  const [bolsa, setBolsa] = useState<BolsaEmpresaResponse | null>(null);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [datos, setDatos] = useState<LicenciaResponse | null>(null);
+  const [listo, setListo] = useState(false);
+  const [bolsaAgotada, setBolsaAgotada] = useState<BolsaAgotada>(BOLSA_CERRADA);
 
-  const [avisos, setAvisos] = useState<AvisoLicencia[]>([]);
-  const [modalSaldoAbierto, setModalSaldoAbierto] = useState(false);
-  const [mensajeSaldo, setMensajeSaldo] = useState<string | null>(null);
+  const hayUsuario = Boolean(usuario);
 
-  const [bannerEstado, setBannerEstado] = useState<EstadoLicencia | null>(null);
-  const [mensajeBanner, setMensajeBanner] = useState<string | null>(null);
-  const [bannerDescartado, setBannerDescartado] = useState(false);
-
-  const refrescarBolsa = useCallback(async () => {
-    if (!usuario) return;
+  const leer = useCallback(async (forzar: boolean) => {
     try {
-      setCargando(true);
-      setError(null);
-      const datos = await licenciasService.obtenerMiBolsa();
-      setBolsa(datos);
-
-      // Si la bolsa indica SOLO_LECTURA o SUSPENDIDA, configurar banner
-      if (datos.estado === 'SOLO_LECTURA' || datos.estado === 'SUSPENDIDA') {
-        setBannerEstado(datos.estado);
-      }
-    } catch (err: unknown) {
-      // Si el backend aún no tiene datos de bolsa para el usuario o es Sulotec
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status !== 401) {
-        setError('No se pudo obtener el saldo de créditos de la empresa.');
-      }
-    } finally {
-      setCargando(false);
-    }
-  }, [usuario]);
-
-  const refrescarAvisos = useCallback(async () => {
-    if (!usuario) return;
-    // Solo roles que pueden ver avisos (ADMINISTRADOR_EMPRESA / ADMINISTRADOR)
-    const rol = usuario.rol?.toUpperCase();
-    if (rol !== 'ADMINISTRADOR' && rol !== 'ADMINISTRADOR_EMPRESA') return;
-
-    try {
-      const lista = await licenciasService.listarAvisos();
-      setAvisos(lista);
+      const respuesta = await licenciaService.obtener(forzar);
+      setDatos(respuesta);
     } catch {
-      // Silencioso para avisos no críticos
+      // Si falla se conserva la última licencia conocida: un corte de red no debe cambiar lo que ve la persona.
+    } finally {
+      setListo(true);
     }
-  }, [usuario]);
+  }, []);
 
+  const refrescar = useCallback(() => leer(true), [leer]);
+
+  // Carga inicial al tener sesión. El estado solo cambia dentro de las respuestas, nunca de forma directa en el efecto.
   useEffect(() => {
-    if (usuario) {
-      refrescarBolsa();
-      refrescarAvisos();
-    } else {
-      setBolsa(null);
-      setAvisos([]);
-    }
-  }, [usuario, refrescarBolsa, refrescarAvisos]);
+    if (!hayUsuario) return;
+    let cancelado = false;
+    licenciaService
+      .obtener(false)
+      .then((respuesta) => { if (!cancelado) setDatos(respuesta); })
+      .catch(() => { /* se queda sin licencia conocida: no se muestra nada */ })
+      .finally(() => { if (!cancelado) setListo(true); });
+    return () => { cancelado = true; };
+  }, [hayUsuario]);
 
-  // Manejadores de eventos de CustomEvent (disparados por el interceptor de Axios)
+  // Eventos que dispara apiClient cuando el servidor responde 402 o 403 por licencia.
   useEffect(() => {
     const alSaldoInsuficiente = (evento: Event) => {
-      const custom = evento as CustomEvent<{ mensaje?: string }>;
-      setMensajeSaldo(
-        custom.detail?.mensaje ||
-          'La bolsa de créditos de su empresa se encuentra agotada (incluyendo el margen de tolerancia).'
-      );
-      setModalSaldoAbierto(true);
-      refrescarBolsa();
+      const detalle = (evento as CustomEvent<Partial<DetalleSaldoInsuficiente>>).detail;
+      setBolsaAgotada({
+        abierta: true,
+        mensaje: detalle?.mensaje || 'Tu empresa usó todos los tokens de este mes. Amplía tu plan en Sulotec para seguir consultando.',
+        enlace: detalle?.enlace || ENLACE_LICENCIA,
+      });
+      void leer(true);
     };
-
-    const alLicenciaVencida = (evento: Event) => {
-      const custom = evento as CustomEvent<{ mensaje?: string }>;
-      setBannerEstado('SOLO_LECTURA');
-      setMensajeBanner(
-        custom.detail?.mensaje ||
-          'La licencia de tu empresa ha vencido y está en período de gracia de solo lectura.'
-      );
-      setBannerDescartado(false);
-      refrescarBolsa();
+    const alActualizar = () => {
+      void leer(true);
     };
-
-    const alActualizarLicencia = () => {
-      refrescarBolsa();
-      refrescarAvisos();
-    };
-
     window.addEventListener('licencia:saldo-insuficiente', alSaldoInsuficiente);
-    window.addEventListener('licencia:vencida', alLicenciaVencida);
-    window.addEventListener('licencia:actualizar', alActualizarLicencia);
-
+    window.addEventListener('licencia:actualizar', alActualizar);
     return () => {
       window.removeEventListener('licencia:saldo-insuficiente', alSaldoInsuficiente);
-      window.removeEventListener('licencia:vencida', alLicenciaVencida);
-      window.removeEventListener('licencia:actualizar', alActualizarLicencia);
+      window.removeEventListener('licencia:actualizar', alActualizar);
     };
-  }, [refrescarBolsa, refrescarAvisos]);
+  }, [leer]);
 
-  const avisosNoLeidos = avisos.filter((a) => !a.leido).length;
+  const cerrarBolsaAgotada = useCallback(() => setBolsaAgotada(BOLSA_CERRADA), []);
 
-  const abrirModalSaldo = (mensaje?: string) => {
-    if (mensaje) setMensajeSaldo(mensaje);
-    setModalSaldoAbierto(true);
-  };
+  const valor = useMemo<LicenciaContextValue>(() => {
+    // Sin sesión no se muestra nada, aunque quede una respuesta vieja en memoria.
+    const vigente = hayUsuario ? datos : null;
+    const licencia = vigente?.licencia ?? null;
+    const exento = vigente?.exento ?? false;
+    const bloqueada = licencia?.estado === 'SOLO_LECTURA' || licencia?.estado === 'SUSPENDIDA' || licencia?.estado === 'CANCELADA';
+    return {
+      licencia,
+      exento,
+      empresa: vigente?.empresa ?? null,
+      cargando: hayUsuario && !listo,
+      refrescar,
+      soloLectura: bloqueada && !exento,
+      puedeCrear: !licencia || licencia.estado === 'SIN_LICENCIA' || licencia.puede_crear_usuarios !== false,
+      bolsaAgotada,
+      cerrarBolsaAgotada,
+    };
+  }, [hayUsuario, datos, listo, refrescar, bolsaAgotada, cerrarBolsaAgotada]);
 
-  const cerrarModalSaldo = () => {
-    setModalSaldoAbierto(false);
-  };
-
-  const descartarBanner = () => {
-    setBannerDescartado(true);
-  };
-
-  const bannerEstadoFinal = bannerDescartado ? null : (bannerEstado || (bolsa?.estado !== 'VIGENTE' ? bolsa?.estado ?? null : null));
-
-  return (
-    <LicenciaContext.Provider
-      value={{
-        bolsa,
-        cargando,
-        error,
-        refrescarBolsa,
-        avisos,
-        avisosNoLeidos,
-        refrescarAvisos,
-        modalSaldoAbierto,
-        mensajeSaldo,
-        abrirModalSaldo,
-        cerrarModalSaldo,
-        bannerEstado: bannerEstadoFinal,
-        mensajeBanner,
-        descartarBanner,
-      }}
-    >
-      {children}
-    </LicenciaContext.Provider>
-  );
+  return <LicenciaContext.Provider value={valor}>{children}</LicenciaContext.Provider>;
 }
 
 export function useLicencia(): LicenciaContextValue {
-  const context = useContext(LicenciaContext);
-  if (!context) {
-    throw new Error('useLicencia debe usarse dentro de un LicenciaProvider');
-  }
-  return context;
+  const contexto = useContext(LicenciaContext);
+  if (!contexto) throw new Error('useLicencia debe usarse dentro de un LicenciaProvider');
+  return contexto;
 }

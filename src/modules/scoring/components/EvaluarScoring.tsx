@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Gauge, IdCard, Landmark, MapPin, RotateCcw, Search, User } from 'lucide-react';
 import { listasNegativasService, ResultadoBusquedaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
 import { scoringService, CatalogosScoring, ScoringResult } from '@/modules/scoring/services/scoringService';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { esBolsaAgotada, mensajeDe } from '@/modules/licencias/lib/errores';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
 import { Avatar, Aviso, Boton, Esqueleto, EstadoVacio } from '@/shared/ui/kit';
 
@@ -29,6 +31,7 @@ function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children
 const PASOS = ['Cliente', 'Datos', 'Resultado'] as const;
 
 export function EvaluarScoring() {
+  const { refrescar } = useLicencia();
   const [catalogos, setCatalogos] = useState<CatalogosScoring | null>(null);
 
   const [documentoBusqueda, setDocumentoBusqueda] = useState('');
@@ -61,8 +64,11 @@ export function EvaluarScoring() {
       const data = await listasNegativasService.buscar({ documento: documentoBusqueda.trim() });
       // Por documento hay a lo sumo unas pocas coincidencias: basta la primera página
       setCandidatos(data.items);
-    } catch {
-      setError('No se pudo completar la búsqueda.');
+      // Buscar en las listas gasta un token: se actualiza el medidor.
+      void refrescar();
+    } catch (err: unknown) {
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      setError(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la búsqueda.'));
     } finally {
       setBuscando(false);
     }
@@ -86,9 +92,11 @@ export function EvaluarScoring() {
         volumenTransaccional: Number(volumenTransaccional),
       });
       setResultado(data);
+      // Evaluar gasta un token: se actualiza el medidor.
+      void refrescar();
     } catch (err: unknown) {
-      const mensaje = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo completar la evaluación.';
-      setError(mensaje);
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      setError(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la evaluación.'));
     } finally {
       setEvaluando(false);
     }

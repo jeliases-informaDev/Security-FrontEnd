@@ -1,114 +1,64 @@
 'use client';
 
-import Link from 'next/link';
-import { AlertTriangle, Clock, ShieldAlert, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
+import { esAdministrador } from '@/shared/lib/modulos';
+import { Aviso, type AvisoDatos } from '@/shared/ui/kit';
 import { useLicencia } from '../context/LicenciaContext';
+import { ENLACE_LICENCIA } from '../lib/errores';
 
+interface Franja {
+  aviso: AvisoDatos;
+  etiquetaEnlace: string;
+}
+
+/** Franja bajo la barra superior. Muestra una sola cosa a la vez: primero lo que bloquea, luego los tokens, luego el vencimiento. */
 export function LicenciaBanner() {
   const { usuario } = useAuth();
-  const { bolsa, bannerEstado, descartarBanner } = useLicencia();
+  const { licencia, exento } = useLicencia();
 
-  // El Administrador Universal de Sulotec está exento de restricciones de licencia
-  if (usuario?.rol?.toUpperCase() === 'ADMINISTRADOR') {
-    return null;
+  if (!licencia) return null;
+
+  const admin = esAdministrador(usuario);
+  const tokens = licencia.tokens;
+  let franja: Franja | null = null;
+
+  if (licencia.estado === 'SOLO_LECTURA' && !exento) {
+    franja = { aviso: { tipo: 'aviso', texto: licencia.mensaje }, etiquetaEnlace: 'Renovar en Sulotec' };
+  } else if ((licencia.estado === 'SUSPENDIDA' || licencia.estado === 'CANCELADA') && !exento) {
+    franja = { aviso: { tipo: 'error', texto: licencia.mensaje }, etiquetaEnlace: 'Ver mi licencia' };
+  } else if (licencia.estado === 'SIN_LICENCIA') {
+    // Solo los administradores pueden hacer algo al respecto.
+    if (admin) franja = { aviso: { tipo: 'info', texto: licencia.mensaje }, etiquetaEnlace: 'Ver mi licencia' };
+  } else if (tokens && !exento && tokens.nivel === 'bloqueado') {
+    franja = { aviso: { tipo: 'error', texto: 'Tokens del mes agotados.' }, etiquetaEnlace: 'Ampliar plan' };
+  } else if (tokens && !exento && tokens.nivel === 'tolerancia') {
+    franja = { aviso: { tipo: 'aviso', texto: 'Tokens del mes agotados: estás usando la tolerancia, que se factura aparte.' }, etiquetaEnlace: 'Ampliar plan' };
+  } else if (tokens && !exento && tokens.nivel === 'aviso') {
+    franja = { aviso: { tipo: 'aviso', texto: 'Usaste el 80 % de los tokens de este mes.' }, etiquetaEnlace: 'Ampliar plan' };
+  } else if (licencia.estado === 'ACTIVA' && admin && licencia.dias_para_vencer != null && licencia.dias_para_vencer <= 7) {
+    const dias = licencia.dias_para_vencer;
+    franja = {
+      aviso: { tipo: 'info', texto: dias <= 0 ? 'Tu licencia vence hoy.' : `Tu licencia vence en ${dias} ${dias === 1 ? 'día' : 'días'}.` },
+      etiquetaEnlace: 'Ver mi licencia',
+    };
   }
 
-  // Estado prioritario: SUSPENDIDA > SOLO_LECTURA > enExceso
-  const estado = bannerEstado || bolsa?.estado;
-  const enExceso = bolsa?.enExceso && estado === 'VIGENTE';
+  if (!franja) return null;
 
-  if (!estado && !enExceso) return null;
-  if (estado === 'VIGENTE' && !enExceso) return null;
-
-  if (estado === 'SUSPENDIDA') {
-    return (
-      <div
-        role="alert"
-        className="relative z-10 flex items-center justify-between gap-3 border-b border-bad/30 bg-bad px-4 py-2 text-xs text-white shadow-sm sm:px-6"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <ShieldAlert className="h-4 w-4 shrink-0 text-white animate-pulse" aria-hidden="true" />
-          <p className="truncate font-medium">
-            <strong>Acceso suspendido:</strong> El período de gracia de tu licencia ha concluido. Contacta a Sulotec para reactivar el servicio.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Link
-            href="/licencias"
-            className="rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-semibold text-white transition hover:bg-white/30"
-          >
-            Ver estado
-          </Link>
-          <button
-            type="button"
-            onClick={descartarBanner}
-            aria-label="Ocultar aviso"
-            className="rounded p-1 text-white/80 transition hover:bg-white/20 hover:text-white"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (estado === 'SOLO_LECTURA') {
-    return (
-      <div
-        role="alert"
-        className="relative z-10 flex items-center justify-between gap-3 border-b border-amber-500/30 bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2 text-xs text-white shadow-sm sm:px-6"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Clock className="h-4 w-4 shrink-0 text-white" aria-hidden="true" />
-          <p className="truncate font-medium">
-            <strong>Modo solo lectura:</strong> Tu licencia ha vencido. Puedes consultar información existente, pero no realizar nuevas operaciones ni consumos.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Link
-            href="/licencias"
-            className="rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-semibold text-white transition hover:bg-white/30"
-          >
-            Gestionar licencia
-          </Link>
-          <button
-            type="button"
-            onClick={descartarBanner}
-            aria-label="Ocultar aviso"
-            className="rounded p-1 text-white/80 transition hover:bg-white/20 hover:text-white"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (enExceso) {
-    return (
-      <div
-        role="status"
-        className="relative z-10 flex items-center justify-between gap-3 border-b border-amber-300 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 sm:px-6"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
-          <p className="truncate">
-            <strong>Operando en exceso (+10% tolerancia):</strong> Se han agotado los créditos contratados.
-            Por favor tramita una recarga para evitar la suspensión del servicio.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Link
-            href="/licencias"
-            className="font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-950"
-          >
-            Ver bolsa
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div className="px-4 pt-4 sm:px-6 lg:px-8">
+      <Aviso aviso={franja.aviso}>
+        <a
+          href={licencia.enlace || ENLACE_LICENCIA}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-secondary btn-sm mt-2"
+        >
+          {franja.etiquetaEnlace}
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+      </Aviso>
+    </div>
+  );
 }

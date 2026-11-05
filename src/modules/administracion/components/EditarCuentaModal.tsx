@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { EnlaceLicencia } from '@/modules/licencias/components/EnlaceLicencia';
+import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
 import { Modal } from '@/shared/ui/Modal';
 import { botonPrimario, botonSecundario, campo, etiqueta } from '@/shared/ui/estilos';
 
@@ -18,7 +21,8 @@ interface EditarCuentaModalProps {
 export function EditarCuentaModal({ cuenta, empresas, roles, onCerrar, onGuardado }: EditarCuentaModalProps) {
   const [empresa, setEmpresa] = useState(cuenta.empresa ?? '');
   const [rolCodigo, setRolCodigo] = useState(cuenta.rolCodigo ?? '');
-  const [error, setError] = useState<string | null>(null);
+  const { licencia, soloLectura } = useLicencia();
+  const [error, setError] = useState<ReactNode>(null);
   const [guardando, setGuardando] = useState(false);
 
   // Se ofrecen las empresas activas; la actual se conserva en la lista aunque ya esté inactiva (o no figure) para no perderla al editar.
@@ -49,7 +53,17 @@ export function EditarCuentaModal({ cuenta, empresas, roles, onCerrar, onGuardad
       onGuardado(cambios.join(' y '));
     } catch (err) {
       // Si la empresa ya se cambió y falló el rol, la lista se vuelve a pedir al cerrar para no mostrar datos viejos.
-      setError(mensajeDeError(err, 'No se pudieron guardar los cambios. Inténtalo de nuevo.'));
+      if (esSinCupo(err)) {
+        // Mover una cuenta activa a otra empresa necesita cupo en la empresa de destino.
+        setError(
+          <>
+            {mensajeDe(err, 'Tu plan llegó al máximo de usuarios activos.')}{' '}
+            <EnlaceLicencia enlace={enlaceDe(err)}>Ampliar licencia</EnlaceLicencia>
+          </>
+        );
+      } else {
+        setError(mensajeDeError(err, 'No se pudieron guardar los cambios. Inténtalo de nuevo.'));
+      }
       setGuardando(false);
       if (cambios.length > 0) onGuardado(cambios.join(' y '));
     }
@@ -65,7 +79,7 @@ export function EditarCuentaModal({ cuenta, empresas, roles, onCerrar, onGuardad
           <button type="button" onClick={onCerrar} className={botonSecundario}>
             Cancelar
           </button>
-          <button type="button" onClick={guardar} disabled={guardando || (!cambioEmpresa && !cambioRol)} className={botonPrimario}>
+          <button type="button" onClick={guardar} disabled={guardando || soloLectura || (!cambioEmpresa && !cambioRol)} title={soloLectura ? licencia?.mensaje : undefined} className={botonPrimario}>
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>
         </>

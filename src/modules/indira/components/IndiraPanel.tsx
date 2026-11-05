@@ -5,6 +5,8 @@ import type { FormEvent, KeyboardEvent } from 'react';
 import { isAxiosError } from 'axios';
 import { Send, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { indiraService, type FeedbackIndira } from '@/modules/indira/services/indiraService';
+import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
+import { mensajeDe } from '@/modules/licencias/lib/errores';
 
 interface Mensaje {
   id: string;
@@ -47,6 +49,12 @@ function mensajeDeError(error: unknown): string {
         return 'Indira no está disponible en este momento. Inténtalo de nuevo en unos minutos.';
       case 502:
         return 'Indira no pudo procesar tu mensaje. Inténtalo de nuevo.';
+      case 402:
+        // El aviso global explica cómo ampliar el plan.
+        return 'Tu empresa usó todos los tokens de este mes. Amplía tu plan en Sulotec para seguir consultando.';
+      case 403:
+        // Solo lectura, suspendida o cancelada: el servidor ya dice qué hacer.
+        return mensajeDe(error, 'Tu licencia no permite enviar mensajes ahora. Escribe a contacto@sulotec.com.');
     }
   }
   return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
@@ -64,6 +72,7 @@ interface IndiraPanelProps {
  * sitio (no tapa nada); en pantallas chicas se abre encima con un fondo atenuado.
  */
 export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
+  const { refrescar } = useLicencia();
   const [mensajes, setMensajes] = useState<Mensaje[]>([SALUDO]);
   const [entrada, setEntrada] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -121,6 +130,8 @@ export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
         conversacionId: conversacionId.current,
       });
       conversacionId.current = respuesta.conversacionId;
+      // Cada mensaje a Indira gasta un token: se actualiza el medidor.
+      void refrescar();
       setMensajes((prev) => [
         ...prev,
         { id: nuevoId(), rol: 'indira', texto: respuesta.respuesta, mensajeId: respuesta.mensajeId },

@@ -1,122 +1,48 @@
-export type EstadoLicencia = 'VIGENTE' | 'SOLO_LECTURA' | 'SUSPENDIDA';
+// Tipos de la respuesta de GET /api/licencia. Las claves van en snake_case tal cual las envía el servidor.
 
-export interface BolsaEmpresaResponse {
-  empresaId: number;
-  empresaNombre: string;
-  creditosTotales: number;
-  creditosConsumidos: number;
-  creditosDisponibles: number;
-  porcentajeConsumo: number;
-  toleranciaPorcentaje: number;
-  toleranciaCreditos?: number;
-  exceso?: number;
-  enExceso: boolean;
-  cupoUsuarios: number;
-  usuariosActivos: number;
-  fechaVencimiento: string;
-  diasParaVencer: number;
+export type EstadoLicencia = 'ACTIVA' | 'SOLO_LECTURA' | 'SUSPENDIDA' | 'CANCELADA' | 'SIN_LICENCIA';
+
+export type NivelTokens = 'normal' | 'aviso' | 'tolerancia' | 'bloqueado';
+
+export interface TokensLicencia {
+  bolsa: number;
+  extra: number;
+  capacidad: number;
+  usados: number;
+  disponibles: number;
+  porcentaje: number;
+  nivel: NivelTokens;
+  tolerancia: number;
+  tolerancia_max: number;
+}
+
+export interface Licencia {
   estado: EstadoLicencia;
-  avisosPendientes?: number;
-}
-
-export type TipoMovimiento = 'CONSUMO' | 'RECARGA' | 'AJUSTE';
-
-export interface MovimientoCredito {
-  id: number;
-  fecha: string;
-  accion?: string | null;
-  descripcion?: string | null;
-  referencia?: string | null;
-  cantidad?: number;
-  creditos?: number;
-  tipo?: TipoMovimiento;
-  usuario?: string | null;
-  exceso: boolean;
-  consumidosDespues?: number | null;
-  saldoPosterior?: number | null;
-}
-
-export interface PaginaMovimientos {
-  content: MovimientoCredito[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-  first?: boolean;
-  last?: boolean;
-}
-
-export interface AvisoLicencia {
-  id: number;
-  tipo?: string;
-  titulo?: string;
+  plan: string | null;
+  usuarios_max: number | null;
+  usuarios_activos: number | null;
+  puede_crear_usuarios: boolean | null;
+  /** AAAA-MM-DD */
+  vencimiento: string | null;
+  dias_para_vencer: number | null;
+  /** AAAA-MM */
+  periodo: string | null;
+  tokens: TokensLicencia | null;
   mensaje: string;
-  fechaCreacion?: string;
-  leido: boolean;
+  enlace: string;
 }
 
-export interface TarifaCredito {
-  id?: number;
-  accion: string;
-  costo: number;
-  descripcion?: string;
-  modulo?: string;
+export interface LicenciaResponse {
+  /** true si quien consulta es el administrador de Sulotec (nunca se bloquea). */
+  exento: boolean;
+  /** Nombre de la empresa del usuario. */
+  empresa: string | null;
+  /** null = licencias apagadas o sin información: el front no muestra nada. */
+  licencia: Licencia | null;
 }
 
-export interface RecargarCreditosRequest {
-  empresaId: number;
-  creditos: number;
-  motivo?: string;
+/** Datos que viajan en el evento 'licencia:saldo-insuficiente'. */
+export interface DetalleSaldoInsuficiente {
+  mensaje: string;
+  enlace: string;
 }
-
-export interface ConfigurarLicenciaRequest {
-  empresaId: number;
-  creditosTotales: number;
-  cupoUsuarios: number;
-  toleranciaPorcentaje: number;
-  fechaVencimiento: string;
-}
-
-/** Diccionario de nombres legibles para las acciones de crédito de los 5 módulos */
-export const ACCIONES_CREDITO_INFO: Record<string, { modulo: string; nombre: string; costoPorDefecto: number }> = {
-  LISTA_BUSQUEDA: {
-    modulo: 'Listas Negativas',
-    nombre: 'Búsqueda en Listas (Página 1)',
-    costoPorDefecto: 1,
-  },
-  SCORING_EVALUAR: {
-    modulo: 'Scoring de Riesgo',
-    nombre: 'Evaluación de Scoring',
-    costoPorDefecto: 2,
-  },
-  MATRIZ_REGISTRAR: {
-    modulo: 'Matrices de Riesgo',
-    nombre: 'Registro de Análisis de Matriz',
-    costoPorDefecto: 3,
-  },
-  MATRIZ_PDF: {
-    modulo: 'Matrices de Riesgo',
-    nombre: 'Exportación de Matriz a PDF',
-    costoPorDefecto: 1,
-  },
-  DENUNCIA_CREAR: {
-    modulo: 'Canal de Denuncias',
-    nombre: 'Registro de Denuncia',
-    costoPorDefecto: 2,
-  },
-  DENUNCIA_DOCUMENTOS: {
-    modulo: 'Canal de Denuncias',
-    nombre: 'Carga de Documentos en Denuncia',
-    costoPorDefecto: 1,
-  },
-  OPERACION_REGISTRAR: {
-    modulo: 'Registro de Operaciones',
-    nombre: 'Inserción de Operación',
-    costoPorDefecto: 2,
-  },
-  OPERACION_PDF: {
-    modulo: 'Registro de Operaciones',
-    nombre: 'Exportación de Operación a PDF',
-    costoPorDefecto: 1,
-  },
-};

@@ -36,7 +36,7 @@ function Logo({ compacto = false }: { compacto?: boolean }) {
         <IconoEscudo />
       </span>
       {!compacto && (
-        <span className="min-w-0">
+        <span className="solo-abierta min-w-0">
           <span className="block text-[17px] font-semibold leading-[1.5] tracking-[-0.01em] text-ink">{MARCA.nombre}</span>
           <span className="rotulo block truncate">{MARCA.corto}</span>
         </span>
@@ -61,7 +61,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
     <nav aria-label="Módulos" className="flex flex-col gap-[9px]">
       {menuVisible(usuario).map(({ grupo, opciones }) => (
         <div key={grupo} role="group" aria-label={grupo}>
-          <p className="eyebrow flex items-center gap-2 pb-2 pl-3" aria-hidden="true">
+          <p className="eyebrow solo-abierta flex items-center gap-2 pb-2 pl-3" aria-hidden="true">
             <span className="h-[5px] w-[5px] rounded-full bg-ink" />
             {grupo}
           </p>
@@ -73,8 +73,8 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                   <li key={opcion.codigo}>
                     <span className="nav-item" aria-disabled="true" title="Próximamente">
                       <Icono />
-                      <span className="min-w-0 flex-1">{opcion.nombre}</span>
-                      <span className="badge badge-neutral px-2.5 py-[3px]">Pronto</span>
+                      <span className="solo-abierta min-w-0 flex-1">{opcion.nombre}</span>
+                      <span className="solo-abierta badge badge-neutral px-2.5 py-[3px]">Pronto</span>
                     </span>
                   </li>
                 );
@@ -84,7 +84,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                 <li key={opcion.codigo}>
                   <Link href={opcion.href} aria-current={activo ? 'page' : undefined} className="nav-item" onClick={onNavegar}>
                     <Icono />
-                    <span className="min-w-0">{opcion.nombre}</span>
+                    <span className="solo-abierta min-w-0">{opcion.nombre}</span>
                   </Link>
                 </li>
               );
@@ -123,7 +123,7 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
 
   // El botón de Indira del menú fijo lleva el id al que vuelve el foco al cerrar el chat; el del cajón móvil no lo repite.
   const lateral = (fijo: boolean) => (
-    <div className="flex h-full flex-col pb-[26px] pl-[clamp(0.875rem,1.35vw,1.625rem)] pr-3 pt-7">
+    <div className="barra-plegable-interior flex h-full flex-col pb-[26px] pl-[clamp(0.875rem,1.35vw,1.625rem)] pr-3 pt-7">
       <Logo />
       <div className="-mx-2 mt-[27px] min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         <div className="max-w-[236px]">
@@ -136,22 +136,22 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
         onClick={() => { onAlternarIndira(); setMenuAbierto(false); }}
         aria-pressed={indiraAbierta}
         aria-label={indiraAbierta ? 'Cerrar el chat con Indira' : 'Abrir el chat con Indira'}
-        className="mt-3 flex w-full max-w-[275px] items-center gap-3 rounded-[24px] border border-white bg-white/70 p-3 text-left shadow-[0_8px_20px_-8px_rgb(14_17_22/0.06)] transition-[background-color,box-shadow] duration-150 hover:bg-white hover:shadow-md"
+        className="indira-tarjeta mt-3 flex w-full max-w-[275px] items-center gap-3 rounded-[24px] border border-white bg-white/70 p-3 text-left shadow-[0_8px_20px_-8px_rgb(14_17_22/0.06)] transition-[background-color,box-shadow] duration-150 hover:bg-white hover:shadow-md"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-noche text-white" aria-hidden="true"><IconoDestellos /></span>
-        <span className="min-w-0 flex-1">
+        <span className="solo-abierta min-w-0 flex-1">
           <span className="block text-sm font-semibold leading-5 text-ink">Indira</span>
           <span className="rotulo block">Asistente</span>
         </span>
-        <IconoGalon className="shrink-0 text-faint" />
+        <IconoGalon className="solo-abierta shrink-0 text-faint" />
       </button>
     </div>
   );
 
   return (
     <div className="marco-fondo min-h-dvh">
-      {/* Menú lateral fijo (pantallas anchas) */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[var(--ancho-menu)] lg:block" aria-label="Menú principal">
+      {/* Menú lateral fijo (pantallas anchas). Con mouse queda plegado en un riel de iconos y se despliega al pasar el mouse (ver .barra-plegable en globals.css) */}
+      <aside className="barra-plegable fixed inset-y-0 left-0 z-30 hidden w-[var(--ancho-menu)] lg:block" aria-label="Menú principal">
         {lateral(true)}
       </aside>
 
@@ -166,7 +166,7 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
         </div>
       )}
 
-      <div className="lg:pl-[var(--ancho-menu)]">
+      <div className="lg:pl-[var(--ancho-menu-reposo)]">
         <div
           ref={panelRef}
           className="panel-principal flex min-h-dvh flex-col lg:mt-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-0 lg:overflow-y-auto lg:rounded-tl-[36px] lg:border-b-0 lg:border-r-0"

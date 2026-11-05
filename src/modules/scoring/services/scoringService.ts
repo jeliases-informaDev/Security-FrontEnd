@@ -73,6 +73,8 @@ export interface ClienteScoring {
     vinculados: EstadoLista;
     sanciones: EstadoLista;
     noticias: EstadoLista;
+    /** Si la empresa descartó a esta persona como homónimo en Listas Negativas. */
+    homonimo?: { consultaId: number; fecha: string; usuario: string; comentario: string | null; texto: string } | null;
   };
   condicion: { puntaje: number; etiqueta: string } | null;
   reglas: ReglaCliente[];

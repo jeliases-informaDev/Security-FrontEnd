@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, ArrowRight, Gavel, Newspaper, Search, ShieldAlert, Users, Zap } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import { scoringService, type ClienteScoring, type EstadoLista, type TipoPersona } from '../services/scoringService';
@@ -92,6 +93,12 @@ function TarjetaCliente({ cliente, onCambiar, onContinuar }: { cliente: ClienteS
         <p className="eyebrow">Consulta automática de listas</p>
         {c.fecha && <span className="badge badge-neutral"><Zap className="h-3 w-3" aria-hidden="true" />{fechaConsulta(c.fecha)}</span>}
       </div>
+      {c.homonimo && (
+        <Aviso aviso={{ tipo: 'info', texto: c.homonimo.texto }}>
+          {c.homonimo.comentario && <p className="mt-0.5 text-[13px]">{c.homonimo.comentario}</p>}
+          <Link href={`/listas-negativas?consulta=${c.homonimo.consultaId}`} className="mt-1 inline-block text-[13px] font-semibold underline underline-offset-2">Ver la consulta</Link>
+        </Aviso>
+      )}
       <ul>
         <FilaConsulta icono={ShieldAlert} titulo="Personas expuestas políticamente" detalle="En funciones o hasta 5 años después del cargo" estado={c.pep} />
         <FilaConsulta icono={Users} titulo="Parientes y empresas vinculadas a un PEP" detalle="Hasta 2.º grado, cónyuge y empresas con PEP al 25 % o más" estado={c.vinculados} />
@@ -116,9 +123,11 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
   const [registrando, setRegistrando] = useState(false);
   const [nuevo, setNuevo] = useState<{ tipoPersona: TipoPersona; tipoDocumento: string; documento: string; nombre: string }>({ tipoPersona: 'NATURAL', tipoDocumento: 'DNI', documento: '', nombre: '' });
 
-  const buscar = async () => {
-    const valor = documento.trim();
+  /** Busca al cliente. Con `directo` (llegada desde Listas Negativas) usa ese documento en lugar del escrito. */
+  const buscar = async (directo?: string, previo?: { tipoDocumento?: string; nombre?: string }) => {
+    const valor = (directo ?? documento).trim();
     if (!valor) return;
+    if (directo !== undefined) setDocumento(valor);
     setBuscando(true);
     setError(null);
     setNoEncontrado(null);
@@ -129,7 +138,15 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
         onSeleccionar(data);
       } else {
         setNoEncontrado(data);
-        setNuevo((n) => ({ ...n, documento: valor, tipoDocumento: valor.length === 11 ? 'RUC' : n.tipoDocumento, tipoPersona: valor.length === 11 ? 'JURIDICA' : n.tipoPersona }));
+        setNuevo((n) => ({
+          ...n,
+          documento: valor,
+          tipoDocumento: previo?.tipoDocumento ?? (valor.length === 11 ? 'RUC' : n.tipoDocumento),
+          tipoPersona: valor.length === 11 ? 'JURIDICA' : n.tipoPersona,
+          nombre: previo?.nombre ?? n.nombre,
+        }));
+        // Si Listas Negativas ya trae el nombre, el registro del cliente nuevo se abre con él puesto.
+        if (previo?.nombre) setRegistrando(true);
       }
     } catch (err: unknown) {
       setError(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la búsqueda.'));
@@ -137,6 +154,21 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
       setBuscando(false);
     }
   };
+
+  // Al llegar desde «Continuar al scoring» de Listas Negativas (?documento=…&tipoDocumento=…&nombre=…): lo pone y busca solo, una vez.
+  const llegadaAtendida = useRef(false);
+  useEffect(() => {
+    if (llegadaAtendida.current) return;
+    llegadaAtendida.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const documentoLlegada = params.get('documento')?.trim();
+    if (!documentoLlegada) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    if (seleccion) return;
+    const previo = { tipoDocumento: params.get('tipoDocumento')?.trim() || undefined, nombre: params.get('nombre')?.trim() || undefined };
+    queueMicrotask(() => { void buscar(documentoLlegada, previo); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const abrirRegistro = () => {
     setRegistrando(true);
@@ -190,7 +222,7 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
                 onKeyDown={(e) => e.key === 'Enter' && buscar()}
               />
             </div>
-            <Boton tamano="lg" icono={Search} cargando={buscando} disabled={!documento.trim()} onClick={buscar} className="shrink-0">{buscando ? 'Buscando…' : 'Buscar'}</Boton>
+            <Boton tamano="lg" icono={Search} cargando={buscando} disabled={!documento.trim()} onClick={() => buscar()} className="shrink-0">{buscando ? 'Buscando…' : 'Buscar'}</Boton>
           </div>
           <p className="text-[15px] text-muted">
             ¿No aparece?{' '}

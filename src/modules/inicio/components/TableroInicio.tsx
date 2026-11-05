@@ -1,12 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { esAdministrador, modulosVisibles, type ModuloDashboard } from '@/shared/lib/modulos';
 import { useIndira } from '@/shared/ui/IndiraContexto';
 import { IconoDerecha, IconoDestello, IconoDestellos, IconoFlecha } from '@/shared/ui/iconos';
+import { listasNegativasService, type InicioListas } from '@/modules/listas_negativas/services/listasNegativasService';
 import { MedidorCoincidencia } from './MedidorCoincidencia';
-import { UltimasBusquedas } from './UltimasBusquedas';
+import { UltimasBusquedas, type EstadoUltimas } from './UltimasBusquedas';
 
 /** Tarjeta de un módulo: icono, rótulos de lo que hay dentro, nombre, descripción y «Abrir». */
 function TarjetaModulo({ modulo }: { modulo: ModuloDashboard }) {
@@ -41,7 +43,22 @@ function TarjetaModulo({ modulo }: { modulo: ModuloDashboard }) {
 export function TableroInicio() {
   const { usuario } = useAuth();
   const { alternar: alternarIndira } = useIndira();
+  const [inicio, setInicio] = useState<InicioListas | null>(null);
+  const [falloInicio, setFalloInicio] = useState(false);
+
+  // Una sola lectura alimenta la rueda (el mayor porcentaje de las tres últimas consultas) y «Últimas búsquedas».
+  useEffect(() => {
+    let vigente = true;
+    listasNegativasService
+      .inicio()
+      .then((datos) => { if (vigente) setInicio(datos); })
+      .catch(() => { if (vigente) setFalloInicio(true); });
+    return () => { vigente = false; };
+  }, []);
+
   if (!usuario) return null;
+
+  const ultimas: EstadoUltimas = inicio ? { fase: 'listo', items: inicio.ultimas } : falloInicio ? { fase: 'error' } : { fase: 'cargando' };
 
   const nombre = (usuario.nombreCompleto || usuario.usuario).split(' ')[0];
   const fecha = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -87,12 +104,12 @@ export function TableroInicio() {
                   Ir a Listas Negativas <IconoDerecha />
                 </Link>
               </div>
-              <MedidorCoincidencia />
+              <MedidorCoincidencia valor={inicio?.rueda.porcentaje ?? null} sinConsultas={inicio != null && inicio.rueda.porcentaje == null} />
             </div>
           </section>
 
           <div className="aparece" style={{ animationDelay: '60ms' }}>
-            <UltimasBusquedas />
+            <UltimasBusquedas estado={ultimas} />
           </div>
         </div>
 

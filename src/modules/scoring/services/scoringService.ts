@@ -23,6 +23,19 @@ export interface PaisCatalogo {
   altoRiesgoGafi: boolean;
 }
 
+export interface BandaNivel {
+  nivel: NivelRiesgo;
+  desde: number;
+  hasta: number;
+}
+
+/** Grupo de factores con su peso en el puntaje (60 / 20 / 20 según la metodología). */
+export interface GrupoCatalogo {
+  codigo: string;
+  nombre: string;
+  peso: number;
+}
+
 export interface CatalogosScoring {
   metodologia: { version: number; fecha: string };
   ocupaciones: OpcionCatalogo[];
@@ -31,6 +44,8 @@ export interface CatalogosScoring {
   mediosPago: MedioPagoCatalogo[];
   departamentos: OpcionCatalogo[];
   paises: PaisCatalogo[];
+  bandas: BandaNivel[];
+  grupos: GrupoCatalogo[];
   sustentoDisponible: boolean;
 }
 
@@ -160,7 +175,7 @@ export interface FilaHistorial {
   puntajeTotal: number;
   categoria?: string | null;
   nivel?: NivelRiesgo | null;
-  decision?: DecisionAnalista | string | null;
+  decision?: DecisionAnalista | null;
   fechaCreacion: string;
 }
 

@@ -117,12 +117,15 @@ export function EvaluarScoring() {
         descripcion={descripcion}
         acciones={
           <>
-            {!enHistorial && paso === 2 && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm text-muted" aria-disabled="true">
-                <FileText className="h-4 w-4" aria-hidden="true" />Cómo se calcula (PDF)<span className="badge badge-neutral">Pronto</span>
-              </span>
-            )}
             {!enHistorial && <Boton variante="secundario" icono={History} onClick={() => setVista('historial')}>Historial de evaluaciones</Boton>}
+            {!enHistorial && paso === 2 && (
+              <div className="flex w-full flex-col items-end gap-2">
+                <p className="rotulo">Base y metodología</p>
+                <span className="inline-flex items-center gap-2 rounded-[10px] bg-accent-soft px-3 py-2 text-sm font-semibold text-muted" aria-disabled="true">
+                  <FileText className="h-4 w-4" aria-hidden="true" />Cómo se calcula (PDF)<span className="badge badge-neutral">Pronto</span>
+                </span>
+              </div>
+            )}
           </>
         }
       />
@@ -156,7 +159,7 @@ export function EvaluarScoring() {
           ) : (
             <Esqueleto lineas={6} />
           ))}
-          {paso === 2 && resultado && <PasoResultado resultado={resultado} onResultado={setResultado} onOtro={reiniciar} />}
+          {paso === 2 && resultado && <PasoResultado resultado={resultado} bandas={catalogos?.bandas ?? []} onResultado={setResultado} onOtro={reiniciar} />}
         </>
       )}
     </PageShell>

@@ -1,14 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, ArrowRight, Gavel, IdCard, Newspaper, Search, ShieldAlert, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Gavel, Newspaper, Search, ShieldAlert, Users, Zap } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import { scoringService, type ClienteScoring, type EstadoLista, type TipoPersona } from '../services/scoringService';
 import { esBolsaAgotada, mensajeDe } from '@/modules/licencias/lib/errores';
-import { Panel } from '@/shared/ui/PageShell';
-import { Avatar, Aviso, Boton, EstadoVacio } from '@/shared/ui/kit';
+import { Aviso, Boton, EstadoVacio } from '@/shared/ui/kit';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
 import { fechaConsulta } from '../lib/formato';
+
+/** Superficie del paso: tarjeta con relleno de 24 y título en 17 semibold, sin línea bajo el título (como en Figma). */
+function Tarjeta({ titulo, descripcion, children, className = '' }: { titulo?: string; descripcion?: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={`card aparece flex flex-col gap-4 p-6 ${className}`}>
+      {titulo && <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">{titulo}</h2>}
+      {descripcion && <p className="text-[15px] text-muted">{descripcion}</p>}
+      {children}
+    </section>
+  );
+}
+
+function iniciales(nombre: string): string {
+  return nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || '·';
+}
 
 interface Props {
   seleccion: ClienteScoring | null;
@@ -31,8 +45,8 @@ const OPCIONES_DOCUMENTO = [
 
 /** Estado de una fila de la consulta: si no se revisó se dice «Sin dato», nunca «Sin coincidencias». */
 function EstadoFila({ estado, tipo }: { estado: EstadoLista; tipo: 'alerta' | 'nota' }) {
-  if (!estado.revisado || estado.coincidencias == null) return <span className="badge badge-neutral">Sin dato</span>;
-  if (estado.coincidencias === 0) return <span className="badge badge-ok">Sin coincidencias</span>;
+  if (!estado.revisado || estado.coincidencias == null) return <span className="badge badge-neutral shrink-0">Sin dato</span>;
+  if (estado.coincidencias === 0) return <span className="badge badge-ok shrink-0">Sin coincidencias</span>;
   if (tipo === 'nota') return <span className="badge badge-neutral">{estado.coincidencias} {estado.coincidencias === 1 ? 'nota' : 'notas'}</span>;
   return <span className="badge badge-bad">{estado.coincidencias} {estado.coincidencias === 1 ? 'coincidencia' : 'coincidencias'}</span>;
 }
@@ -41,13 +55,13 @@ function FilaConsulta({ icono: Icono, titulo, detalle, estado, tipo = 'alerta' }
   const hay = estado.revisado && (estado.coincidencias ?? 0) > 0 && tipo === 'alerta';
   const ok = estado.revisado && estado.coincidencias === 0 && tipo === 'alerta';
   return (
-    <li className="flex items-center gap-4 py-4">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${hay ? 'bg-bad-soft text-bad' : ok ? 'bg-ok-soft text-ok' : 'bg-surface-2 text-muted'}`} aria-hidden="true">
+    <li className="flex items-center gap-3.5 py-3">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${hay ? 'bg-bad-soft text-bad' : ok ? 'bg-ok-soft text-ok' : 'bg-paper text-muted'}`} aria-hidden="true">
         <Icono className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-ink">{titulo}</p>
-        <p className="text-xs text-muted">{detalle}</p>
+        <p className="text-[15px] font-medium leading-[22px] text-ink">{titulo}</p>
+        <p className="text-[13px] leading-[22px] text-muted">{detalle}</p>
       </div>
       <EstadoFila estado={estado} tipo={tipo} />
     </li>
@@ -59,11 +73,11 @@ function TarjetaCliente({ cliente, onCambiar, onContinuar }: { cliente: ClienteS
   const persona = cliente.tipoPersona === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural';
   const alto = (cliente.condicion?.puntaje ?? 0) >= 4;
   return (
-    <Panel className="aparece" relleno>
-      <div className="flex flex-wrap items-center gap-4 border-b border-line pb-5">
-        <Avatar nombre={cliente.nombre} tamano="lg" />
+    <Tarjeta>
+      <div className="flex flex-wrap items-center gap-4 border-b border-line pb-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent" aria-hidden="true">{iniciales(cliente.nombre)}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold text-ink">{cliente.nombre}</p>
+          <p className="text-[17px] font-semibold leading-[25px] tracking-[-0.01em] text-ink">{cliente.nombre}</p>
           <p className="rotulo mt-0.5">{cliente.tipoDocumento} {cliente.documento} · {persona}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -74,22 +88,22 @@ function TarjetaCliente({ cliente, onCambiar, onContinuar }: { cliente: ClienteS
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <p className="rotulo">Consulta automática de listas</p>
-        {c.fecha && <span className="badge badge-neutral">{fechaConsulta(c.fecha)}</span>}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <p className="eyebrow">Consulta automática de listas</p>
+        {c.fecha && <span className="badge badge-neutral"><Zap className="h-3 w-3" aria-hidden="true" />{fechaConsulta(c.fecha)}</span>}
       </div>
-      <ul className="divide-y divide-line">
+      <ul>
         <FilaConsulta icono={ShieldAlert} titulo="Personas expuestas políticamente" detalle="En funciones o hasta 5 años después del cargo" estado={c.pep} />
         <FilaConsulta icono={Users} titulo="Parientes y empresas vinculadas a un PEP" detalle="Hasta 2.º grado, cónyuge y empresas con PEP al 25 % o más" estado={c.vinculados} />
         <FilaConsulta icono={Gavel} titulo="Sanciones y listas LA/FT" detalle="ONU, OFAC y listas penales" estado={c.sanciones} />
         <FilaConsulta icono={Newspaper} titulo="Noticias y medios" detalle="Notas periodísticas asociadas al nombre" estado={c.noticias} tipo="nota" />
       </ul>
 
-      <div className="mt-4 flex flex-wrap justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         <Boton variante="secundario" onClick={onCambiar}>Cambiar cliente</Boton>
         <Boton onClick={onContinuar}>Continuar a datos<ArrowRight className="h-4 w-4" aria-hidden="true" /></Boton>
       </div>
-    </Panel>
+    </Tarjeta>
   );
 }
 
@@ -155,19 +169,19 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
   const reglas = seleccion?.reglas ?? [];
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_21rem]">
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_23.75rem]">
       <div className="space-y-6">
         {error && <Aviso aviso={{ tipo: 'error', texto: error }} onCerrar={() => setError(null)} />}
 
-        <Panel className="aparece" titulo="1. Elige al cliente" descripcion="Busca por documento. Al encontrarlo, PLAFT consulta las listas negativas por ti." relleno>
+        <Tarjeta titulo="1. Elige al cliente" descripcion="Busca por documento. Al encontrarlo, PLAFT consulta las listas negativas por ti.">
           <label htmlFor="sc-doc" className="label sr-only">Documento del cliente</label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
-              <IdCard className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" aria-hidden="true" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />
               <input
                 id="sc-doc"
                 type="text"
-                className="input h-[52px] pl-10 font-mono"
+                className="input h-[52px] pl-11"
                 placeholder="DNI, RUC o pasaporte"
                 autoComplete="off"
                 spellCheck={false}
@@ -178,9 +192,9 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
             </div>
             <Boton tamano="lg" icono={Search} cargando={buscando} disabled={!documento.trim()} onClick={buscar} className="shrink-0">{buscando ? 'Buscando…' : 'Buscar'}</Boton>
           </div>
-          <p className="mt-3 text-sm text-muted">
+          <p className="text-[15px] text-muted">
             ¿No aparece?{' '}
-            <button type="button" onClick={abrirRegistro} className="font-semibold text-brand underline-offset-2 hover:underline">Registrar cliente nuevo</button>
+            <button type="button" onClick={abrirRegistro} className="text-sm font-semibold text-accent underline-offset-2 hover:underline">Registrar cliente nuevo</button>
           </p>
 
           {noEncontrado && !registrando && (
@@ -220,7 +234,7 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
               </div>
             </div>
           )}
-        </Panel>
+        </Tarjeta>
 
         {seleccion && !registrando && (
           <TarjetaCliente cliente={seleccion} onCambiar={() => onSeleccionar(null)} onContinuar={onContinuar} />
@@ -228,7 +242,7 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
       </div>
 
       <aside className="space-y-4">
-        <Panel className="aparece" titulo="Qué ocurre al elegir al cliente" relleno>
+        <Tarjeta titulo="Qué ocurre al elegir al cliente">
           <ol className="space-y-4">
             {[
               ['Consulta las listas', 'PEP, parientes, sanciones y noticias, sin que tengas que ir a otro módulo.'],
@@ -236,22 +250,25 @@ export function PasoCliente({ seleccion, onSeleccionar, onContinuar }: Props) {
               ['Aplica reglas', 'Si hay coincidencia, el nivel mínimo queda fijado antes de calcular el promedio.'],
             ].map(([titulo, texto], i) => (
               <li key={titulo} className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-medium text-ink">{i + 1}</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">{i + 1}</span>
                 <div>
-                  <p className="text-sm font-medium text-ink">{titulo}</p>
-                  <p className="text-xs leading-relaxed text-muted">{texto}</p>
+                  <p className="text-[15px] font-medium leading-[22px] text-ink">{titulo}</p>
+                  <p className="text-[13px] leading-[22px] text-muted">{texto}</p>
                 </div>
               </li>
             ))}
           </ol>
-        </Panel>
+        </Tarjeta>
 
         {seleccion && reglas.length > 0 && (
-          <div role="alert" className="aparece rounded-[20px] border border-bad/10 bg-bad-soft p-5 text-bad">
-            <p className="flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />Esta coincidencia fijará el nivel en Alto</p>
-            <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-ink">
+          <div role="alert" className="aparece flex gap-3 rounded-[18px] bg-bad-soft p-5">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-bad" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-medium leading-[22px] text-bad">Esta coincidencia fijará el nivel en Alto</p>
+            <ul className="mt-1 space-y-1 text-[13px] leading-[22px] text-ink">
               {reglas.map((r) => <li key={r.codigo}>{r.titulo}: {r.detalle}</li>)}
             </ul>
+            </div>
           </div>
         )}
       </aside>

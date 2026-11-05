@@ -1,6 +1,7 @@
 'use client';
 
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
+import type { ComponentType, SVGProps } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 
 export interface StyledSelectOption {
@@ -17,18 +18,21 @@ interface StyledSelectProps {
   error?: boolean;
   /** Alto del campo: el normal de los formularios (40 px) o el grande de las pantallas con pasos (52 px). */
   tamano?: 'md' | 'lg';
+  /** Icono opcional a la izquierda del valor (como en los formularios con pasos del diseño). */
+  icono?: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 /** Selector con la misma apariencia que los campos de texto (input) del sistema visual. */
-export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md' }: StyledSelectProps) {
+export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono }: StyledSelectProps) {
   const seleccionada = options.find((option) => option.value === value) ?? null;
 
   return (
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <div className="relative">
         <ListboxButton
-          className={`input relative flex items-center pr-10 text-left ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
+          {Icono && <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />}
           <span className={`block truncate ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted" aria-hidden="true">
             <ChevronDown className="h-4 w-4" strokeWidth={2} />

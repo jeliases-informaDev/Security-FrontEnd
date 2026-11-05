@@ -1,20 +1,8 @@
-import type { ClienteScoring, DatosEvaluacion, NivelRiesgo } from '../services/scoringService';
-
-/**
- * Bandas del nivel sobre la escala de 1 a 4 (metodología del 29 de octubre de 2026, sección 1).
- * El backend decide el nivel; estas cifras solo dibujan la barra y su marcador, porque el contrato no las envía.
- * Si la metodología cambia, se cambia aquí (y en el backend) y en ningún otro sitio del front.
- */
-export const ESCALA = { minimo: 1, maximo: 4 } as const;
-export const BANDAS: { nivel: NivelRiesgo; desde: number; hasta: number }[] = [
-  { nivel: 'BAJO', desde: 1, hasta: 1.75 },
-  { nivel: 'MEDIO', desde: 1.75, hasta: 2.5 },
-  { nivel: 'ALTO', desde: 2.5, hasta: 4 },
-];
+import type { ClienteScoring, DatosEvaluacion, DecisionAnalista, NivelRiesgo } from '../services/scoringService';
 
 export const NIVEL: Record<NivelRiesgo, { etiqueta: string; badge: string; texto: string }> = {
   BAJO: { etiqueta: 'Riesgo bajo', badge: 'badge-ok', texto: 'text-ok' },
-  MEDIO: { etiqueta: 'Riesgo medio', badge: 'badge-warn', texto: 'text-warn' },
+  MEDIO: { etiqueta: 'Riesgo medio', badge: 'bg-accent-soft text-accent', texto: 'text-accent' },
   ALTO: { etiqueta: 'Riesgo alto', badge: 'badge-bad', texto: 'text-bad' },
 };
 
@@ -27,14 +15,14 @@ export function badgeCategoriaAntigua(categoria: string | null | undefined): str
   return 'badge-neutral';
 }
 
-/** Color de la burbuja de un puntaje de 1 a 4 (o de un promedio, redondeado). */
+/** Color de la burbuja de un puntaje de 1 a 4 (o de un promedio, redondeado): 4 rojo, 3 crema, 2 neutro, 1 verde. */
 export function tonoPuntaje(puntaje: number | null): string {
   if (puntaje == null) return 'border border-line bg-paper text-muted';
   const p = Math.round(puntaje);
   if (p >= 4) return 'bg-bad-soft text-bad';
-  if (p === 3) return 'bg-warn-soft text-warn';
+  if (p === 3) return 'bg-crema text-ink';
   if (p <= 1) return 'bg-ok-soft text-ok';
-  return 'border border-line bg-paper text-ink';
+  return 'border border-line bg-paper text-muted';
 }
 
 export function puntajeTexto(valor: number | null | undefined): string {
@@ -70,9 +58,9 @@ export function fechaConsulta(valor: string | null | undefined): string {
   return esHoy ? `Hoy ${hora.format(d)}` : `${fechaCorta.format(d)} ${hora.format(d)}`;
 }
 
-/** Texto de la decisión que viene en una fila del historial (objeto o texto, según la versión). */
-export function decisionTexto(decision: unknown): string {
-  const accion = typeof decision === 'string' ? decision : (decision as { accion?: string } | null)?.accion;
+/** Texto de la decisión de una evaluación (o de una fila del historial). */
+export function decisionTexto(decision: DecisionAnalista | null | undefined): string {
+  const accion = decision?.accion;
   if (accion === 'ENVIAR_A_APROBACION') return 'Enviada a aprobación';
   if (accion === 'RECHAZAR') return 'Rechazada';
   return 'Sin decisión';

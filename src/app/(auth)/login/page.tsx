@@ -48,9 +48,10 @@ export default function LoginPage() {
             <p className="eyebrow">Bienvenido</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
             <p className="mb-6 mt-1 text-sm text-muted">Entra con tu correo (o tu usuario) y tu contraseña.</p>
-            <LoginForm />
-            <Suspense fallback={null}>
-              <SsoAcceso />
+            <Suspense fallback={<LoginForm />}>
+              <SsoAcceso>
+                <LoginForm />
+              </SsoAcceso>
             </Suspense>
           </div>
 

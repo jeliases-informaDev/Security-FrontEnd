@@ -29,6 +29,8 @@ interface LicenciaContextValue {
   empresa: string | null;
   /** Costo en tokens de cada acción, tal como lo fija Sulotec (vacío si no hay información). */
   tarifas: TarifaToken[];
+  /** La empresa del usuario maneja sus cuentas con Sulotec (invitación por correo, sin contraseña en PLAFT). */
+  cuentasSulotec: boolean;
   cargando: boolean;
   /** Vuelve a leer la licencia al servidor (por ejemplo, tras gastar tokens). */
   refrescar: () => Promise<void>;
@@ -111,7 +113,8 @@ export function LicenciaProvider({ children }: { children: ReactNode }) {
       licencia,
       exento,
       empresa: vigente?.empresa ?? null,
-      tarifas: vigente?.tarifas ?? [],
+      tarifas: licencia?.tarifas ?? [],
+      cuentasSulotec: vigente?.cuentasSulotec === true,
       cargando: hayUsuario && !listo,
       refrescar,
       soloLectura: bloqueada && !exento,

@@ -22,7 +22,7 @@ const SIN_EMPRESA = '__sin_empresa__';
 // Para buscar sin importar mayúsculas ni tildes.
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-type Vista = { tipo: 'lista' } | { tipo: 'nueva' } | { tipo: 'masiva' } | { tipo: 'creada'; cuenta: Cuenta; clave: string };
+type Vista = { tipo: 'lista' } | { tipo: 'nueva' } | { tipo: 'masiva' } | { tipo: 'creada'; cuenta: Cuenta; clave: string | null };
 
 interface CuentasPanelProps {
   cuentas: Cuenta[] | null;
@@ -40,7 +40,7 @@ interface CuentasPanelProps {
 }
 
 export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoParaCrear, usuarioActual, onRecargar, onIrAEmpresas }: CuentasPanelProps) {
-  const { licencia, soloLectura, puedeCrear, refrescar } = useLicencia();
+  const { licencia, soloLectura, puedeCrear, refrescar, cuentasSulotec } = useLicencia();
   // Si la licencia no deja crear o reactivar cuentas, se dice por qué en vez de dejar el botón sin explicación.
   const motivoLicencia = motivoSinCrear(licencia, soloLectura, puedeCrear);
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
@@ -116,6 +116,32 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
     }
   };
 
+  // Empresas con cuentas Sulotec: Sulotec vuelve a mandar la invitación (no hay contraseña de PLAFT de por medio).
+  const reinvitarSulotec = async (cuenta: Cuenta) => {
+    setProcesando(cuenta.id);
+    setAviso(null);
+    try {
+      const resultado = await administracionService.reinvitarSulotec(cuenta.id);
+      setAviso({
+        tipo: resultado?.invitacion === 'ninguna' ? 'info' : 'ok',
+        texto: (
+          <>
+            {resultado?.mensaje || `Se volvió a invitar a ${cuenta.correo}.`}
+            {resultado?.claveTemporal && (
+              <>
+                {' '}Clave temporal: <span className="font-mono">{resultado.claveTemporal}</span>. No se vuelve a mostrar: entrégala por un canal seguro.
+              </>
+            )}
+          </>
+        ),
+      });
+    } catch (err) {
+      setAviso({ tipo: 'error', texto: mensajeDeError(err, 'No se pudo reenviar la invitación. Inténtalo de nuevo.') });
+    } finally {
+      setProcesando(null);
+    }
+  };
+
   const copiarAcceso = async (cuenta: Cuenta, clave: string) => {
     const texto = `Plataforma: ${window.location.origin}\nUsuario: ${cuenta.usuario}\nClave: ${clave}`;
     try {
@@ -160,8 +186,11 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
 
   if (vista.tipo === 'creada') {
     const { cuenta, clave } = vista;
+    const sulotec = cuenta.cuentaSulotec ?? null;
+    // Con cuenta Sulotec la clave de PLAFT no existe; la única que puede aparecer es la temporal de Sulotec.
+    const claveAMostrar = clave ?? sulotec?.claveTemporal ?? null;
     return (
-      <Panel className="aparece max-w-2xl" titulo="Cuenta creada" descripcion="Entrega estos datos a la persona antes de salir de esta pantalla." relleno>
+      <Panel className="aparece max-w-2xl" titulo="Cuenta creada" descripcion={claveAMostrar ? 'Entrega estos datos a la persona antes de salir de esta pantalla.' : 'La cuenta ya está lista.'} relleno>
         <div className="flex items-center gap-3">
           <Avatar nombre={cuenta.nombreCompleto || cuenta.usuario} tamano="lg" />
           <div className="min-w-0">
@@ -175,17 +204,20 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
             <dt className="flex items-center gap-1.5 text-xs font-medium text-muted"><UserRound className="h-3.5 w-3.5" aria-hidden="true" /> Usuario</dt>
             <dd className="mt-1 break-all font-mono text-[15px] text-ink">{cuenta.usuario}</dd>
           </div>
-          <div className="rounded-xl border border-line bg-surface-2/60 p-4">
-            <dt className="flex items-center gap-1.5 text-xs font-medium text-muted"><KeyRound className="h-3.5 w-3.5" aria-hidden="true" /> Clave inicial</dt>
-            <dd className="mt-1 break-all font-mono text-[15px] text-ink">{clave}</dd>
-          </div>
+          {claveAMostrar && (
+            <div className="rounded-xl border border-line bg-surface-2/60 p-4">
+              <dt className="flex items-center gap-1.5 text-xs font-medium text-muted"><KeyRound className="h-3.5 w-3.5" aria-hidden="true" /> {clave ? 'Clave inicial' : 'Clave temporal de Sulotec'}</dt>
+              <dd className="mt-1 break-all font-mono text-[15px] text-ink">{claveAMostrar}</dd>
+            </div>
+          )}
         </dl>
-        <p className="hint mt-3">La clave no se vuelve a mostrar: cópiala ahora.</p>
+        {sulotec?.mensaje && <AvisoKit className="mt-4" aviso={{ tipo: sulotec.invitacion === 'ninguna' ? 'aviso' : 'ok', texto: sulotec.mensaje }} />}
+        {claveAMostrar && <p className="hint mt-3">{clave ? 'La clave no se vuelve a mostrar: cópiala ahora.' : 'Se muestra una sola vez: entrégala por un canal seguro.'}</p>}
 
         {aviso && <AvisoBanner aviso={aviso} onCerrar={() => setAviso(null)} />}
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <Boton icono={copiado ? Check : Copy} onClick={() => copiarAcceso(cuenta, clave)}>{copiado ? 'Copiado' : 'Copiar datos de acceso'}</Boton>
+          {claveAMostrar && <Boton icono={copiado ? Check : Copy} onClick={() => copiarAcceso(cuenta, claveAMostrar)}>{copiado ? 'Copiado' : 'Copiar datos de acceso'}</Boton>}
           <Boton variante="secundario" onClick={() => { setAviso(null); setVista({ tipo: 'nueva' }); }}>Crear otra cuenta</Boton>
           <Boton variante="fantasma" onClick={() => { setAviso(null); setVista({ tipo: 'lista' }); }}>Volver a la lista</Boton>
         </div>
@@ -313,8 +345,14 @@ export function CuentasPanel({ cuentas, cargando, error, empresas, roles, listoP
                         <div className="flex items-center justify-end gap-1">
                           <button type="button" onClick={() => setEditando(cuenta)} className="btn btn-ghost btn-sm whitespace-nowrap">Editar</button>
                           {cuenta.activo && (
-                            <button type="button" onClick={() => invitar(cuenta)} disabled={procesando === cuenta.id} title="Enviar el correo con el enlace para crear su contraseña" className="btn btn-ghost btn-sm whitespace-nowrap">
-                              <MailPlus className="h-4 w-4" aria-hidden="true" /> Invitar
+                            <button
+                              type="button"
+                              onClick={() => (cuentasSulotec ? reinvitarSulotec(cuenta) : invitar(cuenta))}
+                              disabled={procesando === cuenta.id}
+                              title={cuentasSulotec ? 'Sulotec vuelve a enviarle la invitación a su correo' : 'Enviar el correo con el enlace para crear su contraseña'}
+                              className="btn btn-ghost btn-sm whitespace-nowrap"
+                            >
+                              <MailPlus className="h-4 w-4" aria-hidden="true" /> {cuentasSulotec ? 'Reenviar invitación' : 'Invitar'}
                             </button>
                           )}
                           {cuenta.activo ? (

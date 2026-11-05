@@ -148,14 +148,14 @@ export function MedidorTokens() {
             </div>
           </dl>
 
-          {tarifas.length > 0 && (
+          {tarifas.some((tarifa) => tarifa.nombre) && (
             <div className="mt-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted">Qué descuenta tokens</p>
+              <p className="rotulo">Qué descuenta tokens</p>
               <ul className="mt-1.5 divide-y divide-line rounded-xl border border-line">
-                {tarifas.map((tarifa) => (
-                  <li key={tarifa.tipo} className="flex items-center justify-between gap-3 px-2.5 py-1.5">
+                {tarifas.filter((tarifa) => tarifa.nombre).map((tarifa) => (
+                  <li key={tarifa.tipo ?? tarifa.nombre} className="flex items-center justify-between gap-3 px-2.5 py-1.5">
                     <span className="min-w-0 text-ink">{tarifa.nombre}</span>
-                    <span className="shrink-0 tabular-nums text-muted">{costoDe(tarifa.tokens)}</span>
+                    <span className="shrink-0 tabular-nums text-muted">{costoDe(tarifa.tokens ?? 0)}</span>
                   </li>
                 ))}
               </ul>

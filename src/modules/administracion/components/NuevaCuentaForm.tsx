@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,8 @@ import { LineaCupo } from '@/modules/licencias/components/LineaCupo';
 import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
 import { motivoSinCrear } from '@/modules/licencias/lib/cupo';
 import { administracionService, mensajeDeError, type Cuenta, type Empresa, type Rol } from '@/modules/administracion/services/administracionService';
+import { authService } from '@/modules/auth/services/authService';
+import { Aviso } from '@/shared/ui/kit';
 import { generarClave } from '@/modules/administracion/lib/generarClave';
 import { botonPrimario, botonSecundario, botonTexto, campo, campoError } from '@/shared/ui/estilos';
 import { Campo, Seccion } from './Campo';
@@ -30,7 +32,7 @@ const esquema = z.object({
     .min(3, 'Mínimo 3 caracteres')
     .max(50, 'Máximo 50 caracteres')
     .regex(/^[A-Za-z0-9._@-]+$/, 'Solo letras, números y . _ @ -'),
-  clave: z.string().min(8, 'Mínimo 8 caracteres'),
+  clave: z.string(),
 });
 
 type FormValues = z.infer<typeof esquema>;
@@ -40,19 +42,36 @@ interface NuevaCuentaFormProps {
   roles: Rol[];
   onCancelar: () => void;
   /** Recibe la cuenta creada y la clave inicial (solo se conoce en este momento). */
-  onCreada: (cuenta: Cuenta, claveInicial: string) => void;
+  onCreada: (cuenta: Cuenta, claveInicial: string | null) => void;
   onIrAEmpresas: () => void;
 }
 
 export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEmpresas }: NuevaCuentaFormProps) {
   const { usuario: usuarioActual } = useAuth();
-  const { licencia, empresa: empresaDeLicencia, soloLectura, puedeCrear } = useLicencia();
+  const { licencia, empresa: empresaDeLicencia, soloLectura, puedeCrear, cuentasSulotec } = useLicencia();
   const motivoLicencia = motivoSinCrear(licencia, soloLectura, puedeCrear);
   const activas = empresas.filter((empresa) => empresa.activa);
   const [mostrarClave, setMostrarClave] = useState(true);
   const [errorGeneral, setErrorGeneral] = useState<ReactNode>(null);
 
   const esAdminEmpresa = usuarioActual?.rol?.toUpperCase() === 'ADMINISTRADOR_EMPRESA';
+  const esAdminSulotec = usuarioActual?.rol?.toUpperCase() === 'ADMINISTRADOR';
+
+  // Inicio único con la cuenta Sulotec activo (lo dice el servidor).
+  const [inicioUnico, setInicioUnico] = useState(false);
+  useEffect(() => {
+    let cancelado = false;
+    authService
+      .ssoConfig()
+      .then((config) => { if (!cancelado) setInicioUnico(config.activo === true); })
+      .catch(() => { /* sin inicio único: todo como siempre */ });
+    return () => { cancelado = true; };
+  }, []);
+
+  // Administrador de empresa en una empresa Sulotec: no hay contraseña que crear, Sulotec invita por correo.
+  const sinClave = esAdminEmpresa && cuentasSulotec;
+  // Administrador de Sulotec con inicio único: la contraseña es opcional.
+  const claveOpcional = esAdminSulotec && inicioUnico;
 
   // Si es Administrador de Empresa: no se muestra el rol ADMINISTRADOR universal (solo USUARIO, SUPERVISOR, ADMINISTRADOR_EMPRESA)
   const rolesDisponibles = esAdminEmpresa
@@ -84,14 +103,24 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
     },
   });
 
+  // Al saberse que hay inicio único, el administrador de Sulotec ya no necesita una clave sugerida.
+  useEffect(() => {
+    if (claveOpcional) setValue('clave', '');
+  }, [claveOpcional, setValue]);
+
   const siglaElegida = activas.find((e) => e.nombre === watch('empresa'))?.sigla?.toLowerCase() ?? null;
 
   const crear = handleSubmit(async (valores) => {
     setErrorGeneral(null);
+    const clave = sinClave ? '' : valores.clave;
+    if (!sinClave && !(claveOpcional && clave === '') && clave.length < 8) {
+      setError('clave', { message: 'Mínimo 8 caracteres' });
+      return;
+    }
     try {
       const cuenta = await administracionService.crearCuenta({
         usuario: valores.usuario.trim(),
-        clave: valores.clave,
+        ...(clave ? { clave } : {}),
         correo: valores.correo.trim(),
         nombres: valores.nombres.trim(),
         apePat: valores.apePat.trim(),
@@ -100,7 +129,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
         empresa: valores.empresa,
         rolCodigo: valores.rolCodigo,
       });
-      onCreada(cuenta, valores.clave);
+      onCreada(cuenta, clave || null);
     } catch (err: unknown) {
       // El plan ya no tiene usuarios libres: se muestra el mensaje del servidor con el enlace para ampliar.
       if (esSinCupo(err)) {
@@ -201,12 +230,23 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
         </div>
       </Seccion>
 
-      <Seccion titulo="Acceso" descripcion="Con esto entrará a la plataforma. Cópialos antes de salir de esta pantalla: la clave no se vuelve a mostrar.">
+      <Seccion titulo="Acceso" descripcion={sinClave ? 'Cómo entrará a la plataforma.' : 'Con esto entrará a la plataforma. Cópialos antes de salir de esta pantalla: la clave no se vuelve a mostrar.'}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Campo id="usuario" texto="Usuario" error={errors.usuario?.message} ayuda={siglaElegida ? `Se guardará como ${siglaElegida}.usuario: la sigla de la empresa va delante y la persona no tiene que escribirla. Puede entrar con su correo.` : 'La persona también podrá entrar con su correo.'}>
             <input id="usuario" autoComplete="off" spellCheck={false} className={`${clase(errors.usuario?.message)} font-mono`} {...register('usuario')} />
           </Campo>
-          <Campo id="clave" texto="Clave inicial" error={errors.clave?.message}>
+          {sinClave ? (
+            <Aviso
+              className="sm:col-span-2"
+              aviso={{ tipo: 'info', texto: 'Sulotec le enviará una invitación a su correo para crear su contraseña. Entrará a PLAFT con su cuenta Sulotec.' }}
+            />
+          ) : (
+          <Campo
+            id="clave"
+            texto={claveOpcional ? 'Clave inicial (opcional)' : 'Clave inicial'}
+            error={errors.clave?.message}
+            ayuda={claveOpcional ? 'Déjala vacía en empresas con licencia: Sulotec le enviará la invitación' : undefined}
+          >
             <div className="flex gap-2">
               <input
                 id="clave"
@@ -235,6 +275,7 @@ export function NuevaCuentaForm({ empresas, roles, onCancelar, onCreada, onIrAEm
               Generar otra clave
             </button>
           </Campo>
+          )}
         </div>
       </Seccion>
 

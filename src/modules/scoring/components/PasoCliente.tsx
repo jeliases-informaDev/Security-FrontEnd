@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, ArrowRight, Gavel, Newspaper, Search, ShieldAlert, Users, Zap } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import { scoringService, type ClienteScoring, type EstadoLista, type TipoPersona } from '../services/scoringService';
@@ -92,6 +93,12 @@ function TarjetaCliente({ cliente, onCambiar, onContinuar }: { cliente: ClienteS
         <p className="eyebrow">Consulta automática de listas</p>
         {c.fecha && <span className="badge badge-neutral"><Zap className="h-3 w-3" aria-hidden="true" />{fechaConsulta(c.fecha)}</span>}
       </div>
+      {c.homonimo && (
+        <Aviso aviso={{ tipo: 'info', texto: c.homonimo.texto }}>
+          {c.homonimo.comentario && <p className="mt-0.5 text-[13px]">{c.homonimo.comentario}</p>}
+          <Link href={`/listas-negativas?consulta=${c.homonimo.consultaId}`} className="mt-1 inline-block text-[13px] font-semibold underline underline-offset-2">Ver la consulta</Link>
+        </Aviso>
+      )}
       <ul>
         <FilaConsulta icono={ShieldAlert} titulo="Personas expuestas políticamente" detalle="En funciones o hasta 5 años después del cargo" estado={c.pep} />
         <FilaConsulta icono={Users} titulo="Parientes y empresas vinculadas a un PEP" detalle="Hasta 2.º grado, cónyuge y empresas con PEP al 25 % o más" estado={c.vinculados} />

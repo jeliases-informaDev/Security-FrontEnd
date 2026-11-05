@@ -1,96 +1,62 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Gauge, IdCard, Landmark, MapPin, RotateCcw, Search, User } from 'lucide-react';
-import { listasNegativasService, ResultadoBusquedaResponse } from '@/modules/listas_negativas/services/listasNegativasService';
-import { scoringService, CatalogosScoring, ScoringResult } from '@/modules/scoring/services/scoringService';
+import { FileText, History } from 'lucide-react';
+import { scoringService, type CatalogosScoring, type ClienteScoring, type FilaHistorial, type ResultadoScoring } from '../services/scoringService';
 import { useLicencia } from '@/modules/licencias/context/LicenciaContext';
 import { esBolsaAgotada, mensajeDe } from '@/modules/licencias/lib/errores';
-import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
-import { Avatar, Aviso, Boton, Esqueleto, EstadoVacio } from '@/shared/ui/kit';
+import { PageHeader, PageShell } from '@/shared/ui/PageShell';
+import { Aviso, Boton, Esqueleto } from '@/shared/ui/kit';
+import { IconoMedidor } from '@/shared/ui/iconos';
+import { FORM_VACIO, aDatosEvaluacion, fechaLargaDe, type FormDatos } from '../lib/formato';
+import { PasosScoring } from './PasosScoring';
+import { PasoCliente } from './PasoCliente';
+import { PasoDatos } from './PasoDatos';
+import { PasoResultado } from './PasoResultado';
+import { EvaluacionAntigua, HistorialScoring, esAntigua } from './HistorialScoring';
 
-// Tono de cada categoría de riesgo (texto, fondo y color del medidor).
-const CATEGORIA: Record<string, { badge: string; barra: string }> = {
-  'Riesgo Muy Bajo': { badge: 'badge-ok', barra: 'bg-ok' },
-  'Riesgo Bajo': { badge: 'badge-ok', barra: 'bg-ok' },
-  'Riesgo Medio': { badge: 'badge-warn', barra: 'bg-warn' },
-  'Riesgo Alto': { badge: 'badge-bad', barra: 'bg-bad' },
-  'Riesgo Muy Alto': { badge: 'badge-bad', barra: 'bg-bad' },
-};
+type Vista = 'flujo' | 'historial' | 'antigua';
 
-/** Campo con icono a la izquierda (texto o selector). */
-function CampoIcono({ icono: Icono, children }: { icono: typeof Search; children: React.ReactNode }) {
-  return (
-    <div className="relative">
-      <Icono className="pointer-events-none absolute left-3.5 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-faint" aria-hidden="true" />
-      {children}
-    </div>
-  );
-}
-
-const PASOS = ['Cliente', 'Datos', 'Resultado'] as const;
-
+/** Scoring de riesgo en tres pasos: Cliente → Datos → Resultado (metodología del 29 de octubre de 2026). */
 export function EvaluarScoring() {
   const { refrescar } = useLicencia();
   const [catalogos, setCatalogos] = useState<CatalogosScoring | null>(null);
-
-  const [documentoBusqueda, setDocumentoBusqueda] = useState('');
-  const [candidatos, setCandidatos] = useState<ResultadoBusquedaResponse[] | null>(null);
-  const [buscando, setBuscando] = useState(false);
-
-  const [entidadSeleccionada, setEntidadSeleccionada] = useState<ResultadoBusquedaResponse | null>(null);
-  const [idOcupacion, setIdOcupacion] = useState('');
-  const [idDepartamento, setIdDepartamento] = useState('');
-  const [volumenTransaccional, setVolumenTransaccional] = useState('');
-
-  const [resultado, setResultado] = useState<ScoringResult | null>(null);
+  const [vista, setVista] = useState<Vista>('flujo');
+  const [seleccion, setSeleccion] = useState<ClienteScoring | null>(null);
+  const [enDatos, setEnDatos] = useState(false);
+  const [form, setForm] = useState<FormDatos>(FORM_VACIO);
+  const [resultado, setResultado] = useState<ResultadoScoring | null>(null);
+  const [filaAntigua, setFilaAntigua] = useState<FilaHistorial | null>(null);
+  const [abriendoId, setAbriendoId] = useState<number | null>(null);
+  const [calculando, setCalculando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [evaluando, setEvaluando] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
     scoringService
       .obtenerCatalogos()
-      .then((data) => { if (!cancelado) setCatalogos(data); })
-      .catch(() => { if (!cancelado) setError('No se pudieron cargar los catálogos de scoring.'); });
+      .then((data) => {
+        if (cancelado) return;
+        setCatalogos(data);
+        // El país de los fondos empieza en Perú (el grupo 1 de la metodología).
+        const peru = data.paises.find((p) => p.grupo === 1);
+        if (peru) setForm((f) => (f.paisFondosId ? f : { ...f, paisFondosId: String(peru.id) }));
+      })
+      .catch((err: unknown) => { if (!cancelado) setError(mensajeDe(err, 'No se pudieron cargar los catálogos de scoring.')); });
     return () => { cancelado = true; };
   }, []);
 
-  const buscarEntidad = async () => {
-    if (!documentoBusqueda.trim()) return;
-    setBuscando(true);
-    setError(null);
-    try {
-      const data = await listasNegativasService.buscar({ documento: documentoBusqueda.trim() });
-      // Por documento hay a lo sumo unas pocas coincidencias: basta la primera página
-      setCandidatos(data.items);
-      // Buscar en las listas descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
-      void refrescar();
-    } catch (err: unknown) {
-      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
-      setError(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la búsqueda.'));
-    } finally {
-      setBuscando(false);
-    }
+  const paisInicial = (c: CatalogosScoring | null): FormDatos => {
+    const peru = c?.paises.find((p) => p.grupo === 1);
+    return peru ? { ...FORM_VACIO, paisFondosId: String(peru.id) } : FORM_VACIO;
   };
 
-  const seleccionarEntidad = (persona: ResultadoBusquedaResponse) => {
-    setEntidadSeleccionada(persona);
-    setCandidatos(null);
-    setResultado(null);
-  };
-
-  const evaluar = async () => {
-    if (!entidadSeleccionada || !idOcupacion || !idDepartamento || !volumenTransaccional) return;
-    setEvaluando(true);
+  const calcular = async () => {
+    if (!seleccion) return;
+    setCalculando(true);
     setError(null);
     try {
-      const data = await scoringService.evaluar({
-        entidadId: entidadSeleccionada.entidadId,
-        idOcupacion: Number(idOcupacion),
-        idDepartamento: Number(idDepartamento),
-        volumenTransaccional: Number(volumenTransaccional),
-      });
+      const data = await scoringService.evaluar(aDatosEvaluacion(form, seleccion));
       setResultado(data);
       // Evaluar descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
       void refrescar();
@@ -98,177 +64,104 @@ export function EvaluarScoring() {
       // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
       setError(esBolsaAgotada(err) ? null : mensajeDe(err, 'No se pudo completar la evaluación.'));
     } finally {
-      setEvaluando(false);
+      setCalculando(false);
     }
   };
 
   const reiniciar = () => {
-    setEntidadSeleccionada(null);
+    setSeleccion(null);
+    setEnDatos(false);
     setResultado(null);
-    setIdOcupacion('');
-    setIdDepartamento('');
-    setVolumenTransaccional('');
-    setDocumentoBusqueda('');
-    setCandidatos(null);
+    setForm(paisInicial(catalogos));
+    setError(null);
+    setVista('flujo');
   };
 
-  const paso = resultado ? 2 : entidadSeleccionada ? 1 : 0;
-  const tono = resultado ? CATEGORIA[resultado.categoria] ?? { badge: 'badge-neutral', barra: 'bg-faint' } : null;
-  const pesoTotal = resultado ? resultado.factores.reduce((suma, f) => suma + Number(f.peso || 0), 0) : 0;
+  const abrirDelHistorial = async (fila: FilaHistorial) => {
+    if (esAntigua(fila)) {
+      setFilaAntigua(fila);
+      setVista('antigua');
+      return;
+    }
+    setAbriendoId(fila.id);
+    setError(null);
+    try {
+      setResultado(await scoringService.obtener(fila.id));
+      setSeleccion(null);
+      setEnDatos(false);
+      setVista('flujo');
+    } catch (err: unknown) {
+      setError(mensajeDe(err, 'No se pudo abrir la evaluación.'));
+    } finally {
+      setAbriendoId(null);
+    }
+  };
+
+  const paso: 0 | 1 | 2 = resultado ? 2 : seleccion && enDatos ? 1 : 0;
+  const enHistorial = vista !== 'flujo';
+
+  const descripcion = enHistorial
+    ? 'Las evaluaciones hechas, con su nivel, su puntaje y la decisión que se tomó.'
+    : paso === 0
+      ? 'Califica el riesgo de LA/FT de un cliente con ocho factores. Las reglas fijan un nivel mínimo cuando la norma lo exige.'
+      : paso === 1
+        ? 'Completa lo que PLAFT no puede traer solo. Cada grupo corresponde a un factor del art. 27 de la Res. SBS 789-2018.'
+        : `Evaluación del ${fechaLargaDe(resultado?.fecha)}. Queda guardada con su fecha, su versión y quién decidió.`;
 
   return (
-    <PageShell>
+    <PageShell ancho="amplio">
       <PageHeader
         antetitulo="Debida diligencia"
-        icono={Gauge}
-        titulo="Scoring de Riesgo"
-        descripcion="Evaluación de riesgo LA/FT por ocupación, zona geográfica y volumen transaccional."
-        acciones={entidadSeleccionada ? <Boton variante="secundario" icono={RotateCcw} onClick={reiniciar}>Evaluar otro cliente</Boton> : null}
+        icono={IconoMedidor}
+        titulo="Scoring de riesgo"
+        descripcion={descripcion}
+        acciones={
+          <>
+            {!enHistorial && <Boton variante="secundario" icono={History} onClick={() => setVista('historial')}>Historial de evaluaciones</Boton>}
+            {!enHistorial && paso === 2 && (
+              <div className="flex w-full flex-col items-end gap-2">
+                <p className="rotulo">Base y metodología</p>
+                <span className="inline-flex items-center gap-2 rounded-[10px] bg-accent-soft px-3 py-2 text-sm font-semibold text-muted" aria-disabled="true">
+                  <FileText className="h-4 w-4" aria-hidden="true" />Cómo se calcula (PDF)<span className="badge badge-neutral">Pronto</span>
+                </span>
+              </div>
+            )}
+          </>
+        }
       />
 
-      <div className="max-w-3xl space-y-6">
-        {/* Pasos */}
-        <ol className="flex items-center gap-2 text-sm" aria-label="Pasos de la evaluación">
-          {PASOS.map((nombre, i) => (
-            <li key={nombre} className="flex items-center gap-2">
-              <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${i < paso ? 'bg-brand text-white' : i === paso ? 'bg-brand-soft text-brand-ink ring-2 ring-brand/30' : 'bg-surface-2 text-muted'}`} aria-current={i === paso ? 'step' : undefined}>{i + 1}</span>
-              <span className={i === paso ? 'font-medium text-ink' : 'text-muted'}>{nombre}</span>
-              {i < PASOS.length - 1 && <span className="mx-1 h-px w-8 bg-line" aria-hidden="true" />}
-            </li>
+      {error && <Aviso className="mb-6" aviso={{ tipo: 'error', texto: error }} onCerrar={() => setError(null)} />}
+
+      {vista === 'historial' && <HistorialScoring abriendoId={abriendoId} onAbrir={abrirDelHistorial} onVolver={() => setVista('flujo')} />}
+      {vista === 'antigua' && filaAntigua && <EvaluacionAntigua fila={filaAntigua} onVolver={() => setVista('historial')} />}
+
+      {vista === 'flujo' && (
+        <>
+          <PasosScoring paso={paso} />
+          {paso === 0 && (
+            <PasoCliente
+              seleccion={seleccion}
+              onSeleccionar={setSeleccion}
+              onContinuar={() => setEnDatos(true)}
+            />
+          )}
+          {paso === 1 && seleccion && (catalogos ? (
+            <PasoDatos
+              catalogos={catalogos}
+              cliente={seleccion}
+              form={form}
+              onCambiar={(parche) => setForm((f) => ({ ...f, ...parche }))}
+              onVolver={() => setEnDatos(false)}
+              onCambiarCliente={() => { setSeleccion(null); setEnDatos(false); }}
+              onCalcular={calcular}
+              calculando={calculando}
+            />
+          ) : (
+            <Esqueleto lineas={6} />
           ))}
-        </ol>
-
-        {error && <Aviso aviso={{ tipo: 'error', texto: error }} onCerrar={() => setError(null)} />}
-
-        {!entidadSeleccionada && (
-          <Panel className="aparece" titulo="1. Elige al cliente" descripcion="Busca por documento entre las entidades ya registradas." relleno>
-            <label htmlFor="sc-doc" className="label">Documento del cliente</label>
-            <div className="flex gap-3">
-              <CampoIcono icono={IdCard}>
-                <input
-                  id="sc-doc"
-                  type="text"
-                  className="input pl-10 font-mono"
-                  placeholder="DNI, RUC o pasaporte"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={documentoBusqueda}
-                  onChange={(e) => setDocumentoBusqueda(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && buscarEntidad()}
-                />
-              </CampoIcono>
-              <Boton icono={Search} cargando={buscando} onClick={buscarEntidad} className="shrink-0">{buscando ? 'Buscando…' : 'Buscar'}</Boton>
-            </div>
-            <p className="hint mt-2">Si el cliente es nuevo, búscalo primero en Listas Negativas: aquí solo se evalúan entidades ya registradas.</p>
-
-            {candidatos !== null && (
-              <div className="mt-5 space-y-2" aria-live="polite">
-                {candidatos.length === 0 ? (
-                  <EstadoVacio icono={Search} titulo="No se encontró ninguna entidad con ese documento" className="py-6" />
-                ) : (
-                  candidatos.map((c) => (
-                    <button key={c.entidadId} onClick={() => seleccionarEntidad(c)} className="card card-hover flex w-full items-center gap-3 p-3 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20">
-                      <Avatar nombre={c.nombreCompleto} tamano="sm" />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-ink">{c.nombreCompleto}</p>
-                        <p className="text-xs text-muted">{c.tipoDocumento}: <span className="font-mono">{c.documento}</span></p>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </Panel>
-        )}
-
-        {entidadSeleccionada && !resultado && (
-          <Panel className="aparece" titulo="2. Datos de la evaluación" relleno acciones={<button type="button" onClick={() => setEntidadSeleccionada(null)} className="btn btn-ghost btn-sm">Cambiar cliente</button>}>
-            <div className="mb-5 flex items-center gap-3 rounded-xl bg-surface-2/70 p-3">
-              <Avatar nombre={entidadSeleccionada.nombreCompleto} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink">{entidadSeleccionada.nombreCompleto}</p>
-                <p className="text-xs text-muted">{entidadSeleccionada.tipoDocumento}: <span className="font-mono">{entidadSeleccionada.documento}</span></p>
-              </div>
-            </div>
-
-            {!catalogos ? (
-              <Esqueleto lineas={4} />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="sc-ocupacion" className="label">Ocupación / profesión</label>
-                  <CampoIcono icono={User}>
-                    <select id="sc-ocupacion" className="input pl-10" value={idOcupacion} onChange={(e) => setIdOcupacion(e.target.value)}>
-                      <option value="">Selecciona…</option>
-                      {catalogos.ocupaciones.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
-                    </select>
-                  </CampoIcono>
-                </div>
-                <div>
-                  <label htmlFor="sc-departamento" className="label">Departamento (residencia)</label>
-                  <CampoIcono icono={MapPin}>
-                    <select id="sc-departamento" className="input pl-10" value={idDepartamento} onChange={(e) => setIdDepartamento(e.target.value)}>
-                      <option value="">Selecciona…</option>
-                      {catalogos.departamentos.map((d) => <option key={d.id} value={d.id}>{d.nombre}</option>)}
-                    </select>
-                  </CampoIcono>
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="sc-volumen" className="label">Volumen transaccional mensual estimado (S/)</label>
-                  <CampoIcono icono={Landmark}>
-                    <input id="sc-volumen" type="number" min="0" inputMode="decimal" className="input pl-10 tabular-nums" placeholder="Ej. 15000" value={volumenTransaccional} onChange={(e) => setVolumenTransaccional(e.target.value)} />
-                  </CampoIcono>
-                </div>
-              </div>
-            )}
-
-            <Boton className="mt-6 w-full" tamano="lg" cargando={evaluando} disabled={!catalogos || !idOcupacion || !idDepartamento || !volumenTransaccional} onClick={evaluar}>
-              {evaluando ? 'Evaluando…' : 'Evaluar riesgo'}
-            </Boton>
-          </Panel>
-        )}
-
-        {resultado && tono && (
-          <Panel className="aparece">
-            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line p-5 sm:p-6">
-              <div className="flex items-center gap-3">
-                <Avatar nombre={resultado.nombreCompleto} />
-                <div>
-                  <p className="text-base font-semibold text-ink">{resultado.nombreCompleto}</p>
-                  <p className="text-xs text-muted"><span className="font-mono">{resultado.documento}</span></p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className={`badge ${tono.badge} text-sm`}>{resultado.categoria}</span>
-                <p className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-ink">{resultado.puntajeTotal.toFixed(2)}</p>
-                <p className="text-xs text-muted">puntaje total</p>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6">
-              <p className="eyebrow mb-3">Factores evaluados</p>
-              <ul className="space-y-3">
-                {resultado.factores.map((f, i) => {
-                  const parte = pesoTotal > 0 ? Math.max(0, Math.min(100, (Number(f.peso || 0) / pesoTotal) * 100)) : 0;
-                  return (
-                    <li key={i} className="grid gap-1 sm:grid-cols-[1fr_auto] sm:items-center">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-ink">{f.nombre}</p>
-                        <p className="text-xs text-muted">{f.valor} · peso {f.peso}%</p>
-                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                          <div className={`h-full rounded-full ${tono.barra}`} style={{ width: `${parte}%` }} />
-                        </div>
-                      </div>
-                      <span className="text-sm font-semibold tabular-nums text-ink sm:pl-6">{f.puntaje}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <Boton variante="secundario" icono={RotateCcw} onClick={reiniciar} className="mt-6 w-full">Evaluar otro cliente</Boton>
-            </div>
-          </Panel>
-        )}
-      </div>
+          {paso === 2 && resultado && <PasoResultado resultado={resultado} bandas={catalogos?.bandas ?? []} onResultado={setResultado} onOtro={reiniciar} />}
+        </>
+      )}
     </PageShell>
   );
 }

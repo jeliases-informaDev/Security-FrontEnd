@@ -169,10 +169,10 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
       <div className="lg:pl-[var(--ancho-menu-reposo)]">
         <div
           ref={panelRef}
-          className="panel-principal flex min-h-dvh flex-col lg:mt-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-0 lg:overflow-y-auto lg:rounded-tl-[36px] lg:border-b-0 lg:border-r-0"
+          className="panel-principal flex min-h-dvh flex-col panel-desplazable lg:h-dvh lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r-0 lg:border-t-0"
         >
           {/* Barra superior: buscador (solo en la página principal) y la cuenta */}
-          <header className="sticky top-0 z-20 flex h-[var(--alto-barra)] shrink-0 items-center gap-3 bg-white/60 px-4 backdrop-blur-xl sm:px-6 lg:h-[calc(var(--alto-barra)-1.5rem)] lg:items-end lg:rounded-tl-[36px] lg:pb-[9px] lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)]">
+          <header className="sticky top-0 z-20 flex h-[var(--alto-barra)] shrink-0 items-center gap-3 bg-white/60 px-4 backdrop-blur-xl sm:px-6 lg:items-center lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)]">
             <button type="button" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú" className="btn btn-ghost btn-icon -ml-1.5 lg:hidden"><Menu className="h-5 w-5" /></button>
             <div className="lg:hidden"><Logo compacto /></div>
 

@@ -1,10 +1,15 @@
+'use client';
+
 /**
  * Semirrueda del porcentaje de coincidencia (página principal, diseño «Propuesta suave»): 61 marcas que van del verde al rojo,
  * una aguja y la cifra al centro. Las medidas son las del diseño (392 × 282) y todo se escala junto.
  *
  * Muestra el mayor porcentaje de las últimas consultas de Listas Negativas. Sin valor, la rueda queda apagada y sin cifra inventada.
  * Si además se sabe que no hay consultas, lo dice con una insignia.
+ * La aguja arranca como un velocímetro: parte de 0 y barre hasta el valor; las marcas y la cifra salen del mismo número animado.
  */
+
+import { useEffect, useRef, useState } from 'react';
 
 // Colores de las 61 marcas, de «bajo» (verde) a «alto» (rojo), tal como están en el diseño: es la escala del medidor.
 export const COLORES_MEDIDOR = [
@@ -18,6 +23,56 @@ export const COLORES_MEDIDOR = [
 ];
 const ULTIMA = COLORES_MEDIDOR.length - 1;
 
+const ESPERA_MS = 200;
+const DURACION_TOTAL_MS = 1300; // para la escala completa (0 a 100)
+const DURACION_MINIMA_MS = 700;
+const REBASE = 0.5; // rebase muy pequeño (~2 %) al asentarse, como una aguja real
+
+/** Salida rápida y asentamiento suave con un pequeño rebase (easeOutBack suave). */
+function suavizar(t: number): number {
+  const c3 = REBASE + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + REBASE * Math.pow(t - 1, 2);
+}
+
+/**
+ * Número animado de 0 a 100: cuando llega (o cambia) el objetivo, parte desde donde está y llega a él.
+ * Sin objetivo vuelve a 0. Con «reducir movimiento» salta al valor final. Se cancela al desmontar.
+ */
+function useValorAnimado(objetivo: number | null): number {
+  const [valor, setValor] = useState(0);
+  const actual = useRef(0);
+
+  useEffect(() => {
+    const fin = objetivo ?? 0;
+    const inicio = actual.current;
+    const publicar = (v: number) => { actual.current = v; setValor(v); };
+    const reducir = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cuadro = 0;
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+
+    if (reducir || objetivo === null || inicio === fin) {
+      cuadro = requestAnimationFrame(() => publicar(fin));
+    } else {
+      const duracion = Math.max(DURACION_MINIMA_MS, (Math.abs(fin - inicio) / 100) * DURACION_TOTAL_MS);
+      temporizador = setTimeout(() => {
+        const t0 = performance.now();
+        const paso = (ahora: number) => {
+          const t = Math.min(1, (ahora - t0) / duracion);
+          publicar(Math.min(100, Math.max(0, inicio + (fin - inicio) * suavizar(t))));
+          if (t < 1) cuadro = requestAnimationFrame(paso);
+        };
+        cuadro = requestAnimationFrame(paso);
+      }, ESPERA_MS);
+    }
+    return () => {
+      clearTimeout(temporizador);
+      cancelAnimationFrame(cuadro);
+    };
+  }, [objetivo]);
+
+  return valor;
+}
+
 const ROTULO = 'fill-muted font-mono text-[11px] uppercase tracking-[0.12em]';
 
 interface MedidorCoincidenciaProps {
@@ -29,7 +84,8 @@ interface MedidorCoincidenciaProps {
 
 export function MedidorCoincidencia({ valor = null, sinConsultas = false }: MedidorCoincidenciaProps) {
   const hayValor = typeof valor === 'number' && Number.isFinite(valor);
-  const v = hayValor ? Math.min(100, Math.max(0, valor)) : 0;
+  const final = hayValor ? Math.min(100, Math.max(0, valor)) : null;
+  const v = useValorAnimado(final); // valor que se dibuja en este instante
   const ultimaEncendida = Math.round((v / 100) * ULTIMA);
 
   return (
@@ -42,7 +98,7 @@ export function MedidorCoincidencia({ valor = null, sinConsultas = false }: Medi
         viewBox="0 0 392 282"
         className="mx-auto mt-[22px] block h-auto w-full max-w-[392px]"
         role="img"
-        aria-label={hayValor ? `Coincidencia: ${Math.round(v)} por ciento` : 'Porcentaje de coincidencia: sin datos'}
+        aria-label={hayValor ? `Coincidencia: ${Math.round(final ?? 0)} por ciento` : 'Porcentaje de coincidencia: sin datos'}
       >
         {/* Marcas: de la izquierda (bajo) a la derecha (alto), una cada 3 grados alrededor del centro (196, 196) */}
         {COLORES_MEDIDOR.map((color, i) => (

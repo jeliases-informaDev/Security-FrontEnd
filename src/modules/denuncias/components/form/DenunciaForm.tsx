@@ -21,6 +21,7 @@ import {
 import {
   denunciaService,
 } from "../../services/denuncia.service";
+import { mensajeDeFalla } from "@/modules/licencias/lib/consumo";
 import type {
   CausaDenuncia,
   CrearDenunciaRequest,
@@ -711,8 +712,12 @@ export function DenunciaForm() {
         "Error registrando denuncia:",
         error
       );
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
       setError(
-        "No fue posible registrar la denuncia. Revisa la información e inténtalo nuevamente."
+        mensajeDeFalla(
+          error,
+          "No fue posible registrar la denuncia. Revisa la información e inténtalo nuevamente."
+        )
       );
       window.scrollTo({
         top: 0,

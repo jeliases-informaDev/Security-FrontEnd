@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api/apiClient';
+import { conConsumo } from '@/modules/licencias/lib/consumo';
 
 // ============================================================
 // TIPOS (reflejan los DTO del backend: modules/operaciones/dto)
@@ -186,8 +187,11 @@ export const operacionesService = {
   },
 
   async registrar(solicitud: RegistrarOperacionRequest): Promise<RegistrarOperacionResponse> {
-    const { data } = await apiClient.post<RegistrarOperacionResponse>('/operaciones/insertar-operacion', solicitud);
-    return data;
+    // Registrar una operación descuenta tokens según la tarifa de Sulotec.
+    return conConsumo(async () => {
+      const { data } = await apiClient.post<RegistrarOperacionResponse>('/operaciones/insertar-operacion', solicitud);
+      return data;
+    });
   },
 
   async actualizar(id: number, solicitud: ActualizarOperacionRequest): Promise<RegistrarOperacionResponse> {
@@ -206,11 +210,14 @@ export const operacionesService = {
   },
 
   async descargarPdf(id: number): Promise<Blob> {
-    const { data } = await apiClient.get<Blob>(`/operaciones/${id}/exportar-pdf`, {
-      responseType: 'blob',
-      headers: { Accept: 'application/pdf' },
+    // El PDF de una operación descuenta tokens según la tarifa de Sulotec.
+    return conConsumo(async () => {
+      const { data } = await apiClient.get<Blob>(`/operaciones/${id}/exportar-pdf`, {
+        responseType: 'blob',
+        headers: { Accept: 'application/pdf' },
+      });
+      return data;
     });
-    return data;
   },
 };
 

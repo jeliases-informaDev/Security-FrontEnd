@@ -17,6 +17,17 @@ export interface Empresa {
   cuentas: number;
 }
 
+/** Cómo se invitó a la persona: por correo, con una clave temporal o no se pudo. */
+export type TipoInvitacion = 'correo' | 'clave_temporal' | 'ninguna';
+
+/** Lo que Sulotec hizo con la cuenta (solo en empresas que manejan sus cuentas con Sulotec). */
+export interface CuentaSulotec {
+  estado: string | null;
+  invitacion: TipoInvitacion | null;
+  mensaje: string | null;
+  claveTemporal: string | null;
+}
+
 export interface Cuenta {
   id: number;
   usuario: string;
@@ -27,6 +38,8 @@ export interface Cuenta {
   rolCodigo: string | null;
   rolNombre: string | null;
   activo: boolean;
+  /** Solo viene al crear la cuenta, en empresas con cuentas Sulotec. */
+  cuentaSulotec?: CuentaSulotec | null;
 }
 
 export interface CuentaMasiva {
@@ -73,7 +86,8 @@ export interface Rol {
 
 export interface NuevaCuenta {
   usuario: string;
-  clave: string;
+  /** Opcional (y se ignora) cuando la empresa maneja sus cuentas con Sulotec. */
+  clave?: string;
   correo: string;
   nombres?: string;
   apePat?: string;
@@ -109,6 +123,12 @@ export const administracionService = {
   async invitar(id: number): Promise<InvitacionRespuesta> {
     const { data } = await apiClient.post<InvitacionRespuesta>(`/usuarios/${id}/invitar`);
     return data;
+  },
+
+  /** Vuelve a invitar a una cuenta Sulotec. 409 CUENTA_SULOTEC_APAGADA si la empresa no está en ese modo. */
+  async reinvitarSulotec(id: number): Promise<CuentaSulotec | null> {
+    const { data } = await apiClient.post<{ cuentaSulotec: CuentaSulotec | null }>(`/usuarios/${id}/invitacion`);
+    return data.cuentaSulotec ?? null;
   },
 
   /** Si no se manda uuid, el de la empresa no cambia. */

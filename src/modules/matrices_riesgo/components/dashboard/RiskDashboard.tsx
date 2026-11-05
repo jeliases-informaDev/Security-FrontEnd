@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { matrizRiesgoService } from "../../services/matrizRiesgo.service";
+import { mensajeDeFalla } from "@/modules/licencias/lib/consumo";
 
 import type {
   MatrizRiesgoDetalle,
@@ -545,9 +546,18 @@ export function RiskDashboard({
         error
       );
 
-      window.alert(
-        "No fue posible descargar el PDF."
-      );
+      // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
+      const mensaje =
+        mensajeDeFalla(
+          error,
+          "No fue posible descargar el PDF."
+        );
+
+      if (mensaje) {
+        window.alert(
+          mensaje
+        );
+      }
 
     } finally {
       setDescargandoPdfId(

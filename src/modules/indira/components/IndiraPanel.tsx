@@ -130,7 +130,7 @@ export function IndiraPanel({ abierto, onCerrar, top }: IndiraPanelProps) {
         conversacionId: conversacionId.current,
       });
       conversacionId.current = respuesta.conversacionId;
-      // Cada mensaje a Indira gasta un token: se actualiza el medidor.
+      // Cada mensaje a Indira descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
       void refrescar();
       setMensajes((prev) => [
         ...prev,

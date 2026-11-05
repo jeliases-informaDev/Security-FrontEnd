@@ -17,7 +17,7 @@ import { LineaCupo } from '@/modules/licencias/components/LineaCupo';
 import { enlaceDe, esSinCupo, mensajeDe } from '@/modules/licencias/lib/errores';
 import { motivoSinCrear } from '@/modules/licencias/lib/cupo';
 import { Panel } from '@/shared/ui/PageShell';
-import { Boton, Etiqueta } from '@/shared/ui/kit';
+import { Aviso as AvisoKit, Boton, Etiqueta } from '@/shared/ui/kit';
 import { AvisoBanner, type Aviso } from './AvisoBanner';
 
 const COLUMNAS = ['nombres', 'apellido paterno', 'apellido materno', 'correo', 'cargo', 'rol'] as const;
@@ -72,7 +72,7 @@ function interpretar(texto: string, roles: Rol[]): { cuentas: CuentaMasiva[]; av
 }
 
 export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: CargaMasivaPanelProps) {
-  const { licencia, soloLectura, puedeCrear: licenciaPermite } = useLicencia();
+  const { licencia, soloLectura, puedeCrear: licenciaPermite, cuentasSulotec } = useLicencia();
   const motivoLicencia = motivoSinCrear(licencia, soloLectura, licenciaPermite);
   const activas = empresas.filter((e) => e.activa);
   const [empresa, setEmpresa] = useState(activas.length === 1 ? activas[0].nombre : '');
@@ -198,6 +198,19 @@ export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: Carga
     );
   }
 
+  // ------------------------------------------------------------ empresas con cuentas Sulotec
+  // Sulotec crea cada cuenta y la invita: no hay carga por lotes, se agregan una por una.
+  if (cuentasSulotec) {
+    return (
+      <Panel className="aparece max-w-2xl" titulo="Carga masiva de cuentas" relleno>
+        <AvisoKit aviso={{ tipo: 'info', texto: 'Con cuentas Sulotec, agrega las cuentas una por una (Usuarios, Nuevo usuario). Sulotec crea cada cuenta y le manda la invitación al correo de la persona.' }} />
+        <div className="mt-6">
+          <Boton variante="secundario" icono={ArrowLeft} onClick={onVolver}>Volver a la lista</Boton>
+        </div>
+      </Panel>
+    );
+  }
+
   // ------------------------------------------------------------ carga y revisión
   const listas = revision?.listas ?? 0;
   const puedeCrear = revision !== null && revision.conError === 0 && listas > 0 && revision.total === cuentas.length;
@@ -208,6 +221,7 @@ export function CargaMasivaPanel({ empresas, roles, onVolver, onCreadas }: Carga
 
       <Panel titulo="Carga masiva de cuentas" descripcion="Elige la empresa, pega las filas de tu Excel (o sube un CSV) y revisa antes de crear. El usuario interno se arma solo con la sigla de la empresa; cada persona entra con su correo." relleno>
         <LineaCupo className="mb-4" />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
           <div>
             <label htmlFor="masiva-empresa" className="label">Empresa</label>

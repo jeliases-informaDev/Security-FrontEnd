@@ -12,7 +12,7 @@ import {
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { licenciaService } from '../services/licenciaService';
 import { ENLACE_LICENCIA } from '../lib/errores';
-import type { DetalleSaldoInsuficiente, Licencia, LicenciaResponse } from '../types/licencia.types';
+import type { DetalleSaldoInsuficiente, Licencia, LicenciaResponse, TarifaToken } from '../types/licencia.types';
 
 interface BolsaAgotada {
   abierta: boolean;
@@ -27,8 +27,12 @@ interface LicenciaContextValue {
   exento: boolean;
   /** Nombre de la empresa del usuario. */
   empresa: string | null;
+  /** Costo en tokens de cada acción, tal como lo fija Sulotec (vacío si no hay información). */
+  tarifas: TarifaToken[];
+  /** La empresa del usuario maneja sus cuentas con Sulotec (invitación por correo, sin contraseña en PLAFT). */
+  cuentasSulotec: boolean;
   cargando: boolean;
-  /** Vuelve a leer la licencia al servidor (por ejemplo, tras gastar un token). */
+  /** Vuelve a leer la licencia al servidor (por ejemplo, tras gastar tokens). */
   refrescar: () => Promise<void>;
   /** Las escrituras están bloqueadas: solo lectura, suspendida o cancelada. */
   soloLectura: boolean;
@@ -109,6 +113,8 @@ export function LicenciaProvider({ children }: { children: ReactNode }) {
       licencia,
       exento,
       empresa: vigente?.empresa ?? null,
+      tarifas: licencia?.tarifas ?? [],
+      cuentasSulotec: vigente?.cuentasSulotec === true,
       cargando: hayUsuario && !listo,
       refrescar,
       soloLectura: bloqueada && !exento,

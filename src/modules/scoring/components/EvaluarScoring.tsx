@@ -64,7 +64,7 @@ export function EvaluarScoring() {
       const data = await listasNegativasService.buscar({ documento: documentoBusqueda.trim() });
       // Por documento hay a lo sumo unas pocas coincidencias: basta la primera página
       setCandidatos(data.items);
-      // Buscar en las listas gasta un token: se actualiza el medidor.
+      // Buscar en las listas descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
       void refrescar();
     } catch (err: unknown) {
       // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.
@@ -92,7 +92,7 @@ export function EvaluarScoring() {
         volumenTransaccional: Number(volumenTransaccional),
       });
       setResultado(data);
-      // Evaluar gasta un token: se actualiza el medidor.
+      // Evaluar descuenta tokens según la tarifa de Sulotec: se actualiza el medidor.
       void refrescar();
     } catch (err: unknown) {
       // Con 402 el aviso global de tokens agotados ya sale: no se repite el mensaje aquí.

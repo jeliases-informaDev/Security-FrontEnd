@@ -30,10 +30,12 @@ function fechaCorta(iso: string | null): string {
 
 const numero = (n: number) => n.toLocaleString('es-PE');
 
+const costoDe = (tokens: number) => (tokens > 0 ? `${numero(tokens)} ${tokens === 1 ? 'token' : 'tokens'}` : 'sin costo');
+
 /** Pastilla de la barra superior: tokens usados del mes y, al abrirla, el detalle de la licencia. */
 export function MedidorTokens() {
   const { usuario } = useAuth();
-  const { licencia, refrescar } = useLicencia();
+  const { licencia, tarifas, refrescar } = useLicencia();
   const [abierto, setAbierto] = useState(false);
   const [actualizando, setActualizando] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
@@ -145,6 +147,20 @@ export function MedidorTokens() {
               </dd>
             </div>
           </dl>
+
+          {tarifas.some((tarifa) => tarifa.nombre) && (
+            <div className="mt-3">
+              <p className="rotulo">Qué descuenta tokens</p>
+              <ul className="mt-1.5 divide-y divide-line rounded-xl border border-line">
+                {tarifas.filter((tarifa) => tarifa.nombre).map((tarifa) => (
+                  <li key={tarifa.tipo ?? tarifa.nombre} className="flex items-center justify-between gap-3 px-2.5 py-1.5">
+                    <span className="min-w-0 text-ink">{tarifa.nombre}</span>
+                    <span className="shrink-0 tabular-nums text-muted">{costoDe(tarifa.tokens ?? 0)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <a href={licencia.enlace || ENLACE_LICENCIA} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm mt-3 w-full">
             Ver en Sulotec

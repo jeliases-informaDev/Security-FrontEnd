@@ -1,4 +1,5 @@
 import { apiClient } from "@/shared/api/apiClient";
+import { conConsumo } from "@/modules/licencias/lib/consumo";
 
 import type {
   CalcularRiesgoInherenteRequest,
@@ -216,15 +217,19 @@ async function registrarAnalisis(
     GuardarMatrizRiesgoRequest
 ): Promise<MatrizRiesgoRegistroResponse> {
 
-  const { data } =
-    await apiClient.post<
-      MatrizRiesgoRegistroResponse
-    >(
-      `${BASE_URL}/analisis/registrar`,
-      request
-    );
+  // Registrar una matriz descuenta tokens según la tarifa de Sulotec.
+  return conConsumo(async () => {
 
-  return data;
+    const { data } =
+      await apiClient.post<
+        MatrizRiesgoRegistroResponse
+      >(
+        `${BASE_URL}/analisis/registrar`,
+        request
+      );
+
+    return data;
+  });
 }
 
 
@@ -254,19 +259,23 @@ async function descargarPdf(
   id: number
 ): Promise<Blob> {
 
-  const { data } =
-    await apiClient.get<Blob>(
-      `${BASE_URL}/analisis/${id}/pdf`,
-      {
-        responseType: "blob",
+  // El PDF de una matriz descuenta tokens según la tarifa de Sulotec.
+  return conConsumo(async () => {
 
-        headers: {
-          Accept: "application/pdf",
-        },
-      }
-    );
+    const { data } =
+      await apiClient.get<Blob>(
+        `${BASE_URL}/analisis/${id}/pdf`,
+        {
+          responseType: "blob",
 
-  return data;
+          headers: {
+            Accept: "application/pdf",
+          },
+        }
+      );
+
+    return data;
+  });
 }
 
 

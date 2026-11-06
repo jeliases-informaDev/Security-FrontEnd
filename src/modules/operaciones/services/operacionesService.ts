@@ -233,7 +233,7 @@ export interface DetalleOperacion {
   historialReciente: EventoHistorial[];
   /** Entrega B: umbral guardado con el registro (`null` en los anteriores), resumen del análisis y constancia de envío. */
   umbral?: VerificacionUmbral | null;
-  inusualidad?: unknown;
+  inusualidad?: ResumenInusualidad | null;
   envio?: EnvioRegistro | null;
   estadoEnvio?: EstadoEnvio;
 }
@@ -582,7 +582,18 @@ export type EstadoUmbral = 'SIN_MONTO' | 'SIN_CONFIGURAR' | 'SIN_TIPO_DE_BIEN' |
 export interface EnvioRegistro {
   exportacionId: number;
   fechaEnvio: string;
-  numeroAcuse: string;
+  /** El servidor puede no traerlo (constancias sin acuse). */
+  numeroAcuse: string | null;
+}
+
+/** Resumen del análisis de inusualidad que trae el detalle del registro (`null` mientras no haya análisis). */
+export interface ResumenInusualidad {
+  estado: EstadoInusualidad;
+  senalNombre: string | null;
+  fechaDeteccion: string | null;
+  calificadaEn: string | null;
+  venceEn: string | null;
+  numeroRos: string | null;
 }
 
 /** Verificación de umbral (RO 2, 3, 4, 5): el servidor decide el estado y escribe el mensaje. Los campos que no aplican llegan `null`. */

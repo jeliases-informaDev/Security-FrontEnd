@@ -3,15 +3,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
-import { IconoDocumento, IconoHistorial, IconoLapiz, IconoRecibo, IconoTriangulo, IconoUsuario } from '@/shared/ui/iconos';
+import { IconoDescargar, IconoDocumento, IconoHistorial, IconoLapiz, IconoRecibo, IconoTriangulo, IconoUsuario } from '@/shared/ui/iconos';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso } from '@/shared/ui/kit';
 import { useAvisoPendiente } from '../lib/aviso';
-import { fechaCorta, montoConMoneda, montoTexto, soloHora, textoOGuion } from '../lib/formato';
-import { esNoEncontrada, operacionesService, type DetalleOperacion, type PersonaDetalle } from '../services/operacionesService';
+import { fechaCorta, fechaHora, montoConMoneda, montoTexto, soloHora, textoOGuion } from '../lib/formato';
+import { usd } from '../lib/formatoB';
+import { esNoEncontrada, estadoInusualidadDe, operacionesService, type DetalleOperacion, type EstadoInusualidad, type PersonaDetalle } from '../services/operacionesService';
 import { CambiarResponsableModal } from './CambiarResponsableModal';
 import { usePdfOperacion } from './PdfOperacion';
-import { BTN, BTN_P, BotonPronto, Dato, ErrorPagina, EsqueletoPagina, FilaValor, InsigniaEstado, Pronto, Tarjeta } from './piezas';
+import { BTN, BTN_P, Dato, ErrorPagina, EsqueletoPagina, FilaValor, InsigniaEstado, Tarjeta } from './piezas';
+import { BTN_B, BTN_PB } from './piezasB';
+import { mensajeUtil } from './umbral';
+
+const ANALISIS: Record<Exclude<EstadoInusualidad, 'SIN_ANALISIS'>, { clase: string; rotulo: string }> = {
+  EN_ANALISIS: { clase: 'badge-warn', rotulo: 'En análisis' },
+  DESCARTADA: { clase: 'badge-neutral', rotulo: 'Descartada' },
+  SOSPECHOSA: { clase: 'badge-critica', rotulo: 'Sospechosa' },
+};
 
 /** «Av. Larco 1301, Miraflores, Lima»: junta lo que haya sin repetir (provincia y departamento suelen llamarse igual). */
 function direccion(p: PersonaDetalle): string {
@@ -74,6 +83,12 @@ export function DetalleRegistro({ id }: { id: number }) {
   const { personaFisica: pf, personaRepresentada: pr, operacion: op, registro } = detalle;
   const hora = soloHora(registro.creadoEn);
   const cuentas = [op.cuenta1, op.cuenta2, op.cuenta3].filter((c): c is string => !!c && c.trim() !== '');
+  const { umbral, envio } = detalle;
+  const estadoAnalisis = estadoInusualidadDe(detalle.inusualidad);
+  const resumen = detalle.inusualidad ?? null;
+  // Los registros anteriores a la entrega B no traen umbral: ahí quedan los guiones. Si el servidor no pudo calcularlo, se muestra su mensaje.
+  const notaUmbral = umbral ? mensajeUtil(umbral) : null;
+  const equivalenteUsd = umbral?.montoUsd != null && (op.monedaCodigo ?? op.moneda) !== 'USD' ? usd(umbral.montoUsd) : null;
 
   return (
     <PageShell ancho="amplio">
@@ -177,13 +192,38 @@ export function DetalleRegistro({ id }: { id: number }) {
               </div>
               <button type="button" onClick={() => setCambiando(true)} className={`btn btn-secondary ${BTN}`}><IconoUsuario className="h-4 w-4" aria-hidden="true" /> {detalle.responsable ? 'Cambiar' : 'Asignar'}</button>
             </div>
-            <FilaValor etiqueta="Umbral aplicable"><Pronto /></FilaValor>
+            <FilaValor etiqueta="Umbral aplicable">{umbral?.umbralUsd != null ? `${usd(umbral.umbralUsd)}${umbral.umbralInterno ? ' (interno)' : ''}` : '—'}</FilaValor>
             <FilaValor etiqueta="Monto">{montoConMoneda(op)}</FilaValor>
+            {equivalenteUsd && <FilaValor etiqueta="Monto en US$">{equivalenteUsd}</FilaValor>}
+            {notaUmbral && <p className="text-sm leading-[21px] text-muted">{notaUmbral}</p>}
+            <FilaValor etiqueta="Envío a la UIF">{envio ? `Enviado el ${fechaCorta(envio.fechaEnvio) ?? ''}`.trim() : 'Pendiente'}</FilaValor>
+            {envio?.numeroAcuse && <FilaValor etiqueta="N.º de acuse">{envio.numeroAcuse}</FilaValor>}
+            {envio && <div><Link href={`/operaciones/exportar/${envio.exportacionId}`} className={`btn btn-secondary ${BTN_B}`}><IconoDescargar className="h-4 w-4 shrink-0" aria-hidden="true" /> Ver el archivo generado</Link></div>}
           </Tarjeta>
 
-          <Tarjeta espacio="gap-3" titulo="Análisis de inusualidad" derecha={<Pronto />}>
-            <p className="text-[15px] leading-[22px] text-muted">Esta operación no tiene análisis. Si notas una señal de alerta, regístrala y documenta tu decisión.</p>
-            <div><BotonPronto icono={IconoTriangulo} className={BTN}>Marcar como inusual</BotonPronto></div>
+          <Tarjeta
+            espacio="gap-3"
+            titulo="Análisis de inusualidad"
+            derecha={estadoAnalisis !== 'SIN_ANALISIS' ? <span className={`badge ${ANALISIS[estadoAnalisis].clase} !leading-[normal]`}>{ANALISIS[estadoAnalisis].rotulo}</span> : undefined}
+          >
+            {estadoAnalisis === 'SIN_ANALISIS' ? (
+              <>
+                <p className="text-[15px] leading-[22px] text-muted">Esta operación no tiene análisis. Si notas una señal de alerta, regístrala y documenta tu decisión.</p>
+                <div><Link href={`/operaciones/${id}/inusual`} className={`btn btn-secondary ${BTN_B}`}><IconoTriangulo className="h-4 w-4 shrink-0" aria-hidden="true" /> Marcar como inusual</Link></div>
+              </>
+            ) : (
+              <>
+                <FilaValor etiqueta="Señal de alerta">{textoOGuion(resumen?.senalNombre)}</FilaValor>
+                <FilaValor etiqueta="Detectada el">{fechaCorta(resumen?.fechaDeteccion ?? null) ?? '—'}</FilaValor>
+                {resumen?.calificadaEn && <FilaValor etiqueta="Calificada el">{fechaHora(resumen.calificadaEn)}</FilaValor>}
+                {estadoAnalisis === 'SOSPECHOSA' && resumen?.venceEn && !resumen.numeroRos && <FilaValor etiqueta="Plazo del ROS hasta">{fechaHora(resumen.venceEn)}</FilaValor>}
+                {resumen?.numeroRos && <FilaValor etiqueta="N.º de ROS">{resumen.numeroRos}</FilaValor>}
+                <div className="flex flex-wrap items-start gap-2.5">
+                  <Link href={`/operaciones/${id}/inusual`} className={`btn btn-secondary ${BTN_B}`}>{estadoAnalisis === 'EN_ANALISIS' ? 'Continuar el análisis' : 'Ver el análisis'}</Link>
+                  {estadoAnalisis === 'SOSPECHOSA' && <Link href={`/operaciones/${id}/ros`} className={`btn btn-primary ${BTN_PB}`}>{resumen?.numeroRos ? 'Ver el ROS' : 'Preparar el ROS'}</Link>}
+                </div>
+              </>
+            )}
           </Tarjeta>
 
           <Tarjeta espacio="gap-3" titulo="Historial reciente">

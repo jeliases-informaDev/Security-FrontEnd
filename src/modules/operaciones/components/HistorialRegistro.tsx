@@ -6,20 +6,20 @@ import Link from 'next/link';
 import { History } from 'lucide-react';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
-import { IconoDescargar, IconoHistorial, IconoLapiz, IconoOjo, IconoReloj, IconoUsuario, IconoVisto } from '@/shared/ui/iconos';
+import { IconoDescargar, IconoHistorial, IconoInfo, IconoLapiz, IconoOjo, IconoReloj, IconoSubir, IconoTriangulo, IconoUsuario, IconoVisto } from '@/shared/ui/iconos';
 import { EstadoVacio } from '@/shared/ui/kit';
 import { fechaCorta, fechaHora } from '../lib/formato';
 import { esNoEncontrada, operacionesService, type EventoHistorial, type HistorialRegistro as Historial, type TipoHistorial } from '../services/operacionesService';
-import { BTN, ErrorPagina, FilaValor, Pronto, Tarjeta } from './piezas';
+import { BTN, ErrorPagina, FilaValor, Tarjeta } from './piezas';
 
 type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 
-const PESTANAS: { valor: TipoHistorial; etiqueta: string; pronto?: boolean }[] = [
+const PESTANAS: { valor: TipoHistorial; etiqueta: string }[] = [
   { valor: 'TODO', etiqueta: 'Todo' },
   { valor: 'EDICION', etiqueta: 'Ediciones' },
   { valor: 'RESPONSABLE', etiqueta: 'Responsable' },
   { valor: 'DESCARGA', etiqueta: 'Descargas' },
-  { valor: 'ANALISIS', etiqueta: 'Análisis', pronto: true },
+  { valor: 'ANALISIS', etiqueta: 'Análisis' },
 ];
 
 const ICONO_DE_TIPO: Record<string, { icono: Icono; clase: string }> = {
@@ -27,6 +27,10 @@ const ICONO_DE_TIPO: Record<string, { icono: Icono; clase: string }> = {
   EDICION: { icono: IconoLapiz, clase: 'bg-brand-soft text-brand' },
   RESPONSABLE: { icono: IconoUsuario, clase: 'border border-line bg-paper text-ink' },
   DESCARGA: { icono: IconoDescargar, clase: 'border border-line bg-paper text-ink' },
+  // Entrega B: análisis de inusualidad (guardado, calificación y número de ROS), verificación de umbral (la anota el sistema) y envío a la UIF.
+  ANALISIS: { icono: IconoTriangulo, clase: 'bg-warn-soft text-warn' },
+  UMBRAL: { icono: IconoInfo, clase: 'border border-line bg-paper text-ink' },
+  ENVIO: { icono: IconoSubir, clase: 'bg-info-soft text-info' },
 };
 
 const PROTECCION = ['No se pueden borrar ni excluir registros', 'Cada cambio guarda el valor anterior y el motivo', 'Cada descarga queda anotada', 'Copia de seguridad del registro'];
@@ -96,13 +100,10 @@ export function HistorialRegistro({ id }: { id: number }) {
                   type="button"
                   role="tab"
                   aria-selected={activa}
-                  aria-disabled={p.pronto || undefined}
-                  title={p.pronto ? 'Próximamente' : undefined}
-                  onClick={() => { if (!p.pronto) setTipo(p.valor); }}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-[7px] text-[13px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : p.pronto ? 'cursor-not-allowed border border-line bg-white text-faint' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}
+                  onClick={() => setTipo(p.valor)}
+                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-[7px] text-[13px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}
                 >
                   {p.etiqueta}
-                  {p.pronto && <Pronto />}
                 </button>
               );
             })}

@@ -1,13 +1,11 @@
 'use client';
 
-import type { ComponentType, ReactNode, SVGProps } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, Esqueleto, EstadoVacio, Etiqueta } from '@/shared/ui/kit';
 import { nombreCorto } from '../lib/formato';
 import type { ResponsableOperacion } from '../services/operacionesService';
-
-type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 
 /**
  * Alto y tamaño de los botones del diseño (RO 0 a RO 11): el secundario mide 46 px (44 + el borde de 1 px por lado) y el
@@ -25,19 +23,8 @@ export const CAMPO_BORDE = 'border-line hover:border-ink/30 focus:border-brand d
 /** Rótulo de un campo (14 px, seminegrita, 8 px de separación con el campo). */
 export const ETIQUETA = 'mb-2 flex items-center gap-2 text-sm font-semibold leading-[normal] text-ink';
 
-/** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad. */
+/** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad (hoy, solo los formatos de exportación sin estructura). */
 export const Pronto = ({ compacto = false }: { compacto?: boolean }) => <Etiqueta className={compacto ? '!px-2 !py-px !leading-[normal]' : ''}>Pronto</Etiqueta>;
-
-/** Botón apagado con insignia «Pronto». Usa aria-disabled (y no disabled) para que se pueda enfocar y leer con teclado. */
-export function BotonPronto({ icono: Icono, children, className = '' }: { icono?: Icono; children: ReactNode; className?: string }) {
-  return (
-    <button type="button" aria-disabled="true" title="Próximamente" onClick={(e) => e.preventDefault()} className={`btn btn-secondary cursor-not-allowed opacity-60 ${className}`}>
-      {Icono && <Icono className="h-4 w-4" aria-hidden="true" />}
-      {children}
-      <Pronto />
-    </button>
-  );
-}
 
 /**
  * Estado del registro (chip de la lista, RO 1): en la entrega A solo llega «Pendiente»; «Enviado» e «Inusual» ya tienen su
@@ -65,8 +52,8 @@ export function Dato({ rotulo, children, className = '' }: { rotulo: string; chi
 export function FilaValor({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm leading-[normal]">
-      <span className="text-muted">{etiqueta}</span>
-      <span className="text-right font-semibold text-ink">{children}</span>
+      <span className="min-w-0 text-muted">{etiqueta}</span>
+      <span className="min-w-0 text-right font-semibold text-ink [overflow-wrap:anywhere]">{children}</span>
     </div>
   );
 }
@@ -95,7 +82,7 @@ export function CeldaResponsable({ responsable }: { responsable: ResponsableOper
   return (
     <span className="flex min-w-0 items-center gap-2" title={responsable.nombreCompleto}>
       <Avatar nombre={responsable.nombreCompleto} tamano="sm" className="!h-7 !w-7 !text-[11px]" />
-      <span className="min-w-0 truncate text-[13px] leading-[normal] text-ink/80">{nombreCorto(responsable.nombreCompleto)}</span>
+      <span className="min-w-0 break-words text-[13px] leading-[normal] text-ink/80">{nombreCorto(responsable.nombreCompleto)}</span>
     </span>
   );
 }
@@ -133,19 +120,31 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
   );
 }
 
-/** Interruptor accesible (role="switch"). Con `fila` el rótulo ocupa el ancho y el interruptor queda a la derecha (panel de filtros). */
-export function Interruptor({ activo, onCambiar, etiqueta, id, fila = false }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string; fila?: boolean }) {
+/**
+ * Interruptor accesible (role="switch"). Con `fila` el rótulo ocupa el ancho y el interruptor queda a la derecha (panel de filtros).
+ * Con `descripcion` el rótulo va en seminegrita con su explicación debajo (sector y umbrales, RO 16).
+ */
+export function Interruptor({ activo, onCambiar, etiqueta, id, fila = false, descripcion, deshabilitado = false }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string; fila?: boolean; descripcion?: ReactNode; deshabilitado?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span id={`${id}-texto`} className={fila ? 'min-w-0 flex-1 text-[15px] font-medium leading-[normal] text-ink' : 'text-sm font-medium leading-[normal] text-ink/80'}>{etiqueta}</span>
+      {descripcion ? (
+        <span className="min-w-0 flex-1">
+          <span id={`${id}-texto`} className="block text-[15px] font-semibold leading-[normal] text-ink">{etiqueta}</span>
+          <span id={`${id}-descripcion`} className="mt-0.5 block text-sm leading-[normal] text-muted">{descripcion}</span>
+        </span>
+      ) : (
+        <span id={`${id}-texto`} className={fila ? 'min-w-0 flex-1 text-[15px] font-medium leading-[normal] text-ink' : 'text-sm font-medium leading-[normal] text-ink/80'}>{etiqueta}</span>
+      )}
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={activo}
         aria-labelledby={`${id}-texto`}
+        aria-describedby={descripcion ? `${id}-descripcion` : undefined}
+        disabled={deshabilitado}
         onClick={() => onCambiar(!activo)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${activo ? 'bg-brand' : 'bg-ink/15'}`}
       >
         <span className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform ${activo ? 'translate-x-5' : ''}`} aria-hidden="true" />
       </button>

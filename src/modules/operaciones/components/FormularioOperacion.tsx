@@ -10,7 +10,7 @@ import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
 import { mensajeDeFalla } from '@/modules/licencias/lib/consumo';
-import { IconoAjustes, IconoAyuda, IconoCandado, IconoFlechaCambio, IconoInfo, IconoMas, IconoRecibo, IconoVisto } from '@/shared/ui/iconos';
+import { IconoAyuda, IconoCandado, IconoFlechaCambio, IconoInfo, IconoMas, IconoRecibo, IconoVisto } from '@/shared/ui/iconos';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
@@ -24,7 +24,8 @@ import {
   camposDeError, operacionesService,
   type CatalogosOperacion, type DetalleOperacion, type OpcionCodigo, type ProvinciaOpcion,
 } from '../services/operacionesService';
-import { BTN, BTN_P, BotonPronto, CAMPO, CAMPO_BORDE, FilaValor, Interruptor, Pronto, Tarjeta } from './piezas';
+import { BTN, BTN_P, CAMPO, CAMPO_BORDE, FilaValor, Interruptor, Tarjeta } from './piezas';
+import { TarjetaVerificacionUmbral } from './umbral';
 
 // ============================================================
 // Piezas del formulario
@@ -314,7 +315,9 @@ export function FormularioOperacion({ catalogos, detalle }: Props) {
                 <Tarjeta espacio="gap-[18px]" titulo="Registro" descripcion="El número y la fecha se asignan solos y no se pueden cambiar." derecha={<span className="badge badge-brand !leading-[normal]">Automático</span>}>
                   <div className="grid grid-cols-1 gap-x-4 gap-y-[18px] sm:grid-cols-3">
                     <CampoBloqueado rotulo="N.º de registro" valor={edicion ? detalle.numeroRegistro : 'Se asigna al guardar'} />
-                    <Texto ruta="registro.oficina" id="registro-oficina" texto="Oficina" placeholder="Ej. San Isidro" />
+                    {catalogos.oficinas.length > 0
+                      ? <Seleccion ruta="registro.oficina" id="registro-oficina" texto="Oficina" placeholder="Elige una oficina" opciones={catalogos.oficinas.map((o) => ({ value: o, label: o }))} />
+                      : <Texto ruta="registro.oficina" id="registro-oficina" texto="Oficina" placeholder="Ej. San Isidro" />}
                     <CampoBloqueado rotulo="Fecha de registro" valor={(edicion ? fechaCorta(detalle.registro.fechaRegistro) : fechaCorta(hoy)) ?? ''} />
                   </div>
                 </Tarjeta>
@@ -424,9 +427,7 @@ export function FormularioOperacion({ catalogos, detalle }: Props) {
                   </>
                 ) : (
                   <>
-                    <Tarjeta espacio="gap-[14px]" titulo="Verificación de umbral" descripcion="Se calcula con el monto." derecha={<Pronto />}>
-                      <div><BotonPronto icono={IconoAjustes} className={BTN}>Cambiar sector o umbral</BotonPronto></div>
-                    </Tarjeta>
+                    <TarjetaVerificacionUmbral tipoOperacion={valores.operacion?.tipoOperacion ?? ''} moneda={valores.operacion?.moneda ?? ''} monto={valores.operacion?.monto ?? ''} fechaOperacion={valores.operacion?.fechaOperacion ?? ''} />
                     <Tarjeta espacio="gap-3" titulo="Datos mínimos" descripcion="Para poder guardar.">
                       <ul className="flex flex-col gap-3">
                         {CIRCULOS.map((c, i) => (

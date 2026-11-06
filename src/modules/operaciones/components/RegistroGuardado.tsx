@@ -10,7 +10,9 @@ import { Aviso, type AvisoDatos } from '@/shared/ui/kit';
 import { fechaCorta, montoConMoneda, soloHora } from '../lib/formato';
 import { esNoEncontrada, operacionesService, type DetalleOperacion } from '../services/operacionesService';
 import { usePdfOperacion } from './PdfOperacion';
-import { BTN, BTN_P, BotonPronto, Dato, ErrorPagina, EsqueletoPagina, FilaValor, InsigniaEstado, Pronto, Tarjeta } from './piezas';
+import { BTN, BTN_P, Dato, ErrorPagina, EsqueletoPagina, InsigniaEstado, Tarjeta } from './piezas';
+import { BTN_B, BTN_PB } from './piezasB';
+import { TarjetaUmbralGuardado } from './umbral';
 
 const QUE_SE_GUARDO = ['Sello de fecha y hora del registro', 'Copia de seguridad del registro', 'Anotación en el historial de cambios'];
 
@@ -60,6 +62,7 @@ export function RegistroGuardado({ id }: { id: number }) {
   const nombrePf = [pf.apellidos, pf.nombres].map((x) => x?.trim()).filter(Boolean).join(', ');
   const representada = pr ? (pr.tipoPersona === 'JURIDICA' ? pr.razonSocial : [pr.apellidos, pr.nombres].map((x) => x?.trim()).filter(Boolean).join(', ')) : null;
   const esTuyo = detalle.responsable !== null && registro.usuario === usuario?.usuario;
+  const enviado = detalle.estadoEnvio === 'ENVIADO' || !!detalle.envio;
 
   return (
     <PageShell ancho="amplio">
@@ -99,7 +102,7 @@ export function RegistroGuardado({ id }: { id: number }) {
             <div className="flex flex-wrap items-center gap-2.5">
               <Link href={`/operaciones/${id}`} className={`btn btn-primary ${BTN_P}`}><IconoOjo className="h-4 w-4" aria-hidden="true" /> Ver registro</Link>
               <button type="button" onClick={() => abrirPdf(id, detalle.numeroRegistro)} className={`btn btn-secondary ${BTN}`}><IconoDescargar className="h-4 w-4" aria-hidden="true" /> Descargar PDF</button>
-              <BotonPronto icono={IconoTriangulo} className={BTN}>Marcar como inusual</BotonPronto>
+              <Link href={`/operaciones/${id}/inusual`} className={`btn btn-secondary ${BTN_B}`}><IconoTriangulo className="h-4 w-4 shrink-0" aria-hidden="true" /> Marcar como inusual</Link>
             </div>
           </Tarjeta>
 
@@ -116,13 +119,22 @@ export function RegistroGuardado({ id }: { id: number }) {
         </div>
 
         <div className="flex flex-col gap-4">
-          <Tarjeta espacio="gap-[14px]" titulo="Siguiente paso" descripcion="Envío a la UIF-Perú." derecha={<InsigniaEstado estado={detalle.estado} />}>
-            <p className="text-[15px] leading-[22px] text-muted">Este registro está pendiente de envío. Expórtalo junto con los demás del periodo en el formato de tu sector.</p>
-            <div><BotonPronto icono={IconoSubir} className={BTN}>Exportar a la UIF</BotonPronto></div>
+          <Tarjeta espacio="gap-[14px]" titulo="Siguiente paso" descripcion="Envío a la UIF-Perú." derecha={<InsigniaEstado estado={detalle.estadoEnvio ?? detalle.estado} />}>
+            {enviado ? (
+              <>
+                <p className="text-[15px] leading-[22px] text-muted">
+                  Este registro ya se envió a la UIF-Perú{detalle.envio ? ` el ${fechaCorta(detalle.envio.fechaEnvio) ?? ''}` : ''}{detalle.envio?.numeroAcuse ? ` (acuse ${detalle.envio.numeroAcuse})` : ''}.
+                </p>
+                {detalle.envio && <div><Link href={`/operaciones/exportar/${detalle.envio.exportacionId}`} className={`btn btn-secondary ${BTN_B}`}><IconoDescargar className="h-4 w-4 shrink-0" aria-hidden="true" /> Ver el archivo generado</Link></div>}
+              </>
+            ) : (
+              <>
+                <p className="text-[15px] leading-[22px] text-muted">Este registro está pendiente de envío. Expórtalo junto con los demás del periodo en el formato de tu sector.</p>
+                <div><Link href={`/operaciones/exportar?periodo=${op.fechaOperacion.slice(0, 7)}`} className={`btn btn-primary ${BTN_PB}`}><IconoSubir className="h-4 w-4 shrink-0" aria-hidden="true" /> Exportar a la UIF</Link></div>
+              </>
+            )}
           </Tarjeta>
-          <Tarjeta espacio="gap-3" titulo="Umbral" derecha={<Pronto />}>
-            <FilaValor etiqueta="Monto de la operación">{montoConMoneda(op)}</FilaValor>
-          </Tarjeta>
+          <TarjetaUmbralGuardado umbral={detalle.umbral} monto={montoConMoneda(op)} />
         </div>
       </div>
 

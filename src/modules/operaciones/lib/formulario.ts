@@ -71,7 +71,8 @@ export const beneficiarioVacio = (cat: CatalogosOperacion): BeneficiarioForm => 
 /** Valores de un formulario nuevo. Nacionalidad empieza en el país del catálogo que corresponde al «Peruana» del diseño. */
 export function valoresIniciales(cat: CatalogosOperacion, fechaOperacion: string): FormValues {
   return {
-    registro: { oficina: '' },
+    // Con una sola oficina configurada (RO 16) no hay nada que elegir: ya viene puesta.
+    registro: { oficina: cat.oficinas.length === 1 ? cat.oficinas[0] : '' },
     personaFisica: { ...PERSONA_VACIA, tipoDocumento: cat.tipoDocumentoInicial, nacionalidad: cat.paises.find((p) => p.nombre === 'Perú')?.nombre ?? '' },
     conRepresentada: false,
     personaRepresentada: { ...PERSONA_VACIA, tipoDocumento: cat.tipoDocumentoInicial },
@@ -179,7 +180,7 @@ export function crearEsquema(cat: CatalogosOperacion, original: FormValues | nul
       else falta(`${prefijo}.numeroDocumento`, numero, 'Escribe el número de documento.');
     };
 
-    falta('registro.oficina', v.registro.oficina, 'Escribe la oficina.');
+    falta('registro.oficina', v.registro.oficina, cat.oficinas.length > 0 ? 'Elige una oficina de la lista.' : 'Escribe la oficina.');
 
     const f = v.personaFisica;
     documento('personaFisica', f.tipoDocumento, f.numeroDocumento, f.motivoSinDocumento);

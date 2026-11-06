@@ -191,9 +191,9 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
             <div className="lg:hidden"><Logo compacto /></div>
 
             {enPrincipal && (
-              // Todavía no hay buscador general en el producto: se muestra como en el diseño, marcado «Pronto».
+              // Todavía no hay buscador general en el producto: se muestra como en el diseño, marcado «Pronto». Debajo de 1024 px no cabe junto a la cuenta (se aplastaba y se cortaba), así que ahí no se muestra.
               <div
-                className="hidden h-[52px] min-w-0 max-w-[560px] flex-1 items-center gap-3 rounded-full border border-ink/6 bg-white/92 pl-5 pr-3 shadow-[0_10px_24px_-10px_rgb(14_17_22/0.07)] md:flex"
+                className="hidden h-[52px] min-w-0 max-w-[560px] flex-1 items-center gap-3 rounded-full border border-ink/6 bg-white/92 pl-5 pr-3 shadow-[0_10px_24px_-10px_rgb(14_17_22/0.07)] lg:flex"
                 title="Próximamente: buscar un cliente desde aquí"
               >
                 <IconoLupa className="shrink-0 text-muted" />

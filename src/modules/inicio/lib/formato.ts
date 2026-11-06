@@ -25,6 +25,12 @@ export function decimal(valor: number, maximo = 1): string {
 /** Porcentaje sin el signo (el signo va aparte, más pequeño): «23», «4,5». */
 export const porcentaje = (valor: number | null | undefined): string => (esNumero(valor) ? decimal(valor) : SIN_DATO);
 
+/**
+ * Un puntaje o un corte de la escala de scoring: hasta DOS decimales («2,4», «1,75», «2,5»). Con uno solo, el corte 1,75 se leería
+ * «1,8» y un promedio de 2,46 se leería «2,5» estando en la zona media: el número en pantalla tiene que caer en la zona que se pinta.
+ */
+export const puntajeTexto = (valor: number): string => decimal(valor, 2);
+
 /** «US$ 2,4 M», «US$ 128,5 mil» o «US$ 850»: monto resumido para las tarjetas de cifras. */
 export function montoResumido(valor: number | null | undefined, simbolo = 'US$'): string | null {
   if (!esNumero(valor)) return null;

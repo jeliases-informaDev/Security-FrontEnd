@@ -11,7 +11,7 @@
 
 import { ENLACE_LICENCIA } from '@/modules/licencias/lib/errores';
 import type { CabinaInicio, CabinaLicencia, CabinaScoring, EscalaScoring, PlazoCabina, ResumenInicio } from '../services/inicioService';
-import { decimal, esNumero, plural, porcentaje } from './formato';
+import { esNumero, plural, porcentaje, puntajeTexto } from './formato';
 
 export type EstadoLuz = 'verde' | 'ambar' | 'rojo' | 'gris';
 export type AreaLuz = 'listas' | 'operaciones' | 'oficial' | 'denuncias' | 'scoring' | 'licencia';
@@ -125,8 +125,11 @@ function plazosDe(cabina: CabinaInicio | null | undefined, tipos: readonly strin
   return (cabina?.plazos ?? []).filter((p): p is PlazoCabina & { dias: number } => !!p && esNumero(p.dias) && tipos.includes(String(p.tipo)));
 }
 
-/** Candidatos de plazos: el vencido más urgente en rojo y, si no hay, el que vence en menos de 3 días en ámbar. */
-function candidatosDePlazos(plazos: (PlazoCabina & { dias: number })[]): Candidato[] {
+/**
+ * Candidatos de plazos: el vencido más urgente en rojo y, si no hay, el que vence en menos de 3 días en ámbar. Con `tope = 'ambar'`
+ * (una revisión sugerida, que no es un plazo legal) lo vencido también queda en ámbar: una sugerencia atrasada no enciende el rojo.
+ */
+function candidatosDePlazos(plazos: (PlazoCabina & { dias: number })[], tope: 'rojo' | 'ambar' = 'rojo'): Candidato[] {
   const vencidos = plazos.filter((p) => p.dias < 0);
   const cercanos = plazos.filter((p) => p.dias >= 0 && p.dias < DIAS_PLAZO_CERCANO);
   const frase = (p: PlazoCabina & { dias: number }, extra: number) => {
@@ -135,7 +138,7 @@ function candidatosDePlazos(plazos: (PlazoCabina & { dias: number })[]): Candida
   };
   const masUrgente = (lista: (PlazoCabina & { dias: number })[]) => [...lista].sort((a, b) => a.dias - b.dias)[0];
   const salida: Candidato[] = [];
-  if (vencidos.length > 0) salida.push({ estado: 'rojo', motivo: frase(masUrgente(vencidos), vencidos.length - 1) });
+  if (vencidos.length > 0) salida.push({ estado: tope, motivo: frase(masUrgente(vencidos), vencidos.length - 1) });
   if (cercanos.length > 0) salida.push({ estado: 'ambar', motivo: frase(masUrgente(cercanos), cercanos.length - 1) });
   return salida;
 }
@@ -203,7 +206,9 @@ function luzOficial(r: ResumenInicio): Luz | null {
     default:
       return { ...base, estado: 'gris', motivo: 'Sin dato del oficial de cumplimiento' };
   }
-  candidatos.push(...candidatosDePlazos(plazosDe(r.cabina, ['COMUNICACION_UIF', 'DECLARACION'])));
+  candidatos.push(...candidatosDePlazos(plazosDe(r.cabina, ['COMUNICACION_UIF', 'VACANCIA_OFICIAL'])));
+  // La revisión sugerida de la declaración jurada (12 meses desde la firma) no es un plazo legal: como mucho, ámbar.
+  candidatos.push(...candidatosDePlazos(plazosDe(r.cabina, ['DECLARACION']), 'ambar'));
   return { ...base, ...resolver(candidatos, { estado: 'gris', motivo: 'Sin dato del oficial de cumplimiento' }) };
 }
 
@@ -242,7 +247,7 @@ function luzScoring(cabina: CabinaInicio | null | undefined): Luz | null {
   const zona = zonaDePuntaje(puntaje, escala);
   const altos = s.porNivel?.alto;
   const detalle = esNumero(altos) && altos > 0 ? ` · ${plural(altos, 'evaluación', 'evaluaciones')} en riesgo alto` : '';
-  const texto = `Riesgo promedio ${zona} (${decimal(puntaje)})${detalle}`;
+  const texto = `Riesgo promedio ${zona} (${puntajeTexto(puntaje)})${detalle}`;
   return { ...base, estado: zona === 'alto' ? 'rojo' : zona === 'medio' ? 'ambar' : 'verde', motivo: texto };
 }
 

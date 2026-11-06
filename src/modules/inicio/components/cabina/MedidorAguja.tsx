@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { decimal, entero, esNumero, plural } from '../../lib/formato';
+import { entero, esNumero, plural, puntajeTexto } from '../../lib/formato';
 import { limitar, polar, sectorAnillo } from '../../lib/grafico';
 import { leerEscala, zonaDePuntaje, type EstadoLuz } from '../../lib/luces';
 import type { CabinaScoring } from '../../services/inicioService';
@@ -38,12 +38,13 @@ const anguloDe = (valor: number, min: number, max: number) => 180 + limitar((val
 /** Texto de la flecha contra el periodo anterior. Si el riesgo baja es buena noticia (verde); si sube, aviso (ámbar). */
 function comparar(actual: number, anterior: number | null | undefined): { flecha: string; texto: string; estado: EstadoLuz } {
   if (!esNumero(anterior)) return { flecha: '', texto: 'Sin periodo anterior para comparar', estado: 'gris' };
-  const diferencia = Math.round((actual - anterior) * 10) / 10;
-  const contra = `vs. periodo anterior (${decimal(anterior)})`;
+  // Se compara con los mismos dos decimales con que se escriben los puntajes: si en pantalla son distintos, la flecha no dice «igual».
+  const diferencia = Math.round((actual - anterior) * 100) / 100;
+  const contra = `vs. periodo anterior (${puntajeTexto(anterior)})`;
   if (diferencia === 0) return { flecha: '=', texto: `Igual ${contra}`, estado: 'gris' };
   return diferencia > 0
-    ? { flecha: '▲', texto: `+${decimal(diferencia)} ${contra}`, estado: 'ambar' }
-    : { flecha: '▼', texto: `−${decimal(-diferencia)} ${contra}`, estado: 'verde' };
+    ? { flecha: '▲', texto: `+${puntajeTexto(diferencia)} ${contra}`, estado: 'ambar' }
+    : { flecha: '▼', texto: `−${puntajeTexto(-diferencia)} ${contra}`, estado: 'verde' };
 }
 
 export function MedidorAguja({ scoring, className = '' }: { scoring: CabinaScoring | null | undefined; className?: string }) {
@@ -80,14 +81,14 @@ export function MedidorAguja({ scoring, className = '' }: { scoring: CabinaScori
   const mayores = [min, corteMedio, corteAlto, max].map((valor) => ({ valor, angulo: anguloDe(valor, min, max) }));
 
   const rangos: Record<'bajo' | 'medio' | 'alto', string> = {
-    bajo: `menos de ${decimal(corteMedio)}`,
-    medio: `${decimal(corteMedio)} a ${decimal(corteAlto)}`,
-    alto: `${decimal(corteAlto)} o más`,
+    bajo: `menos de ${puntajeTexto(corteMedio)}`,
+    medio: `${puntajeTexto(corteMedio)} a menos de ${puntajeTexto(corteAlto)}`,
+    alto: `${puntajeTexto(corteAlto)} o más`,
   };
   const resumenAccesible =
     puntaje == null
       ? 'Riesgo promedio: sin evaluaciones en el periodo.'
-      : `Riesgo promedio ${decimal(puntaje)} en una escala de ${decimal(min)} a ${decimal(max)}, nivel ${zona}.${esNumero(scoring.puntajePromedioAnterior) ? ` Periodo anterior: ${decimal(scoring.puntajePromedioAnterior)}.` : ''} Zonas: bajo, menos de ${decimal(corteMedio)}; medio, de ${decimal(corteMedio)} a ${decimal(corteAlto)}; alto, ${decimal(corteAlto)} o más.`;
+      : `Riesgo promedio ${puntajeTexto(puntaje)} en una escala de ${puntajeTexto(min)} a ${puntajeTexto(max)}, nivel ${zona}.${esNumero(scoring.puntajePromedioAnterior) ? ` Periodo anterior: ${puntajeTexto(scoring.puntajePromedioAnterior)}.` : ''} Zonas: bajo, menos de ${puntajeTexto(corteMedio)}; medio, de ${puntajeTexto(corteMedio)} a menos de ${puntajeTexto(corteAlto)}; alto, ${puntajeTexto(corteAlto)} o más.`;
 
   // La aguja se dibuja apuntando al mínimo (izquierda) y gira `--ang` grados en sentido horario; la animación `cabina-aguja` parte de 0.
   const aguja = { '--ang': `${(angulo - 180).toFixed(2)}deg`, transform: 'rotate(var(--ang))', transformOrigin: `${CX}px ${CY}px` } as CSSProperties;
@@ -124,7 +125,7 @@ export function MedidorAguja({ scoring, className = '' }: { scoring: CabinaScori
             const p = polar(CX, CY, R_ROTULO, a);
             return (
               <text key={a} x={p.x} y={p.y}>
-                {decimal(valor)}
+                {puntajeTexto(valor)}
               </text>
             );
           })}
@@ -146,8 +147,8 @@ export function MedidorAguja({ scoring, className = '' }: { scoring: CabinaScori
         ) : (
           <>
             <p className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
-              <span className="text-[2.5rem] font-medium leading-none tracking-[-0.02em] text-cabina-texto">{decimal(puntaje)}</span>
-              <span className="text-[13px] text-cabina-tenue">de {decimal(max)}</span>
+              <span className="text-[2.5rem] font-medium leading-none tracking-[-0.02em] text-cabina-texto">{puntajeTexto(puntaje)}</span>
+              <span className="text-[13px] text-cabina-tenue">de {puntajeTexto(max)}</span>
               <ChipEstado estado={zona === 'alto' ? 'rojo' : zona === 'medio' ? 'ambar' : 'verde'}>Riesgo {zona}</ChipEstado>
             </p>
             {comparacion && (

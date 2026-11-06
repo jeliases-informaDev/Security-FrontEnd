@@ -82,7 +82,7 @@ export function CeldaResponsable({ responsable }: { responsable: ResponsableOper
   return (
     <span className="flex min-w-0 items-center gap-2" title={responsable.nombreCompleto}>
       <Avatar nombre={responsable.nombreCompleto} tamano="sm" className="!h-7 !w-7 !text-[11px]" />
-      <span className="min-w-0 truncate text-[13px] leading-[normal] text-ink/80">{nombreCorto(responsable.nombreCompleto)}</span>
+      <span className="min-w-0 break-words text-[13px] leading-[normal] text-ink/80">{nombreCorto(responsable.nombreCompleto)}</span>
     </span>
   );
 }

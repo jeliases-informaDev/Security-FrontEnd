@@ -95,9 +95,9 @@ export function TableroInicio() {
         </div>
       </section>
 
-      {/* Cabina de mando: banda oscura de instrumentos (turno 1). Si algo falla al dibujarla, desaparece sin afectar a las tarjetas. */}
+      {/* Cabina de mando: banda oscura de instrumentos. Solo se dibuja si el resumen trae `cabina`; si algo falla al dibujarla, desaparece sin afectar a las tarjetas. */}
       <LimiteError key={`cabina-${version}`} respaldo={null}>
-        <CabinaDeMando estado={estado} resumen={resumen} />
+        <CabinaDeMando resumen={resumen} />
       </LimiteError>
 
       {!hayIzquierda && !hayDerecha ? (
@@ -107,14 +107,14 @@ export function TableroInicio() {
           {hayIzquierda && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.listas && (
-                <div className="inicio-entra" style={turno(2)}>
+                <div className="inicio-entra" style={turno(1)}>
                   <Bloque key={`listas-${version}`} id="inicio-listas" icono={IconoLupa} titulo="Listas negativas" onReintentar={recargar}>
                     <TarjetaListas bloque={datos?.listas} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.operaciones && (
-                <div className="inicio-entra" style={turno(3)}>
+                <div className="inicio-entra" style={turno(2)}>
                   <Bloque key={`operaciones-${version}`} id="inicio-operaciones" icono={IconoRecibo} titulo="Registro de operaciones" onReintentar={recargar}>
                     <TarjetaOperaciones bloque={datos?.operaciones} {...propiedades} />
                   </Bloque>
@@ -125,14 +125,14 @@ export function TableroInicio() {
           {hayDerecha && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.oficial && (
-                <div className="inicio-entra" style={turno(4)}>
+                <div className="inicio-entra" style={turno(3)}>
                   <Bloque key={`oficial-${version}`} id="inicio-oficial" icono={IconoOficial} titulo="Oficial de cumplimiento" onReintentar={recargar}>
                     <TarjetaOficial bloque={datos?.oficial} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.denuncias && (
-                <div className="inicio-entra" style={turno(5)}>
+                <div className="inicio-entra" style={turno(4)}>
                   <Bloque key={`denuncias-${version}`} id="inicio-denuncias" icono={IconoMensaje} titulo="Canal de denuncias" onReintentar={recargar}>
                     <TarjetaDenuncias bloque={datos?.denuncias} {...propiedades} />
                   </Bloque>

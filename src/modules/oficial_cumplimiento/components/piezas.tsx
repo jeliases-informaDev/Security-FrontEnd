@@ -2,7 +2,7 @@
 
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import Link from 'next/link';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Download, FileText } from 'lucide-react';
 import { Esqueleto, EstadoVacio, Etiqueta } from '@/shared/ui/kit';
 import type { EtiquetaOficial, TonoOficial } from '../services/oficialService';
 
@@ -67,6 +67,25 @@ export function Dato({ rotulo, children, className = '' }: { rotulo: string; chi
     <div className={`min-w-0 ${className}`}>
       <p className="rotulo">{rotulo}</p>
       <p className="mt-1 break-words text-[15px] font-medium leading-[22px] text-ink">{children}</p>
+    </div>
+  );
+}
+
+/**
+ * Barra «Requisitos y plazos del oficial de cumplimiento» (guía descargable del diseño). La guía todavía no existe (no hay contenido
+ * entregado), así que el botón queda apagado con «Pronto» y no se anuncia el número de páginas.
+ */
+export function BarraGuia() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-brand/25 bg-white px-[18px] py-4 shadow-[0_10px_30px_-14px_rgb(14_17_22/0.12)]">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-ink" aria-hidden="true">
+        <FileText className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1 basis-64">
+        <p className="text-[17px] font-semibold leading-6 text-ink">Requisitos y plazos del oficial de cumplimiento</p>
+        <p className="text-[13px] leading-5 text-muted">Guía en PDF con quién puede serlo, qué se envía a la UIF y todos los plazos · Res. SBS 789-2018, art. 5 a 13 y 26</p>
+      </div>
+      <BotonPronto icono={Download}>Descargar PDF</BotonPronto>
     </div>
   );
 }

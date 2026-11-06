@@ -68,6 +68,9 @@ export function tamanoLegible(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** «El directorio…» → «el directorio…» (para seguir una frase que ya empezó). */
+export const minusculaInicial = (texto: string): string => texto.charAt(0).toLowerCase() + texto.slice(1);
+
 /** Texto o, si está vacío, una raya. */
 export const textoOGuion = (valor: string | null | undefined): string => (valor && valor.trim() ? valor : '—');
 

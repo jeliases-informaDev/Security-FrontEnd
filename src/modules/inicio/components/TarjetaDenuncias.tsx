@@ -135,6 +135,7 @@ export function TarjetaDenuncias({ estado, bloque, periodoEtiqueta, onReintentar
           <Etiqueta tono="ok" punto>Sin vencidas</Etiqueta>
         )
       }
+      derechaCorta
     >
       {vacio ? (
         <VacioTarjeta

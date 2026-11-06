@@ -52,7 +52,7 @@ function ContenidoListas({ b }: { b: ResumenListas }) {
           conSerie
           rotulo="Consultas"
           valor={entero(b.consultas)}
-          detalle={<Tendencia valor={b.consultasVariacionPct} contra="vs. periodo anterior" />}
+          detalle={<Tendencia valor={b.consultasVariacionPct} contra="vs. periodo anterior" contraCorto="vs. anterior" />}
           serie={{ valores: b.consultasSerie, color: 'marino', etiqueta: 'Consultas por día, últimos 14 días' }}
         />
         <Cifra
@@ -79,7 +79,8 @@ function ContenidoListas({ b }: { b: ResumenListas }) {
         />
       </Cifras>
 
-      <div className="grid gap-x-7 gap-y-5 @[38rem]:grid-cols-2">
+      {/* El bloque de la izquierda lleva la leyenda y el aviso (texto largo): se le da un poco más de ancho que a las barras de las fuentes. */}
+      <div className="grid gap-x-7 gap-y-5 @[38rem]:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">
         <div className="min-w-0">
           <Subtitulo>Resultado de las consultas</Subtitulo>
           {segmentosResultado && segmentosResultado.some((s) => esNumero(s.valor)) ? (

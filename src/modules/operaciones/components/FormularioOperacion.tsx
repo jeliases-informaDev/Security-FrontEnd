@@ -97,9 +97,9 @@ function CampoBloqueado({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div className="min-w-0">
       <p className="mb-2 text-sm font-semibold leading-[normal] text-ink">{rotulo}</p>
-      <div className="flex h-[46px] items-center gap-2.5 rounded-[10px] border border-line bg-paper px-3.5 text-[15px] text-ink">
+      <div className="flex min-h-[46px] items-center gap-2.5 rounded-[10px] border border-line bg-paper px-3.5 py-2 text-[15px] text-ink">
         <IconoCandado className="h-[18px] w-[18px] shrink-0 text-muted" aria-hidden="true" />
-        <span className="min-w-0 truncate">{valor}</span>
+        <span className="min-w-0 break-words">{valor}</span>
       </div>
     </div>
   );

@@ -86,7 +86,7 @@ export function CambiarResponsableModal({ id, numero, onCerrar, onGuardado }: Pr
               >
                 <input type="radio" name={`responsable-${id}`} value={o.id} checked={marcada} onChange={() => setElegido(o.id)} className="sr-only" />
                 <span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-xs font-semibold leading-[normal] text-accent ${marcada ? 'bg-white' : 'bg-accent-soft'}`} aria-hidden="true">{iniciales(o.nombreCompleto)}</span>
-                <span className="min-w-0 flex-1 truncate text-[15px] font-medium leading-[normal] text-ink">{o.nombreCompleto}</span>
+                <span className="min-w-0 flex-1 break-words text-[15px] font-medium leading-[normal] text-ink">{o.nombreCompleto}</span>
                 <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${marcada ? 'bg-accent' : 'border border-line bg-white'}`} aria-hidden="true">
                   {marcada && <span className="h-2 w-2 rounded-full bg-white" />}
                 </span>

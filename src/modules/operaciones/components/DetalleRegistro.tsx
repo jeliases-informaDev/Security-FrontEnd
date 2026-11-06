@@ -173,7 +173,7 @@ export function DetalleRegistro({ id }: { id: number }) {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line bg-paper text-ink" aria-hidden="true"><IconoUsuario className="h-[18px] w-[18px]" /></span>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="font-mono text-[11px] leading-[normal] tracking-[0.04em] text-muted">Responsable</p>
-                <p className={`truncate text-[15px] font-semibold leading-[normal] ${detalle.responsable ? 'text-ink' : 'text-warn'}`}>{detalle.responsable?.nombreCompleto ?? 'Sin asignar'}</p>
+                <p className={`break-words text-[15px] font-semibold leading-[normal] ${detalle.responsable ? 'text-ink' : 'text-warn'}`}>{detalle.responsable?.nombreCompleto ?? 'Sin asignar'}</p>
               </div>
               <button type="button" onClick={() => setCambiando(true)} className={`btn btn-secondary ${BTN}`}><IconoUsuario className="h-4 w-4" aria-hidden="true" /> {detalle.responsable ? 'Cambiar' : 'Asignar'}</button>
             </div>

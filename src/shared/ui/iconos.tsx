@@ -372,3 +372,13 @@ export function IconoFlechaCambio(props: Props) {
     </Base>
   );
 }
+
+/** Equis: cerrar una ventana. */
+export function IconoCerrar(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M4 4L12 12" />
+      <path d="M12 4L4 12" />
+    </Base>
+  );
+}

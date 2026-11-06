@@ -22,10 +22,12 @@ interface StyledSelectProps {
   icono?: ComponentType<SVGProps<SVGSVGElement>>;
   /** Id del botón: permite enlazarlo con su <label htmlFor>. */
   id?: string;
+  /** Clases extra para el botón (por ejemplo, el alto y las esquinas de un formulario concreto). */
+  className?: string;
 }
 
 /** Selector con la misma apariencia que los campos de texto (input) del sistema visual. */
-export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id }: StyledSelectProps) {
+export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '' }: StyledSelectProps) {
   const seleccionada = options.find((option) => option.value === value) ?? null;
 
   return (
@@ -34,7 +36,7 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
         <ListboxButton
           id={id}
           aria-invalid={error || undefined}
-          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
         >
           {Icono && <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />}
           <span className={`block truncate ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>

@@ -11,7 +11,7 @@ import { BTN, BotonPronto, EtiquetaEstado, Iniciales, NotaSoloLectura, RUTA_OFIC
 import { TarjetaPlazo } from './TarjetaPlazo';
 
 /** Un paso de la lista: círculo con su número (o visto), título y lo que hay que hacer. */
-function Paso({ circulo, titulo, destacado = false, children }: { circulo: ReactNode; titulo: string; destacado?: boolean; children?: ReactNode }) {
+export function Paso({ circulo, titulo, destacado = false, children }: { circulo: ReactNode; titulo: string; destacado?: boolean; children?: ReactNode }) {
   return (
     <li className={`flex items-start gap-4 px-5 py-[22px] sm:px-6 ${destacado ? 'bg-[#fbfbfc]' : ''}`}>
       {circulo}
@@ -23,9 +23,9 @@ function Paso({ circulo, titulo, destacado = false, children }: { circulo: React
   );
 }
 
-const Texto = ({ children }: { children: ReactNode }) => <p className="text-[15px] leading-[22px] text-muted">{children}</p>;
+export const Texto = ({ children }: { children: ReactNode }) => <p className="text-[15px] leading-[22px] text-muted">{children}</p>;
 
-const circuloBase = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold';
+export const circuloBase = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold';
 
 /** Tarjeta «Oficial designado» del aside: iniciales, nombre, cargo y estado. */
 export function TarjetaOficial({ titular }: { titular: Pick<ResumenDesignacion, 'iniciales' | 'nombreCompleto' | 'tipoCargoNombre' | 'dedicacionNombre' | 'documento' | 'estado' | 'estadoEtiqueta'> }) {

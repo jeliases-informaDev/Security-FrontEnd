@@ -5,10 +5,10 @@ import { IconoOficial } from '@/shared/ui/iconos';
 import { useCatalogosOficial, useEstadoOficial } from '../hooks/useCarga';
 import { DesignacionGuardada } from './DesignacionGuardada';
 import { FichaVista } from './ficha/FichaVista';
-import { OficialResumen } from './OficialResumen';
 import { ConFichaDe } from './PantallaCarga';
 import { EsqueletoPagina, ErrorPagina } from './piezas';
 import { SinOficial } from './SinOficial';
+import { CargoVacante } from './vacante/CargoVacante';
 
 /** Cabecera neutra mientras se sabe en qué estado está la empresa (o si falló la carga). */
 function CabeceraBase() {
@@ -25,8 +25,8 @@ function PantallaDeError({ mensaje, onReintentar }: { mensaje: string; onReinten
 }
 
 /**
- * Pantalla raíz del módulo: según el estado que entrega el servidor muestra OC 0 (sin oficial), OC 7 (designación guardada) u OC 9 (ficha,
- * en evaluación y vigente). El cargo vacante usa todavía una pantalla provisional hasta que esté OC 13.
+ * Pantalla raíz del módulo: según el estado que entrega el servidor muestra OC 0 (sin oficial), OC 7 (designación guardada), OC 9 (ficha,
+ * en evaluación y vigente) u OC 13 (cargo vacante).
  */
 export function OficialCumplimiento() {
   const estado = useEstadoOficial();
@@ -67,6 +67,9 @@ export function OficialCumplimiento() {
         <PantallaDeError mensaje="No llegaron los datos del oficial designado. Inténtalo de nuevo." onReintentar={recargar} />
       );
     default:
-      return <OficialResumen estado={datos} />;
+      // Cargo vacante (el servidor siempre manda `vacancia` con este estado).
+      return datos.vacancia
+        ? <CargoVacante estado={datos} vacancia={datos.vacancia} catalogos={catalogos.datos} recargar={recargar} />
+        : <PantallaDeError mensaje="No llegaron los datos del cargo vacante. Inténtalo de nuevo." onReintentar={recargar} />;
   }
 }

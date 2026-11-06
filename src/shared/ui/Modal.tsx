@@ -18,13 +18,15 @@ interface ModalProps {
   tamano?: 'sm' | 'md' | 'lg' | 'xl';
   /** `suave` es el diseño nuevo («Propuesta suave»): esquinas de 20 px, título grande, divisores finos y pie sin fondo. `estandar` es el de siempre. */
   variante?: 'estandar' | 'suave';
+  /** Clases del cuerpo: reemplazan a las de la variante (por ejemplo, para darle fondo de papel o más margen). */
+  claseCuerpo?: string;
 }
 
 const ANCHO = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-4xl' } as const;
-const ANCHO_SUAVE = { sm: 'max-w-[35rem]', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-4xl' } as const;
+const ANCHO_SUAVE = { sm: 'max-w-[35rem]', md: 'max-w-xl', lg: 'max-w-[51.25rem]', xl: 'max-w-4xl' } as const;
 
 /** Ventana emergente: se cierra con Escape o haciendo clic fuera, y al abrirse deja el cursor en el primer campo. */
-export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm', variante = 'estandar' }: ModalProps) {
+export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm', variante = 'estandar', claseCuerpo }: ModalProps) {
   const suave = variante === 'suave';
   const idTitulo = useId();
   const cuerpoRef = useRef<HTMLDivElement>(null);
@@ -83,7 +85,7 @@ export function Modal({ titulo, subtitulo, onCerrar, children, pie, tamano = 'sm
           </div>
         )}
 
-        <div ref={cuerpoRef} className={suave ? 'flex flex-col gap-2.5 overflow-y-auto px-7 py-5' : 'space-y-3 overflow-y-auto px-5 py-5'}>
+        <div ref={cuerpoRef} className={claseCuerpo ?? (suave ? 'flex flex-col gap-2.5 overflow-y-auto px-7 py-5' : 'space-y-3 overflow-y-auto px-5 py-5')}>
           {children}
         </div>
 

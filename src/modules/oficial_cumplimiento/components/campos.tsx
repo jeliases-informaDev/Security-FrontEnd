@@ -5,6 +5,8 @@ import { Controller, get, useFormContext } from 'react-hook-form';
 import { CalendarDays } from 'lucide-react';
 import { StyledSelect, type StyledSelectOption } from '@/shared/ui/StyledSelect';
 import { fechaCorta } from '../lib/formato';
+import type { Adjunto, CatalogosOficial } from '../services/oficialService';
+import { FilaArchivo } from './FilaArchivo';
 import { Pronto } from './piezas';
 
 // Campos de formulario del módulo (react-hook-form). Sirven para todos los formularios del módulo: el asistente de designación,
@@ -290,6 +292,79 @@ export function CampoSegmentado<T extends string>({ ruta, texto, opciones, class
           <Segmentado valor={String(field.value ?? '') as T | ''} opciones={opciones} onCambiar={field.onChange} etiquetadoPor={`${id}-rotulo`} />
           {error && <p role="alert" className="error-text">{error}</p>}
         </div>
+      )}
+    />
+  );
+}
+
+// ============================================================
+// Interruptor (sí / no) y archivo adjunto
+// ============================================================
+
+/** Interruptor accesible (role="switch"), de 44 × 24 como en el diseño. Apagado y con «Pronto» cuando todavía no se puede usar. */
+export function Interruptor({ id, activo, onCambiar, deshabilitado = false, etiquetadoPor, descritoPor }: { id: string; activo: boolean; onCambiar: (activo: boolean) => void; deshabilitado?: boolean; etiquetadoPor: string; descritoPor?: string }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      aria-disabled={deshabilitado || undefined}
+      aria-labelledby={etiquetadoPor}
+      aria-describedby={descritoPor}
+      title={deshabilitado ? 'Próximamente' : undefined}
+      onClick={() => { if (!deshabilitado) onCambiar(!activo); }}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'} ${deshabilitado ? 'cursor-not-allowed opacity-60' : ''}`}
+    >
+      <span aria-hidden="true" className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform ${activo ? 'translate-x-5' : ''}`} />
+    </button>
+  );
+}
+
+/** Fila «pregunta + explicación + interruptor» (Situación del cargo). */
+export function FilaInterruptor({ id, titulo, descripcion, activo, onCambiar, deshabilitado = false, pronto = false }: { id: string; titulo: string; descripcion: string; activo: boolean; onCambiar: (activo: boolean) => void; deshabilitado?: boolean; pronto?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        <p id={`${id}-titulo`} className="text-[15px] font-semibold leading-5 text-ink">{titulo}</p>
+        <p id={`${id}-descripcion`} className="mt-0.5 text-sm text-muted">{descripcion}</p>
+      </div>
+      {pronto && <Pronto />}
+      <Interruptor id={id} activo={activo} onCambiar={onCambiar} deshabilitado={deshabilitado} etiquetadoPor={`${id}-titulo`} descritoPor={`${id}-descripcion`} />
+    </div>
+  );
+}
+
+/** Fila con interruptor unida al formulario. */
+export function CampoInterruptor({ ruta, titulo, descripcion }: { ruta: string; titulo: string; descripcion: string }) {
+  const { control } = useFormContext();
+  return (
+    <Controller
+      control={control}
+      name={ruta}
+      render={({ field }) => <FilaInterruptor id={idDeRuta(ruta)} titulo={titulo} descripcion={descripcion} activo={field.value === true} onCambiar={field.onChange} />}
+    />
+  );
+}
+
+/** Archivo adjunto unido al formulario: el valor es el adjunto ya subido al servidor (o nada). */
+export function CampoArchivo({ ruta, ambito, rotulo, reglas, deshabilitado }: { ruta: string; ambito: string; rotulo: string; reglas: CatalogosOficial['adjuntos']; deshabilitado?: boolean }) {
+  const { control, formState: { errors } } = useFormContext();
+  return (
+    <Controller
+      control={control}
+      name={ruta}
+      render={({ field }) => (
+        <FilaArchivo
+          id={idDeRuta(ruta)}
+          ambito={ambito}
+          rotulo={rotulo}
+          valor={(field.value as Adjunto | null | undefined) ?? null}
+          onCambiar={field.onChange}
+          reglas={reglas}
+          error={mensajeDeError(errors, ruta)}
+          deshabilitado={deshabilitado}
+        />
       )}
     />
   );

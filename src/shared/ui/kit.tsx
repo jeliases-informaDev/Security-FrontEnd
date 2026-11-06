@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ComponentType, ReactNode, SVGProps } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
 
@@ -61,7 +61,8 @@ const TAMANO: Record<Tamano, string> = { sm: 'btn-sm', md: '', lg: 'btn-lg' };
 interface BotonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variante?: Variante;
   tamano?: Tamano;
-  icono?: LucideIcon;
+  /** Cualquier componente SVG: los de lucide o los del diseño (shared/ui/iconos). */
+  icono?: ComponentType<SVGProps<SVGSVGElement>>;
   /** Muestra un girador y deshabilita el botón mientras se espera (el texto se mantiene). */
   cargando?: boolean;
 }

@@ -16,6 +16,13 @@ type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 export const BTN = 'h-[46px] text-[15px]';
 export const BTN_P = 'h-11 text-[15px]';
 
+/**
+ * Campos de formulario del diseño (RO 2): 46 px de alto, esquinas de 10 px, borde suave y texto de 15 px. Se suman a `.input`;
+ * el borde claro y sus estados (hover, foco, deshabilitado) van aparte porque en un campo con error manda el borde rojo.
+ */
+export const CAMPO = 'h-[46px] rounded-[10px] text-[15px]';
+export const CAMPO_BORDE = 'border-line hover:border-ink/30 focus:border-brand disabled:bg-paper';
+
 /** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad. */
 export const Pronto = ({ compacto = false }: { compacto?: boolean }) => <Etiqueta className={compacto ? '!px-2 !py-px !leading-[normal]' : ''}>Pronto</Etiqueta>;
 
@@ -70,7 +77,7 @@ export function Tarjeta({ titulo, descripcion, derecha, children, className = ''
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             {titulo && <h2 className="text-[17px] font-semibold leading-[normal] tracking-[-0.01em] text-ink">{titulo}</h2>}
-            {descripcion && <p className="mt-0.5 text-sm text-muted">{descripcion}</p>}
+            {descripcion && <p className="mt-1 text-sm leading-[normal] text-muted">{descripcion}</p>}
           </div>
           {derecha}
         </div>
@@ -128,7 +135,7 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
 export function Interruptor({ activo, onCambiar, etiqueta, id }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span id={`${id}-texto`} className="text-sm text-ink">{etiqueta}</span>
+      <span id={`${id}-texto`} className="text-sm font-medium leading-[normal] text-ink/80">{etiqueta}</span>
       <button
         id={id}
         type="button"
@@ -136,9 +143,9 @@ export function Interruptor({ activo, onCambiar, etiqueta, id }: { activo: boole
         aria-checked={activo}
         aria-labelledby={`${id}-texto`}
         onClick={() => onCambiar(!activo)}
-        className={`relative h-6 w-10 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
       >
-        <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${activo ? 'translate-x-4' : ''}`} aria-hidden="true" />
+        <span className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform ${activo ? 'translate-x-5' : ''}`} aria-hidden="true" />
       </button>
     </div>
   );

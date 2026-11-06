@@ -320,3 +320,13 @@ export function IconoSubir(props: Props) {
     </Base>
   );
 }
+
+/** Círculo con i, de 16 px: ayuda junto a un título. */
+export function IconoAyuda(props: Props) {
+  return (
+    <Base lado={16} grosor={1.33333} {...props}>
+      <path d="M14.6667 8C14.6667 11.6819 11.6819 14.6667 8 14.6667C4.3181 14.6667 1.33333 11.6819 1.33333 8C1.33333 4.3181 4.3181 1.33333 8 1.33333C11.6819 1.33333 14.6667 4.3181 14.6667 8Z" />
+      <path d="M8 10.6667V8M8 5.33333H8.00667" />
+    </Base>
+  );
+}

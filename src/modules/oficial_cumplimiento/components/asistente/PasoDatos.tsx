@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Check } from 'lucide-react';
 import { hoyIso, minusculaInicial } from '../../lib/formato';
-import type { FormularioDesignacion } from '../../lib/designacion';
+import { designanteUnico, type FormularioDesignacion } from '../../lib/designacion';
 import type { CatalogosOficial, EstadoOficial } from '../../services/oficialService';
 import { CampoFecha, CampoSegmentado, CampoSeleccion, CampoTexto } from '../campos';
 import { Tarjeta } from '../piezas';
@@ -36,8 +36,7 @@ export function PasoDatos({ catalogos, estado, pie }: { catalogos: CatalogosOfic
 
   // Al cambiar el tipo de empresa, el que designa se decide solo si solo hay una opción permitida (si no, se vuelve a elegir en el paso 2).
   const alCambiarTipoEmpresa = (codigo: string) => {
-    const permitidos = catalogos.tiposEmpresa.find((t) => t.codigo === codigo)?.designantesPermitidos ?? [];
-    setValue('designacion.designa', permitidos.length === 1 ? permitidos[0] : '', { shouldDirty: true });
+    setValue('designacion.designa', designanteUnico(catalogos, codigo), { shouldDirty: true });
   };
 
   return (

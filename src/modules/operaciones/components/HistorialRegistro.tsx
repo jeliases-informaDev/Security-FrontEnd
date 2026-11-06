@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import type { ComponentType, SVGProps } from 'react';
 import Link from 'next/link';
-import { Check, Clock, Download, Eye, History, Pencil, UserRound } from 'lucide-react';
+import { History } from 'lucide-react';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
+import { IconoDescargar, IconoHistorial, IconoLapiz, IconoOjo, IconoReloj, IconoUsuario, IconoVisto } from '@/shared/ui/iconos';
 import { EstadoVacio } from '@/shared/ui/kit';
 import { fechaCorta, fechaHora } from '../lib/formato';
 import { esNoEncontrada, operacionesService, type EventoHistorial, type HistorialRegistro as Historial, type TipoHistorial } from '../services/operacionesService';
@@ -22,30 +23,28 @@ const PESTANAS: { valor: TipoHistorial; etiqueta: string; pronto?: boolean }[] =
 ];
 
 const ICONO_DE_TIPO: Record<string, { icono: Icono; clase: string }> = {
-  CREACION: { icono: Check, clase: 'bg-ok-soft text-ok' },
-  EDICION: { icono: Pencil, clase: 'bg-brand-soft text-ink' },
-  RESPONSABLE: { icono: UserRound, clase: 'bg-brand-soft text-ink' },
-  DESCARGA: { icono: Download, clase: 'bg-brand-soft text-ink' },
+  CREACION: { icono: IconoVisto, clase: 'bg-ok-soft text-ok' },
+  EDICION: { icono: IconoLapiz, clase: 'bg-brand-soft text-brand' },
+  RESPONSABLE: { icono: IconoUsuario, clase: 'border border-line bg-paper text-ink' },
+  DESCARGA: { icono: IconoDescargar, clase: 'border border-line bg-paper text-ink' },
 };
 
 const PROTECCION = ['No se pueden borrar ni excluir registros', 'Cada cambio guarda el valor anterior y el motivo', 'Cada descarga queda anotada', 'Copia de seguridad del registro'];
 
 function Evento({ e }: { e: EventoHistorial }) {
-  const { icono: Icono, clase } = ICONO_DE_TIPO[e.tipo] ?? { icono: Clock, clase: 'bg-paper text-muted' };
+  const { icono: Icono, clase } = ICONO_DE_TIPO[e.tipo] ?? { icono: IconoReloj, clase: 'border border-line bg-paper text-muted' };
   const quien = e.sistema || !e.usuario ? 'Sistema' : e.usuario.nombreCompleto || e.usuario.usuario;
   return (
-    <li className="flex items-start gap-4 border-t border-line px-5 py-4 first:border-t-0 sm:px-6">
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${clase}`} aria-hidden="true"><Icono className="h-4 w-4" /></span>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-          <p className="text-[15px] font-semibold text-ink">{e.titulo}</p>
-          <div className="text-right">
-            <p className="text-sm font-medium text-ink">{quien}</p>
-            <p className="font-mono text-[11px] text-muted">{fechaHora(e.fecha)}</p>
-          </div>
-        </div>
-        {e.detalle && <p className="mt-0.5 break-words text-sm text-muted">{e.detalle}</p>}
-        {e.motivo && <p className="mt-1 break-words text-[13px] text-muted">Motivo: {e.motivo}</p>}
+    <li className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-x-4 gap-y-2 border-t border-line py-[18px] pl-5 pr-6 first:border-t-0 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto]">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${clase}`} aria-hidden="true"><Icono className="h-[18px] w-[18px]" /></span>
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="text-base font-semibold leading-[normal] text-ink">{e.titulo}</p>
+        {e.detalle && <p className="break-words text-sm leading-[21px] text-ink/80">{e.detalle}</p>}
+        {e.motivo && <p className="break-words text-sm leading-[21px] text-muted">Motivo: {e.motivo}</p>}
+      </div>
+      <div className="col-start-2 flex min-w-0 flex-col items-start gap-0.5 sm:col-start-3 sm:max-w-[16rem] sm:items-end sm:text-right">
+        <p className="break-words text-sm font-medium leading-[normal] text-ink">{quien}</p>
+        <p className="font-mono text-[11px] leading-[normal] tracking-[0.02em] text-muted">{fechaHora(e.fecha)}</p>
       </div>
     </li>
   );
@@ -81,14 +80,14 @@ export function HistorialRegistro({ id }: { id: number }) {
         antetitulo={datos?.numeroRegistro ?? 'Registro de operaciones'}
         titulo="Historial de cambios"
         descripcion="Todo lo que se hizo con este registro: quién, cuándo y por qué. No se puede editar ni borrar."
-        icono={History}
+        icono={IconoHistorial}
         sinLinea
-        acciones={<Link href={`/operaciones/${id}`} className={`btn btn-secondary ${BTN}`}><Eye className="h-4 w-4" aria-hidden="true" /> Volver al registro</Link>}
+        acciones={<Link href={`/operaciones/${id}`} className={`btn btn-secondary ${BTN}`}><IconoOjo className="h-4 w-4" aria-hidden="true" /> Volver al registro</Link>}
       />
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0">
-          <div role="tablist" aria-label="Tipo de evento" className="mb-4 flex flex-wrap gap-2">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_clamp(21.25rem,24vw,28.75rem)]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div role="tablist" aria-label="Tipo de evento" className="flex flex-wrap items-start gap-2">
             {PESTANAS.map((p) => {
               const activa = p.valor === tipo;
               return (
@@ -100,7 +99,7 @@ export function HistorialRegistro({ id }: { id: number }) {
                   aria-disabled={p.pronto || undefined}
                   title={p.pronto ? 'Próximamente' : undefined}
                   onClick={() => { if (!p.pronto) setTipo(p.valor); }}
-                  className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${activa ? 'border-ink bg-ink text-paper' : p.pronto ? 'cursor-not-allowed border-line bg-white text-faint' : 'border-line bg-white text-ink hover:bg-paper'}`}
+                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-[7px] text-[13px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : p.pronto ? 'cursor-not-allowed border border-line bg-white text-faint' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}
                 >
                   {p.etiqueta}
                   {p.pronto && <Pronto />}
@@ -130,23 +129,23 @@ export function HistorialRegistro({ id }: { id: number }) {
           )}
         </div>
 
-        <div className="flex flex-col gap-5">
-          <Tarjeta titulo="Cómo se protege">
+        <div className="flex flex-col gap-4">
+          <Tarjeta espacio="gap-3" titulo="Cómo se protege">
             <ul className="flex flex-col gap-3">
               {PROTECCION.map((t) => (
-                <li key={t} className="flex items-center gap-3 text-sm text-ink">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent" aria-hidden="true"><Check className="h-3 w-3" strokeWidth={3} /></span>
+                <li key={t} className="flex items-center gap-2.5 text-[15px] font-medium leading-[normal] text-ink">
+                  <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand" aria-hidden="true"><IconoVisto className="h-3 w-3" /></span>
                   {t}
                 </li>
               ))}
             </ul>
           </Tarjeta>
-          <Tarjeta titulo="Conservación" descripcion="Se conserva 5 años desde la operación.">
+          <Tarjeta espacio="gap-3" titulo="Conservación" descripcion="Se conserva 5 años desde la operación.">
             {datos ? (
-              <div className="flex flex-col gap-2.5">
+              <>
                 <FilaValor etiqueta="Fecha de la operación">{fechaCorta(datos.fechaOperacion) ?? '—'}</FilaValor>
                 <FilaValor etiqueta="Se conserva hasta">{fechaCorta(datos.conservarHasta) ?? '—'}</FilaValor>
-              </div>
+              </>
             ) : (
               <div className="skeleton h-10 w-full" />
             )}

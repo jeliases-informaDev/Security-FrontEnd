@@ -5,6 +5,8 @@ import { Controller, get, useFormContext } from 'react-hook-form';
 import { CalendarDays } from 'lucide-react';
 import { StyledSelect, type StyledSelectOption } from '@/shared/ui/StyledSelect';
 import { fechaCorta } from '../lib/formato';
+import type { Adjunto, CatalogosOficial } from '../services/oficialService';
+import { FilaArchivo } from './FilaArchivo';
 import { Pronto } from './piezas';
 
 // Campos de formulario del módulo (react-hook-form). Sirven para todos los formularios del módulo: el asistente de designación,
@@ -16,11 +18,12 @@ export const idDeRuta = (ruta: string): string => `oc-${ruta.replace(/[^A-Za-z0-
 const mensajeDeError = (errors: object, ruta: string): string | undefined => get(errors, ruta)?.message as string | undefined;
 
 /** Rótulo, campo, ayuda y error (el error reemplaza a la ayuda). */
-export function Campo({ id, texto, opcional = false, error, ayuda, children, className = '' }: { id: string; texto: string; opcional?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
+export function Campo({ id, texto, lector, opcional = false, error, ayuda, children, className = '' }: { id: string; texto: string; lector?: string; opcional?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
       <label htmlFor={id} className="label">
         {texto}
+        {lector && <span className="sr-only"> {lector}</span>}
         {opcional && <span className="font-normal text-muted"> (opcional)</span>}
       </label>
       {children}
@@ -34,6 +37,8 @@ const descritoPor = (id: string, error?: string, ayuda?: ReactNode): string | un
 interface PropsTexto {
   ruta: string;
   texto: string;
+  /** Aclaración solo para lectores de pantalla cuando el rótulo se repite («Fecha» de cada firma). */
+  lector?: string;
   opcional?: boolean;
   placeholder?: string;
   tipo?: 'text' | 'email' | 'tel';
@@ -45,12 +50,12 @@ interface PropsTexto {
 }
 
 /** Campo de texto de una línea. */
-export function CampoTexto({ ruta, texto, opcional, placeholder, tipo = 'text', maxLength, ayuda, autoComplete = 'off', deshabilitado, className }: PropsTexto) {
+export function CampoTexto({ ruta, texto, lector, opcional, placeholder, tipo = 'text', maxLength, ayuda, autoComplete = 'off', deshabilitado, className }: PropsTexto) {
   const { register, formState: { errors } } = useFormContext();
   const id = idDeRuta(ruta);
   const error = mensajeDeError(errors, ruta);
   return (
-    <Campo id={id} texto={texto} opcional={opcional} error={error} ayuda={ayuda} className={className}>
+    <Campo id={id} texto={texto} lector={lector} opcional={opcional} error={error} ayuda={ayuda} className={className}>
       <input
         id={id}
         type={tipo}
@@ -109,6 +114,7 @@ export function CampoSeleccion({ ruta, texto, opciones, placeholder = 'Elige una
             placeholder={placeholder}
             disabled={deshabilitado}
             error={!!error}
+            envolver
             onChange={(valor) => { field.onChange(valor); alCambiar?.(valor); }}
           />
         </Campo>
@@ -146,7 +152,7 @@ function aIso(texto: string): string | null {
 export const esFechaCompleta = (valor: string): boolean => ISO.test(valor);
 
 /** Campo de fecha con calendario. `min` y `max` (AAAA-MM-DD) solo limitan el calendario; la validación va aparte. */
-export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilitado, className }: { ruta: string; texto: string; opcional?: boolean; ayuda?: ReactNode; min?: string; max?: string; deshabilitado?: boolean; className?: string }) {
+export function CampoFecha({ ruta, texto, lector, opcional, ayuda, min, max, deshabilitado, className }: { ruta: string; texto: string; lector?: string; opcional?: boolean; ayuda?: ReactNode; min?: string; max?: string; deshabilitado?: boolean; className?: string }) {
   const { control, formState: { errors } } = useFormContext();
   const selector = useRef<HTMLInputElement>(null);
   const id = idDeRuta(ruta);
@@ -170,7 +176,7 @@ export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilita
       render={({ field }) => {
         const valor = String(field.value ?? '');
         return (
-          <Campo id={id} texto={texto} opcional={opcional} error={error} ayuda={ayuda} className={className}>
+          <Campo id={id} texto={texto} lector={lector} opcional={opcional} error={error} ayuda={ayuda} className={className}>
             <div className="relative">
               <input
                 id={id}
@@ -192,7 +198,7 @@ export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilita
                 type="button"
                 onClick={abrirCalendario}
                 disabled={deshabilitado}
-                aria-label={`Elegir ${texto.toLowerCase()} en el calendario`}
+                aria-label={`Elegir ${texto.toLowerCase()}${lector ? ` ${lector}` : ''} en el calendario`}
                 className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -248,7 +254,7 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, etiqu
       aria-labelledby={etiquetadoPor}
       aria-label={etiquetadoPor ? undefined : ariaLabel}
       onKeyDown={moverConTeclas}
-      className={`flex max-w-full gap-1 overflow-x-auto rounded-[10px] border border-line bg-paper p-1 ${className}`}
+      className={`flex max-w-full flex-wrap gap-1 rounded-[10px] border border-line bg-paper p-1 ${className}`}
     >
       {opciones.map((o) => {
         const marcada = o.valor === valor;
@@ -290,6 +296,79 @@ export function CampoSegmentado<T extends string>({ ruta, texto, opciones, class
           <Segmentado valor={String(field.value ?? '') as T | ''} opciones={opciones} onCambiar={field.onChange} etiquetadoPor={`${id}-rotulo`} />
           {error && <p role="alert" className="error-text">{error}</p>}
         </div>
+      )}
+    />
+  );
+}
+
+// ============================================================
+// Interruptor (sí / no) y archivo adjunto
+// ============================================================
+
+/** Interruptor accesible (role="switch"), de 44 × 24 como en el diseño. Apagado y con «Pronto» cuando todavía no se puede usar. */
+export function Interruptor({ id, activo, onCambiar, deshabilitado = false, etiquetadoPor, descritoPor }: { id: string; activo: boolean; onCambiar: (activo: boolean) => void; deshabilitado?: boolean; etiquetadoPor: string; descritoPor?: string }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      aria-disabled={deshabilitado || undefined}
+      aria-labelledby={etiquetadoPor}
+      aria-describedby={descritoPor}
+      title={deshabilitado ? 'Próximamente' : undefined}
+      onClick={() => { if (!deshabilitado) onCambiar(!activo); }}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'} ${deshabilitado ? 'cursor-not-allowed opacity-60' : ''}`}
+    >
+      <span aria-hidden="true" className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform ${activo ? 'translate-x-5' : ''}`} />
+    </button>
+  );
+}
+
+/** Fila «pregunta + explicación + interruptor» (Situación del cargo). */
+export function FilaInterruptor({ id, titulo, descripcion, activo, onCambiar, deshabilitado = false, pronto = false }: { id: string; titulo: string; descripcion: string; activo: boolean; onCambiar: (activo: boolean) => void; deshabilitado?: boolean; pronto?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        <p id={`${id}-titulo`} className="text-[15px] font-semibold leading-5 text-ink">{titulo}</p>
+        <p id={`${id}-descripcion`} className="mt-0.5 text-sm text-muted">{descripcion}</p>
+      </div>
+      {pronto && <Pronto />}
+      <Interruptor id={id} activo={activo} onCambiar={onCambiar} deshabilitado={deshabilitado} etiquetadoPor={`${id}-titulo`} descritoPor={`${id}-descripcion`} />
+    </div>
+  );
+}
+
+/** Fila con interruptor unida al formulario. */
+export function CampoInterruptor({ ruta, titulo, descripcion }: { ruta: string; titulo: string; descripcion: string }) {
+  const { control } = useFormContext();
+  return (
+    <Controller
+      control={control}
+      name={ruta}
+      render={({ field }) => <FilaInterruptor id={idDeRuta(ruta)} titulo={titulo} descripcion={descripcion} activo={field.value === true} onCambiar={field.onChange} />}
+    />
+  );
+}
+
+/** Archivo adjunto unido al formulario: el valor es el adjunto ya subido al servidor (o nada). */
+export function CampoArchivo({ ruta, ambito, rotulo, reglas, deshabilitado }: { ruta: string; ambito: string; rotulo: string; reglas: CatalogosOficial['adjuntos']; deshabilitado?: boolean }) {
+  const { control, formState: { errors } } = useFormContext();
+  return (
+    <Controller
+      control={control}
+      name={ruta}
+      render={({ field }) => (
+        <FilaArchivo
+          id={idDeRuta(ruta)}
+          ambito={ambito}
+          rotulo={rotulo}
+          valor={(field.value as Adjunto | null | undefined) ?? null}
+          onCambiar={field.onChange}
+          reglas={reglas}
+          error={mensajeDeError(errors, ruta)}
+          deshabilitado={deshabilitado}
+        />
       )}
     />
   );

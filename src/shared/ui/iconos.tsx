@@ -362,3 +362,23 @@ export function IconoLapiz(props: Props) {
     </Base>
   );
 }
+
+/** Flecha corta de 14 px: del valor anterior al nuevo (cambios detectados). */
+export function IconoFlechaCambio(props: Props) {
+  return (
+    <Base lado={14} grosor={1.12} {...props}>
+      <path d="M2.8 7H10.5" />
+      <path d="M7.7 4.2L10.5 7L7.7 9.8" />
+    </Base>
+  );
+}
+
+/** Equis: cerrar una ventana. */
+export function IconoCerrar(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M4 4L12 12" />
+      <path d="M12 4L4 12" />
+    </Base>
+  );
+}

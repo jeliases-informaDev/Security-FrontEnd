@@ -241,6 +241,7 @@ export interface DesignacionFicha {
   documentoTexto: string;
   fechaDesignacion: string;
   esOficialOtraEmpresa: boolean;
+  /** uuid de la designación que esta reemplaza (o null). */
   reemplazaAId: string | null;
   adjunto: Adjunto | null;
   hojaVida: Adjunto | null;
@@ -302,6 +303,8 @@ export interface FichaOficial {
   declaraciones: { requisitos: DeclaracionFicha; designante: DeclaracionFicha };
   comunicacion: ComunicacionFicha | null;
   plazoComunicacion: Plazo | null;
+  /** Si la UIF respondió «No procedente» y falta corregir y volver a comunicar (igual que en `/estado`). */
+  observacionUif: ObservacionUif | null;
   enElCargoDesde: string | null;
   revisionSugerida: string | null;
   requisitosCargo: string[];
@@ -322,8 +325,8 @@ export interface DatosVistaPrevia {
   numeroDocumento: string;
   tipoCargo: string;
   vinculo: string;
-  /** Vacía = hoy. */
-  fecha: string;
+  /** AAAA-MM-DD. Sin fecha = hoy (lo decide el servidor). */
+  fecha?: string;
 }
 
 export interface HojaDeclaracion {
@@ -479,6 +482,16 @@ export interface HistorialOficial {
   vigencia: { estado: string; estadoEtiqueta: string; enElCargoDesde: string | null; revisionSugerida: string | null };
 }
 
+/** Ámbitos de adjunto del contrato: el servidor rechaza un archivo subido para un ámbito distinto del campo que lo usa. */
+export const AMBITO_ADJUNTO = {
+  ACTA_DESIGNACION: 'ACTA_DESIGNACION',
+  DJ_REQUISITOS_FIRMADA: 'DJ_REQUISITOS_FIRMADA',
+  DJ_DESIGNANTE_FIRMADA: 'DJ_DESIGNANTE_FIRMADA',
+  CONSTANCIA_UIF: 'CONSTANCIA_UIF',
+  ACTA_REMOCION: 'ACTA_REMOCION',
+  CONSTANCIA_COMUNICACION: 'CONSTANCIA_COMUNICACION',
+} as const;
+
 /** Archivo descargado del servidor (adjunto o PDF). */
 export interface ArchivoDescargado {
   archivo: Blob;
@@ -550,6 +563,7 @@ export const oficialService = {
 
   // ---- Declaraciones ----
 
+  /** La vista previa (y su PDF) es parte del asistente: solo administradores; otro rol recibe 403 `OC_SIN_PERMISO`. */
   async vistaPrevia(datos: DatosVistaPrevia): Promise<HojaDeclaracion> {
     const { data } = await apiClient.post<HojaDeclaracion>(`${BASE}/declaraciones/vista-previa`, datos);
     return data;

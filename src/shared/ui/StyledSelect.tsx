@@ -28,17 +28,20 @@ interface StyledSelectProps {
   id?: string;
   /** Clases extra para el botón (por ejemplo, el alto y las esquinas de un formulario concreto). */
   className?: string;
+  /** El texto largo pasa a varias líneas (y el campo crece en alto) en vez de cortarse con «…». Por defecto se corta, como siempre. */
+  envolver?: boolean;
   /**
-   * Los nombres largos pasan a otra línea en vez de cortarse con «…» (el botón y la lista). Quien lo use debe dejar que el
-   * botón crezca (`h-auto min-h-…` en `className`), porque el alto fijo de `.input` no alcanza para dos líneas.
+   * Como `envolver` en el texto (el botón y la lista), pero sin tocar el alto: quien lo use debe dejar que el botón crezca
+   * (`h-auto min-h-…` en `className`), porque el alto fijo de `.input` no alcanza para dos líneas.
    */
   ajustar?: boolean;
 }
 
 /** Selector con la misma apariencia que los campos de texto (input) del sistema visual. */
-export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '', ajustar = false }: StyledSelectProps) {
+export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '', envolver = false, ajustar = false }: StyledSelectProps) {
   const seleccionada = options.find((option) => option.value === value) ?? null;
-  const textoLargo = ajustar ? 'break-words' : 'truncate';
+  const textoLargo = envolver || ajustar ? 'break-words' : 'truncate';
+  const altura = envolver ? (tamano === 'lg' ? 'h-auto min-h-[52px] px-4 py-3' : 'h-auto min-h-11 py-2.5') : tamano === 'lg' ? 'h-[52px] px-4' : '';
 
   return (
     <Listbox value={value} onChange={onChange} disabled={disabled}>
@@ -46,7 +49,7 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
         <ListboxButton
           id={id}
           aria-invalid={error || undefined}
-          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${altura} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
         >
           {Icono && <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />}
           <span className={`block min-w-0 ${textoLargo} ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>

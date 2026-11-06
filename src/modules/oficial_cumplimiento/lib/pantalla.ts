@@ -8,10 +8,13 @@ export function subirAlInicio(elemento: HTMLElement | null): void {
   elemento?.scrollIntoView({ block: 'start', behavior: sinMovimiento() ? 'auto' : 'smooth' });
 }
 
-/** Enfoca y centra el primer campo marcado con error (se espera un instante a que el error ya esté pintado). */
+/**
+ * Enfoca y centra el primer campo marcado con error (se espera un instante a que el error ya esté pintado).
+ * Los campos con error llevan `aria-invalid`; los botones (que no admiten ese atributo) llevan `data-invalido`.
+ */
 export function enfocarPrimerError(): void {
   setTimeout(() => {
-    const campo = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    const campo = document.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalido="true"]');
     if (!campo) return;
     campo.scrollIntoView({ block: 'center', behavior: sinMovimiento() ? 'auto' : 'smooth' });
     campo.focus({ preventScroll: true });

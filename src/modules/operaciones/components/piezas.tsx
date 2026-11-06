@@ -65,8 +65,8 @@ export function Dato({ rotulo, children, className = '' }: { rotulo: string; chi
 export function FilaValor({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm leading-[normal]">
-      <span className="text-muted">{etiqueta}</span>
-      <span className="text-right font-semibold text-ink">{children}</span>
+      <span className="min-w-0 text-muted">{etiqueta}</span>
+      <span className="min-w-0 text-right font-semibold text-ink [overflow-wrap:anywhere]">{children}</span>
     </div>
   );
 }

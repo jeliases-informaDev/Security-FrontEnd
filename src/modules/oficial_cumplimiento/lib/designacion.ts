@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import type { FieldPath } from 'react-hook-form';
-import type { Adjunto, CatalogosOficial, DatosVistaPrevia, EstadoOficial } from '../services/oficialService';
+import type { Adjunto, CatalogosOficial, DatosVistaPrevia, EstadoOficial, SolicitudDesignacion } from '../services/oficialService';
 import { fechaCorta, hoyIso } from './formato';
 
 const texto = z.string();
@@ -269,6 +269,89 @@ export function documentoQueAcredita(cat: CatalogosOficial, v: FormularioDesigna
   const tipo = cat.documentosDesignacion.find((x) => x.codigo === v.designacion.documentoTipo)?.nombre ?? '';
   const fecha = FECHA_ISO.test(v.designacion.documentoFecha) ? fechaCorta(v.designacion.documentoFecha) : '';
   return tipo && fecha ? `${tipo} del ${fecha}` : tipo;
+}
+
+// ============================================================
+// Revisión y guardado
+// ============================================================
+
+/** «firmada el 03/11/2026»: cómo quedó firmada una declaración (nombre y fecha escritos, archivo firmado subido, o las dos cosas). */
+export function textoFirma(f: { firmaNombre: string; fechaFirma: string; adjunto: Adjunto | null }): string {
+  const fecha = FECHA_ISO.test(f.fechaFirma) ? fechaCorta(f.fechaFirma) : '';
+  const escrita = !vacio(f.firmaNombre) && fecha !== '';
+  if (escrita && f.adjunto) return `firmada el ${fecha} · con el archivo firmado adjunto`;
+  if (escrita) return `firmada el ${fecha}`;
+  if (f.adjunto) return 'firmada (archivo adjunto)';
+  return 'sin firma';
+}
+
+/** Cuerpo del «Guardar designación» (`POST /designaciones`) a partir del formulario ya validado. */
+export function aSolicitud(v: FormularioDesignacion, cat: CatalogosOficial): SolicitudDesignacion {
+  const limpio = (s: string): string => s.trim();
+  const opcional = (s: string): string | null => (vacio(s) ? null : s.trim());
+  const orden = cat.declaracionRequisitos.map((p) => p.letra);
+  const r = v.declaraciones.requisitos;
+  const d = v.declaraciones.designante;
+  return {
+    tipoEmpresa: v.tipoEmpresa,
+    tipoCargo: v.tipoCargo,
+    dedicacion: v.dedicacion,
+    persona: {
+      nombres: limpio(v.persona.nombres),
+      apellidos: limpio(v.persona.apellidos),
+      nacionalidad: v.persona.nacionalidad,
+      tipoDocumento: v.persona.tipoDocumento,
+      numeroDocumento: limpio(v.persona.numeroDocumento),
+      fechaNacimiento: v.persona.fechaNacimiento,
+      domicilio: limpio(v.persona.domicilio),
+      telefono: opcional(v.persona.telefono),
+      correo: limpio(v.persona.correo),
+    },
+    cargo: {
+      cargo: limpio(v.cargo.cargo),
+      fechaIngreso: v.cargo.fechaIngreso,
+      vinculo: v.cargo.vinculo,
+      direccionOficina: limpio(v.cargo.direccionOficina),
+    },
+    designacion: {
+      designa: v.designacion.designa,
+      nombreOrgano: limpio(v.designacion.nombreOrgano),
+      documentoTipo: v.designacion.documentoTipo,
+      documentoFecha: v.designacion.documentoFecha,
+      fechaDesignacion: v.designacion.fechaDesignacion,
+      // La validación ya exigió el archivo; si faltara, el servidor lo rechaza con su mensaje.
+      adjuntoId: v.designacion.adjunto?.id ?? '',
+      hojaVidaAdjuntoId: null,
+      documentoVinculoAdjuntoId: null,
+      esOficialOtraEmpresa: false,
+      reemplazaOficialAnterior: v.designacion.reemplazaOficialAnterior,
+    },
+    declaraciones: {
+      requisitos: {
+        puntos: [...r.puntos].sort((a, b) => orden.indexOf(a) - orden.indexOf(b)),
+        firmaNombre: opcional(r.firmaNombre),
+        fechaFirma: opcional(r.fechaFirma),
+        adjuntoId: r.adjunto?.id ?? null,
+      },
+      designante: {
+        aceptada: d.aceptada,
+        firmaNombre: opcional(d.firmaNombre),
+        fechaFirma: opcional(d.fechaFirma),
+        adjuntoId: d.adjunto?.id ?? null,
+      },
+    },
+  };
+}
+
+const RUTAS_DEL_FORMULARIO = new Set<string>(CAMPOS_PASO.flat());
+
+/**
+ * Clave que manda el servidor en `campos` → campo del formulario. Los archivos se guardan aquí como `adjunto` y el contrato los
+ * llama `adjuntoId`. Devuelve null si el formulario no tiene ese campo (por ejemplo, la hoja de vida, que el diseño no dibuja).
+ */
+export function rutaDeCampo(clave: string): FieldPath<FormularioDesignacion> | null {
+  const ruta = clave.replace(/adjuntoId$/, 'adjunto');
+  return RUTAS_DEL_FORMULARIO.has(ruta) ? (ruta as FieldPath<FormularioDesignacion>) : null;
 }
 
 /**

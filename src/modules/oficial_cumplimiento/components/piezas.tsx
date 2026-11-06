@@ -2,7 +2,7 @@
 
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import Link from 'next/link';
-import { AlertCircle, Download, FileText } from 'lucide-react';
+import { AlertCircle, Check, Download, FileText } from 'lucide-react';
 import { Esqueleto, EstadoVacio, Etiqueta } from '@/shared/ui/kit';
 import type { EtiquetaOficial, TonoOficial } from '../services/oficialService';
 
@@ -11,7 +11,7 @@ type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 export const RUTA_OFICIAL = '/oficial-cumplimiento';
 
 /** Alto y tamaño de los botones de la cabecera (como en Listas Negativas y Operaciones). */
-export const BTN = 'h-[46px] text-[15px]';
+export const BTN = 'h-auto min-h-[46px] max-w-full py-2 text-center text-[15px]';
 
 /** Enlace externo de la solicitud en SISDEL (el texto «plaft.sbs.gob.pe/sisdel» sale del diseño). Se abre fuera de PLAFT. */
 export const URL_SISDEL = 'https://plaft.sbs.gob.pe/sisdel';
@@ -43,13 +43,16 @@ export function EtiquetaServidor({ etiqueta, className = '' }: { etiqueta: Pick<
   return <Etiqueta tono={TONO_ETIQUETA[etiqueta.tono] ?? 'neutral'} className={className}>{etiqueta.texto}</Etiqueta>;
 }
 
-/** Tarjeta del diseño: título, bajada, etiqueta a la derecha y contenido. */
-export function Tarjeta({ titulo, descripcion, derecha, children, className = '', id }: { titulo?: ReactNode; descripcion?: ReactNode; derecha?: ReactNode; children?: ReactNode; className?: string; id?: string }) {
+/**
+ * Tarjeta del diseño: título, bajada, etiqueta a la derecha y contenido.
+ * `centrada` alinea el título con el botón de la derecha (las tarjetas de revisión, con su botón «Editar» de 44 px).
+ */
+export function Tarjeta({ titulo, descripcion, derecha, children, className = '', id, centrada = false }: { titulo?: ReactNode; descripcion?: ReactNode; derecha?: ReactNode; children?: ReactNode; className?: string; id?: string; centrada?: boolean }) {
   return (
     <section id={id} className={`card flex flex-col gap-4 p-5 sm:p-6 ${className}`}>
       {(titulo || derecha) && (
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+        <div className={`flex flex-wrap justify-between gap-x-3 gap-y-2 ${centrada ? 'items-center' : 'items-start'}`}>
+          <div className="min-w-0 flex-1 basis-48">
             {titulo && <h2 className="text-[17px] font-semibold leading-[25px] tracking-[-0.01em] text-ink">{titulo}</h2>}
             {descripcion && <p className="mt-0.5 text-sm text-muted">{descripcion}</p>}
           </div>
@@ -61,12 +64,55 @@ export function Tarjeta({ titulo, descripcion, derecha, children, className = ''
   );
 }
 
-/** Dato de solo lectura: rótulo en mono y valor. */
+/** Dato de solo lectura: rótulo en mono (11 px, como en el diseño de las fichas) y valor de 16 px. */
 export function Dato({ rotulo, children, className = '' }: { rotulo: string; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
-      <p className="rotulo">{rotulo}</p>
-      <p className="mt-1 break-words text-[15px] font-medium leading-[22px] text-ink">{children}</p>
+      <p className="rotulo !tracking-[0.04em]">{rotulo}</p>
+      <p className="mt-1 break-words text-base font-medium leading-[21px] text-ink">{children}</p>
+    </div>
+  );
+}
+
+/** Fila «rótulo ··· valor» de las tarjetas de plazo («Vence el 24/11/2026»). */
+export function FilaClave({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <span className="min-w-0 break-words text-muted">{rotulo}</span>
+      <span className="min-w-0 break-words text-right font-semibold tabular-nums text-ink">{children}</span>
+    </div>
+  );
+}
+
+/** Círculo lila con las iniciales de la persona (el servidor las manda calculadas). */
+export function Iniciales({ iniciales, className = 'h-[52px] w-[52px] text-base' }: { iniciales: string; className?: string }) {
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-brand-soft font-bold text-brand ${className}`} aria-hidden="true">
+      {iniciales}
+    </span>
+  );
+}
+
+const TONO_ESTADO_DESIGNACION: Record<string, 'ok' | 'warn' | 'bad' | 'brand' | 'neutral'> = {
+  PENDIENTE_COMUNICAR: 'warn',
+  EN_EVALUACION: 'brand',
+  VIGENTE: 'ok',
+  REMOVIDA: 'bad',
+};
+
+/** Etiqueta del estado de una designación con el tono del diseño (pendiente ámbar, en evaluación lila, vigente verde, removida roja). */
+export function EtiquetaEstado({ estado, texto, className = '' }: { estado: string; texto: string; className?: string }) {
+  return <Etiqueta tono={TONO_ESTADO_DESIGNACION[estado] ?? 'neutral'} className={className}>{texto}</Etiqueta>;
+}
+
+/** Fila con la marca de «hecho»: círculo lila con un visto y el texto al lado («Qué pasará al guardar», declaraciones firmadas). */
+export function FilaCheck({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand" aria-hidden="true">
+        <Check className="h-3 w-3" strokeWidth={3} />
+      </span>
+      <p className="min-w-0 flex-1 text-[15px] font-medium text-ink">{children}</p>
     </div>
   );
 }
@@ -87,6 +133,16 @@ export function BarraGuia() {
       </div>
       <BotonPronto icono={Download}>Descargar PDF</BotonPronto>
     </div>
+  );
+}
+
+/** Nota de la columna derecha: rótulo en mono y un texto corto («Reserva», «Importante»). */
+export function NotaLateral({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <section className="card flex flex-col gap-2 !rounded-[22px] px-5 py-[18px]">
+      <p className="rotulo">{rotulo}</p>
+      <p className="text-sm leading-[21px] text-ink/80">{children}</p>
+    </section>
   );
 }
 

@@ -15,6 +15,13 @@ import { TarjetaOficial } from './TarjetaOficial';
 import { TarjetaOperaciones } from './TarjetaOperaciones';
 
 /**
+ * Banda oscura de instrumentos (luces, radar, líneas, mapa…). Guardado: el usuario pidió el Inicio como el modelo inicial.
+ * Los componentes siguen en `./cabina/`, sin montar. Para volver a encenderla basta con poner esta constante en `true`
+ * (solo se dibuja si el servidor manda `cabina`).
+ */
+const MOSTRAR_BANDA_DE_INSTRUMENTOS = false;
+
+/**
  * Turno de un bloque en la entrada de la página (`.inicio-entra` en globals.css, Figma 109:153): primero la bienvenida y
  * después una tarjeta tras otra, en el orden en que se leen.
  */
@@ -95,10 +102,12 @@ export function TableroInicio() {
         </div>
       </section>
 
-      {/* Cabina de mando: banda oscura de instrumentos. Solo se dibuja si el resumen trae `cabina`; si algo falla al dibujarla, desaparece sin afectar a las tarjetas. */}
-      <LimiteError key={`cabina-${version}`} respaldo={null}>
-        <CabinaDeMando resumen={resumen} />
-      </LimiteError>
+      {/* Banda de instrumentos: guardada, no se monta (ver MOSTRAR_BANDA_DE_INSTRUMENTOS). */}
+      {MOSTRAR_BANDA_DE_INSTRUMENTOS && (
+        <LimiteError key={`cabina-${version}`} respaldo={null}>
+          <CabinaDeMando resumen={resumen} />
+        </LimiteError>
+      )}
 
       {!hayIzquierda && !hayDerecha ? (
         <p className="card mt-7 px-6 py-10 text-center text-sm text-muted">Con tu cuenta no hay resúmenes para mostrar aquí. Elige un módulo en el menú para empezar.</p>

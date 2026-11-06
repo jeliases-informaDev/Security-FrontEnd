@@ -6,6 +6,7 @@ import {
   Download,
   FileText,
   Loader2,
+  Lock,
   RefreshCw,
   ShieldCheck,
   UserRound,
@@ -18,6 +19,22 @@ import {
 } from "react";
 
 import {
+  Boton,
+} from "@/shared/ui/kit";
+
+import {
+  useCatalogoDenuncias,
+} from "../../hooks/useCatalogoDenuncias";
+
+import {
+  conCamposNuevos,
+  esLineaDerivacion,
+  fechaDia,
+  nombreDe,
+  puedeVerReservado,
+} from "../../lib/denuncias";
+
+import {
   denunciaService,
 } from "../../services/denuncia.service";
 
@@ -27,6 +44,22 @@ import type {
   DenunciaResumen,
   EstadoDenuncia,
 } from "../../types/denuncia.types";
+
+import {
+  CerrarDenunciaModal,
+} from "./CerrarDenunciaModal";
+
+import {
+  DerivarOficialModal,
+} from "./DerivarOficialModal";
+
+import {
+  Chip,
+  ChipDerivada,
+  ChipEstado,
+  ChipPlazo,
+  ChipResultado,
+} from "./chips";
 
 
 type FiltroEstado =
@@ -55,42 +88,6 @@ const ESTADOS: Array<{
     label: "Cerradas",
   },
 ];
-
-
-function etiquetaEstado(
-  estado: EstadoDenuncia
-): string {
-
-  switch (estado) {
-
-    case "RECIBIDO":
-      return "Recibido";
-
-    case "EN_PROCESO":
-      return "En proceso";
-
-    case "CERRADO":
-      return "Cerrado";
-  }
-}
-
-
-function claseEstado(
-  estado: EstadoDenuncia
-): string {
-
-  switch (estado) {
-
-    case "RECIBIDO":
-      return "bg-blue-50 text-blue-700 border-blue-100";
-
-    case "EN_PROCESO":
-      return "bg-warn-soft text-warn border-warn/20";
-
-    case "CERRADO":
-      return "bg-ok-soft text-ok border-ok/20";
-  }
-}
 
 
 function siguienteEstado(
@@ -165,6 +162,20 @@ function formatearTamano(
 
 export function DenunciasRecibidas() {
 
+  // Nombres de estados, situaciones y resultados (del servidor; si aún no tiene el catálogo, la lista local).
+  const catalogo =
+    useCatalogoDenuncias();
+
+  function etiquetaEstado(
+    estado: EstadoDenuncia
+  ): string {
+
+    return nombreDe(
+      catalogo.estados,
+      estado
+    );
+  }
+
   const [
     estadoFiltro,
     setEstadoFiltro,
@@ -219,6 +230,21 @@ export function DenunciasRecibidas() {
     setComentario,
   ] = useState(
     ""
+  );
+
+  // Ventanas: cerrar con resultado y derivar al oficial (reservado).
+  const [
+    cerrando,
+    setCerrando,
+  ] = useState(
+    false
+  );
+
+  const [
+    derivando,
+    setDerivando,
+  ] = useState(
+    false
   );
 
   const [
@@ -367,6 +393,22 @@ export function DenunciasRecibidas() {
     }
 
 
+    // Cerrar pide el resultado (y el motivo si se archiva): lo hace una ventana. Con el servidor anterior, como antes.
+    if (
+      nuevoEstado === "CERRADO" &&
+      conCamposNuevos(
+        detalle
+      )
+    ) {
+
+      setCerrando(
+        true
+      );
+
+      return;
+    }
+
+
     try {
 
       setActualizandoEstado(
@@ -417,6 +459,46 @@ export function DenunciasRecibidas() {
         false
       );
     }
+  }
+
+
+  // ==========================================================
+  // CERRAR CON RESULTADO / DERIVAR (las dos ventanas devuelven el detalle)
+  // ==========================================================
+
+  async function alCerrar(
+    resultado: DenunciaDetalle
+  ) {
+
+    setCerrando(
+      false
+    );
+
+    setDetalle(
+      resultado
+    );
+
+    setComentario(
+      ""
+    );
+
+    await cargarDenuncias();
+  }
+
+
+  async function alDerivar(
+    resultado: DenunciaDetalle
+  ) {
+
+    setDerivando(
+      false
+    );
+
+    setDetalle(
+      resultado
+    );
+
+    await cargarDenuncias();
   }
 
 
@@ -717,32 +799,55 @@ export function DenunciasRecibidas() {
                               #{denuncia.id}
                             </span>
 
-                            <span
-                              className={`
-                                rounded-full
-                                border
-                                px-2.5 py-1
-                                text-[10px]
-                                font-bold
-                                ${claseEstado(
-                                  denuncia.estado
-                                )}
-                              `}
-                            >
-                              {etiquetaEstado(
+                            <ChipEstado
+                              estado={
                                 denuncia.estado
+                              }
+                              etiqueta={
+                                denuncia.estadoEtiqueta
+                              }
+                              estados={
+                                catalogo.estados
+                              }
+                            />
+
+                            <ChipPlazo
+                              denuncia={
+                                denuncia
+                              }
+                            />
+
+                            {denuncia.estado ===
+                              "CERRADO" &&
+                              denuncia.resultadoCierre && (
+                                <ChipResultado
+                                  resultado={
+                                    denuncia.resultadoCierre
+                                  }
+                                  etiqueta={
+                                    denuncia.resultadoCierreEtiqueta
+                                  }
+                                />
                               )}
-                            </span>
+
+                            {denuncia.derivadaAlOficial ===
+                              true && (
+                              <ChipDerivada />
+                            )}
 
                           </div>
 
 
-                          <p className="mt-3 font-bold text-ink">
-                            {denuncia.causa}
+                          <p className="mt-3 break-words font-bold text-ink">
+                            {denuncia.causaEtiqueta ||
+                              nombreDe(
+                                catalogo.situaciones,
+                                denuncia.causa
+                              )}
                           </p>
 
 
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
+                          <p className="mt-1 break-words text-xs leading-5 text-muted">
                             {denuncia.descripcion}
                           </p>
 
@@ -826,7 +931,7 @@ export function DenunciasRecibidas() {
 
               <div className="flex flex-col gap-4 border-b border-line pb-6 md:flex-row md:items-start md:justify-between">
 
-                <div>
+                <div className="min-w-0">
 
                   <div className="flex flex-wrap items-center gap-2">
 
@@ -834,32 +939,46 @@ export function DenunciasRecibidas() {
                       Denuncia #{detalle.id}
                     </span>
 
-                    <span
-                      className={`
-                        rounded-full
-                        border
-                        px-3 py-1
-                        text-xs
-                        font-bold
-                        ${claseEstado(
-                          detalle.estado
-                        )}
-                      `}
-                    >
-                      {etiquetaEstado(
+                    <ChipEstado
+                      grande
+                      estado={
                         detalle.estado
-                      )}
-                    </span>
+                      }
+                      etiqueta={
+                        detalle.estadoEtiqueta
+                      }
+                      estados={
+                        catalogo.estados
+                      }
+                    />
+
+                    <ChipPlazo
+                      grande
+                      denuncia={
+                        detalle
+                      }
+                    />
+
+                    {detalle.derivadaAlOficial ===
+                      true && (
+                      <ChipDerivada
+                        grande
+                      />
+                    )}
 
                   </div>
 
 
-                  <h3 className="mt-3 text-2xl font-bold text-ink">
-                    {detalle.causa}
+                  <h3 className="mt-3 break-words text-2xl font-bold text-ink">
+                    {detalle.causaEtiqueta ||
+                      nombreDe(
+                        catalogo.situaciones,
+                        detalle.causa
+                      )}
                   </h3>
 
 
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 break-words text-sm text-muted">
                     Relación: {detalle.relacionEmpresa}
                   </p>
 
@@ -878,6 +997,24 @@ export function DenunciasRecibidas() {
                     )}
                   </p>
 
+                  {detalle.fechaLimiteAtencion && (
+
+                    <>
+
+                      <p className="mt-3 text-xs text-faint">
+                        Plazo de atención hasta el
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-ink">
+                        {fechaDia(
+                          detalle.fechaLimiteAtencion
+                        )}
+                      </p>
+
+                    </>
+
+                  )}
+
                 </div>
 
               </div>
@@ -891,24 +1028,86 @@ export function DenunciasRecibidas() {
                   Descripción
                 </p>
 
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted">
+                <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-muted">
                   {detalle.descripcion}
                 </p>
 
               </div>
 
 
+              {/* RESULTADO DEL CIERRE */}
+
+              {detalle.estado ===
+                "CERRADO" &&
+                conCamposNuevos(
+                  detalle
+                ) && (
+
+                <div className="rounded-xl border border-line bg-surface-2 p-5">
+
+                  <p className="eyebrow">
+                    Resultado del cierre
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+
+                    {detalle.resultadoCierre ? (
+
+                      <ChipResultado
+                        grande
+                        resultado={
+                          detalle.resultadoCierre
+                        }
+                        etiqueta={
+                          detalle.resultadoCierreEtiqueta
+                        }
+                      />
+
+                    ) : (
+
+                      <Chip
+                        grande
+                        tono="neutral"
+                      >
+                        Sin dato
+                      </Chip>
+
+                    )}
+
+                  </div>
+
+                  {detalle.motivoCierre && (
+
+                    <div className="mt-4">
+
+                      <p className="text-xs font-semibold text-muted">
+                        Motivo
+                      </p>
+
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-ink">
+                        {detalle.motivoCierre}
+                      </p>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              )}
+
+
               {/* RECEPTOR / DENUNCIANTE */}
 
               <div className="grid gap-4 md:grid-cols-2">
 
-                <div className="rounded-xl bg-surface-2 p-5">
+                <div className="min-w-0 rounded-xl bg-surface-2 p-5">
 
                   <p className="eyebrow">
                     Receptor
                   </p>
 
-                  <p className="mt-3 text-sm font-bold text-ink">
+                  <p className="mt-3 break-words text-sm font-bold text-ink">
                     {detalle.receptor ||
                       detalle.receptorPropuesto ||
                       "Sin receptor"}
@@ -917,7 +1116,7 @@ export function DenunciasRecibidas() {
                 </div>
 
 
-                <div className="rounded-xl bg-surface-2 p-5">
+                <div className="min-w-0 rounded-xl bg-surface-2 p-5">
 
                   <div className="flex items-center gap-2">
 
@@ -941,7 +1140,7 @@ export function DenunciasRecibidas() {
 
                   ) : (
 
-                    <div className="mt-3 space-y-1 text-sm text-muted">
+                    <div className="mt-3 space-y-1 break-words text-sm text-muted">
 
                       <p>
                         {detalle.nombreDenunciante ||
@@ -1001,10 +1200,10 @@ export function DenunciasRecibidas() {
                           key={
                             persona.id
                           }
-                          className="rounded-xl border border-line p-4"
+                          className="min-w-0 rounded-xl border border-line p-4"
                         >
 
-                          <p className="font-semibold text-ink">
+                          <p className="break-words font-semibold text-ink">
                             {persona.nombreRazonSocial}
                           </p>
 
@@ -1015,13 +1214,13 @@ export function DenunciasRecibidas() {
                           </p>
 
                           {persona.documento && (
-                            <p className="mt-2 text-xs text-muted">
+                            <p className="mt-2 break-words text-xs text-muted">
                               Documento: {persona.documento}
                             </p>
                           )}
 
                           {persona.cargo && (
-                            <p className="mt-1 text-xs text-muted">
+                            <p className="mt-1 break-words text-xs text-muted">
                               Cargo: {persona.cargo}
                             </p>
                           )}
@@ -1080,7 +1279,7 @@ export function DenunciasRecibidas() {
 
                             <div className="min-w-0">
 
-                              <p className="truncate text-sm font-semibold text-ink">
+                              <p className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
                                 {archivo.nombreOriginal}
                               </p>
 
@@ -1166,8 +1365,27 @@ export function DenunciasRecibidas() {
 
                 <div className="mt-4 space-y-3">
 
-                  {detalle.historial.map(
-                    (evento) => (
+                  {/* La línea neutra de la derivación es reservada: solo la ve quien el servidor deja ver lo reservado. */}
+
+                  {detalle.historial
+                    .filter(
+                      (evento) =>
+                        puedeVerReservado(
+                          detalle
+                        ) ||
+                        !esLineaDerivacion(
+                          evento.comentario
+                        )
+                    )
+                    .map(
+                    (evento) => {
+
+                      const reservado =
+                        esLineaDerivacion(
+                          evento.comentario
+                        );
+
+                      return (
 
                       <div
                         key={
@@ -1178,8 +1396,10 @@ export function DenunciasRecibidas() {
 
                         <div className="flex flex-wrap items-center justify-between gap-2">
 
-                          <p className="text-sm font-bold text-ink">
-                            {evento.estadoAnterior
+                          <p className="min-w-0 break-words text-sm font-bold text-ink">
+                            {evento.estadoAnterior &&
+                            evento.estadoAnterior !==
+                              evento.estadoNuevo
                               ? `${etiquetaEstado(
                                   evento.estadoAnterior
                                 )} → `
@@ -1200,8 +1420,20 @@ export function DenunciasRecibidas() {
 
                         {evento.comentario && (
 
-                          <p className="mt-2 text-sm leading-6 text-muted">
-                            {evento.comentario}
+                          <p className="mt-2 flex items-start gap-1.5 break-words text-sm leading-6 text-muted">
+
+                            {reservado && (
+                              <Lock
+                                size={14}
+                                className="mt-1.5 shrink-0 text-ink"
+                                aria-hidden="true"
+                              />
+                            )}
+
+                            <span className="min-w-0 flex-1">
+                              {evento.comentario}
+                            </span>
+
                           </p>
 
                         )}
@@ -1209,7 +1441,7 @@ export function DenunciasRecibidas() {
 
                         {evento.usuario && (
 
-                          <p className="mt-2 text-xs font-semibold text-muted">
+                          <p className="mt-2 break-words text-xs font-semibold text-muted">
                             {evento.usuario}
                           </p>
 
@@ -1217,7 +1449,8 @@ export function DenunciasRecibidas() {
 
                       </div>
 
-                    )
+                      );
+                    }
                   )}
 
                 </div>
@@ -1318,14 +1551,147 @@ export function DenunciasRecibidas() {
 
                       )}
 
-                      Pasar a{" "}
-                      {etiquetaEstado(
-                        siguienteEstado(
-                          detalle.estado
-                        ) as EstadoDenuncia
+                      {siguienteEstado(
+                        detalle.estado
+                      ) === "CERRADO" &&
+                      conCamposNuevos(
+                        detalle
+                      ) ? (
+                        "Cerrar la denuncia"
+                      ) : (
+                        <>
+                          Pasar a{" "}
+                          {etiquetaEstado(
+                            siguienteEstado(
+                              detalle.estado
+                            ) as EstadoDenuncia
+                          )}
+                        </>
                       )}
 
                     </button>
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+              {/* DERIVACIÓN AL OFICIAL DE CUMPLIMIENTO (RESERVADA) */}
+
+              {puedeVerReservado(
+                detalle
+              ) && (
+
+                <div className="rounded-xl border border-line bg-white p-5">
+
+                  <div className="flex items-start gap-3">
+
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-paper"
+                      aria-hidden="true"
+                    >
+                      <Lock
+                        size={16}
+                      />
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+
+                      <p className="text-sm font-bold text-ink">
+                        Derivación al oficial de cumplimiento
+                      </p>
+
+                      {detalle.derivadaAlOficial ? (
+
+                        <>
+
+                          <p className="mt-1 text-xs leading-5 text-muted">
+                            Esta denuncia está derivada y en reserva.
+                          </p>
+
+                          {detalle.derivacion && (
+
+                            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+
+                              <div className="min-w-0">
+
+                                <dt className="text-xs font-semibold text-muted">
+                                  Fecha
+                                </dt>
+
+                                <dd className="mt-1 break-words text-sm text-ink">
+                                  {formatearFecha(
+                                    detalle.derivacion.fechaDerivacion
+                                  )}
+                                </dd>
+
+                              </div>
+
+                              <div className="min-w-0">
+
+                                <dt className="text-xs font-semibold text-muted">
+                                  Derivada por
+                                </dt>
+
+                                <dd className="mt-1 break-words text-sm text-ink">
+                                  {detalle.derivacion.derivadaPor ||
+                                    "—"}
+                                </dd>
+
+                              </div>
+
+                              <div className="min-w-0 sm:col-span-2">
+
+                                <dt className="text-xs font-semibold text-muted">
+                                  Motivo
+                                </dt>
+
+                                <dd className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-ink">
+                                  {detalle.derivacion.motivo ||
+                                    "Sin motivo registrado."}
+                                </dd>
+
+                              </div>
+
+                            </dl>
+
+                          )}
+
+                        </>
+
+                      ) : (
+
+                        <>
+
+                          <p className="mt-1 text-xs leading-5 text-muted">
+                            Envía esta denuncia en reserva al oficial de cumplimiento.
+                            Solo quienes pueden ver lo reservado sabrán que se derivó.
+                          </p>
+
+                          <div className="mt-4">
+
+                            <Boton
+                              variante="secundario"
+                              icono={Lock}
+                              onClick={() =>
+                                setDerivando(
+                                  true
+                                )
+                              }
+                              className="h-auto min-h-10 whitespace-normal py-2 text-center"
+                            >
+                              Derivar al oficial de cumplimiento
+                            </Boton>
+
+                          </div>
+
+                        </>
+
+                      )}
+
+                    </div>
 
                   </div>
 
@@ -1340,6 +1706,55 @@ export function DenunciasRecibidas() {
         </section>
 
       </div>
+
+
+      {/* =====================================================
+          VENTANAS: CERRAR CON RESULTADO / DERIVAR
+      ===================================================== */}
+
+      {detalle &&
+        cerrando && (
+
+        <CerrarDenunciaModal
+          id={detalle.id}
+          resultados={
+            catalogo.resultadosCierre
+          }
+          comentario={
+            comentario
+          }
+          onCerrar={() =>
+            setCerrando(
+              false
+            )
+          }
+          onCerrada={(resultado) =>
+            void alCerrar(
+              resultado
+            )
+          }
+        />
+
+      )}
+
+      {detalle &&
+        derivando && (
+
+        <DerivarOficialModal
+          id={detalle.id}
+          onCerrar={() =>
+            setDerivando(
+              false
+            )
+          }
+          onDerivada={(resultado) =>
+            void alDerivar(
+              resultado
+            )
+          }
+        />
+
+      )}
 
     </div>
   );

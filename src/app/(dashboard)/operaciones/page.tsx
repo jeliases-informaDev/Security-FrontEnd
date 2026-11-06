@@ -1,5 +1,5 @@
-import { OperacionesWorkspace } from '@/modules/operaciones/components/OperacionesWorkspace';
+import { OperacionesLista } from '@/modules/operaciones/components/OperacionesLista';
 
 export default function OperacionesPage() {
-  return <OperacionesWorkspace />;
+  return <OperacionesLista />;
 }

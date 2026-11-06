@@ -325,8 +325,8 @@ export interface DatosVistaPrevia {
   numeroDocumento: string;
   tipoCargo: string;
   vinculo: string;
-  /** Vacía = hoy. */
-  fecha: string;
+  /** AAAA-MM-DD. Sin fecha = hoy (lo decide el servidor). */
+  fecha?: string;
 }
 
 export interface HojaDeclaracion {

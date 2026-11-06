@@ -8,19 +8,21 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { IconoOficial } from '@/shared/ui/iconos';
-import { CAMPOS_PASO, DEPENDIENTES, crearEsquema, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
+import { CAMPOS_PASO, DEPENDIENTES, crearEsquema, datosVistaPrevia, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
 import { enfocarPrimerError, subirAlInicio } from '../../lib/pantalla';
-import { oficialService, type CatalogosOficial, type EstadoOficial } from '../../services/oficialService';
+import { oficialService, type CatalogosOficial, type DatosVistaPrevia, type EstadoOficial } from '../../services/oficialService';
 import { BTN, BarraGuia, RUTA_OFICIAL, Tarjeta } from '../piezas';
 import { PasoDatos } from './PasoDatos';
+import { PasoDeclaraciones } from './PasoDeclaraciones';
 import { PasoDesignacion } from './PasoDesignacion';
 import { PasosAsistente } from './PasosAsistente';
+import { VistaPreviaDeclaracion } from './VistaPreviaDeclaracion';
 
 /** Los cuatro pasos del asistente: el título sale del diseño; «Revisión y guardado» es el nombre que usa la lista de pasos de OC 0. */
 const PASOS = [
   { titulo: 'Datos de la persona', descripcion: 'Completa los datos de la persona. Son los mismos que se piden en la solicitud a la UIF.' },
   { titulo: 'Designación', descripcion: 'Indica quién designa al oficial y adjunta el documento que lo acredita.' },
-  { titulo: 'Declaraciones juradas', descripcion: '' },
+  { titulo: 'Declaraciones juradas', descripcion: 'Son dos declaraciones: una de la persona designada y otra de quien la designa.' },
   { titulo: 'Revisión y guardado', descripcion: '' },
 ];
 
@@ -29,6 +31,8 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [aviso, setAviso] = useState<AvisoDatos | null>(null);
+  // Datos con los que se abrió la vista previa de la declaración (null = cerrada). Se arman al abrir, así la ventana no cambia mientras se lee.
+  const [vistaPrevia, setVistaPrevia] = useState<DatosVistaPrevia | null>(null);
   const inicio = useRef<HTMLDivElement>(null);
   const esquema = useMemo(() => crearEsquema(catalogos), [catalogos]);
   const metodos = useForm<FormularioDesignacion>({
@@ -123,8 +127,11 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
 
           {paso === 0 && <PasoDatos catalogos={catalogos} estado={estado} pie={pie} />}
           {paso === 1 && <PasoDesignacion catalogos={catalogos} pie={pie} />}
-          {paso > 1 && <Tarjeta titulo="Este paso está en construcción" />}
+          {paso === 2 && <PasoDeclaraciones catalogos={catalogos} pie={pie} alVerVistaPrevia={() => setVistaPrevia(datosVistaPrevia(getValues()))} />}
+          {paso > 2 && <Tarjeta titulo="Este paso está en construcción" />}
         </form>
+
+        {vistaPrevia && <VistaPreviaDeclaracion datos={vistaPrevia} onCerrar={() => setVistaPrevia(null)} />}
       </PageShell>
     </FormProvider>
   );

@@ -4,8 +4,8 @@
 
 import { z } from 'zod';
 import type { FieldPath } from 'react-hook-form';
-import type { Adjunto, CatalogosOficial, EstadoOficial } from '../services/oficialService';
-import { hoyIso } from './formato';
+import type { Adjunto, CatalogosOficial, DatosVistaPrevia, EstadoOficial } from '../services/oficialService';
+import { fechaCorta, hoyIso } from './formato';
 
 const texto = z.string();
 /** Archivo ya subido al servidor (queda suelto hasta que se guarda la designación) o nada. */
@@ -68,13 +68,22 @@ export const CAMPOS_PASO: FieldPath<FormularioDesignacion>[][] = [
     'designacion.designa', 'designacion.nombreOrgano', 'designacion.documentoTipo', 'designacion.documentoFecha',
     'designacion.fechaDesignacion', 'designacion.adjunto',
   ],
-  [],
+  [
+    'declaraciones.requisitos.puntos', 'declaraciones.requisitos.firmaNombre', 'declaraciones.requisitos.fechaFirma', 'declaraciones.requisitos.adjunto',
+    'declaraciones.designante.aceptada', 'declaraciones.designante.firmaNombre', 'declaraciones.designante.fechaFirma', 'declaraciones.designante.adjunto',
+  ],
   [],
 ];
 
 /** Al cambiar uno de estos campos, el que depende de él (si ya tiene error) se vuelve a validar. */
 export const DEPENDIENTES: Partial<Record<FieldPath<FormularioDesignacion>, FieldPath<FormularioDesignacion>[]>> = {
   'designacion.fechaDesignacion': ['designacion.documentoFecha'],
+  'declaraciones.requisitos.firmaNombre': ['declaraciones.requisitos.fechaFirma'],
+  'declaraciones.requisitos.fechaFirma': ['declaraciones.requisitos.firmaNombre'],
+  'declaraciones.requisitos.adjunto': ['declaraciones.requisitos.firmaNombre', 'declaraciones.requisitos.fechaFirma'],
+  'declaraciones.designante.firmaNombre': ['declaraciones.designante.fechaFirma'],
+  'declaraciones.designante.fechaFirma': ['declaraciones.designante.firmaNombre'],
+  'declaraciones.designante.adjunto': ['declaraciones.designante.firmaNombre', 'declaraciones.designante.fechaFirma'],
 };
 
 // ============================================================
@@ -211,5 +220,70 @@ export function crearEsquema(cat: CatalogosOficial) {
       error('designacion.documentoFecha', 'La fecha del documento no puede ser posterior a la fecha de designación.');
     }
     if (!d.adjunto) error('designacion.adjunto', 'Adjunta el acta o el documento de designación.');
+
+    // Declaraciones juradas: todos los puntos marcados y la firma (nombre y fecha escritos, o la declaración firmada subida)
+    const r = v.declaraciones.requisitos;
+    if (!cat.declaracionRequisitos.every((p) => r.puntos.includes(p.letra))) error('declaraciones.requisitos.puntos', 'Marca todas las declaraciones para continuar.');
+    if (!v.declaraciones.designante.aceptada) error('declaraciones.designante.aceptada', 'Marca la declaración para continuar.');
+
+    const firma = (prefijo: 'declaraciones.requisitos' | 'declaraciones.designante', f: { firmaNombre: string; fechaFirma: string; adjunto: Adjunto | null }) => {
+      const hayNombre = !vacio(f.firmaNombre);
+      const hayFecha = !vacio(f.fechaFirma);
+      if (!hayNombre && !hayFecha) {
+        if (!f.adjunto) {
+          error(`${prefijo}.firmaNombre`, 'Escribe el nombre completo para firmar o sube la declaración firmada.');
+          error(`${prefijo}.fechaFirma`, 'Indica la fecha de la firma.');
+        }
+        return;
+      }
+      if (!hayNombre) error(`${prefijo}.firmaNombre`, 'Escribe el nombre completo para firmar.');
+      else largo(`${prefijo}.firmaNombre`, f.firmaNombre, 255, 'El nombre admite hasta 255 caracteres.');
+      if (!hayFecha) error(`${prefijo}.fechaFirma`, 'Indica la fecha de la firma.');
+      else if (!FECHA_ISO.test(f.fechaFirma)) error(`${prefijo}.fechaFirma`, 'Escribe la fecha como dd/mm/aaaa.');
+      else if (f.fechaFirma > hoy) error(`${prefijo}.fechaFirma`, 'La fecha de la firma no puede ser futura.');
+    };
+    firma('declaraciones.requisitos', r);
+    firma('declaraciones.designante', v.declaraciones.designante);
   });
+}
+
+// ============================================================
+// Estado de las declaraciones (para las tarjetas «Completa» y la revisión)
+// ============================================================
+
+/** ¿Hay firma? El nombre y la fecha escritos, o la declaración firmada ya subida. */
+const hayFirma = (f: { firmaNombre: string; fechaFirma: string; adjunto: Adjunto | null }): boolean => f.adjunto !== null || (!vacio(f.firmaNombre) && FECHA_ISO.test(f.fechaFirma));
+
+export const requisitosCompletos = (v: FormularioDesignacion, cat: CatalogosOficial): boolean =>
+  cat.declaracionRequisitos.every((p) => v.declaraciones.requisitos.puntos.includes(p.letra)) && hayFirma(v.declaraciones.requisitos);
+
+export const designanteCompleto = (v: FormularioDesignacion): boolean => v.declaraciones.designante.aceptada && hayFirma(v.declaraciones.designante);
+
+/** Texto de los puntos de la declaración de requisitos: el punto «h» cambia según el vínculo elegido en el paso 1 (lo dicta el catálogo). */
+export function puntosDeRequisitos(cat: CatalogosOficial, vinculo: string): { letra: string; texto: string }[] {
+  return cat.declaracionRequisitos.map((p) => ({ letra: p.letra, texto: p.letra === 'h' ? cat.declaracionRequisitosPuntoH[vinculo] ?? p.texto : p.texto }));
+}
+
+/** «Acta de sesión de directorio del 30/10/2026»: el documento que acredita la designación, como lo escribe el servidor en la ficha. */
+export function documentoQueAcredita(cat: CatalogosOficial, v: FormularioDesignacion): string {
+  const tipo = cat.documentosDesignacion.find((x) => x.codigo === v.designacion.documentoTipo)?.nombre ?? '';
+  const fecha = FECHA_ISO.test(v.designacion.documentoFecha) ? fechaCorta(v.designacion.documentoFecha) : '';
+  return tipo && fecha ? `${tipo} del ${fecha}` : tipo;
+}
+
+/**
+ * Lo que pide la vista previa de la declaración de requisitos (no se guarda nada). La fecha de la hoja es la de la firma;
+ * si todavía no se escribió, no se manda y el servidor usa la de hoy.
+ */
+export function datosVistaPrevia(v: FormularioDesignacion): DatosVistaPrevia {
+  const fechaFirma = v.declaraciones.requisitos.fechaFirma;
+  return {
+    nombres: v.persona.nombres.trim(),
+    apellidos: v.persona.apellidos.trim(),
+    tipoDocumento: v.persona.tipoDocumento,
+    numeroDocumento: v.persona.numeroDocumento.trim(),
+    tipoCargo: v.tipoCargo,
+    vinculo: v.cargo.vinculo,
+    ...(FECHA_ISO.test(fechaFirma) ? { fecha: fechaFirma } : {}),
+  };
 }

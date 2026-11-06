@@ -90,6 +90,16 @@ export function BarraGuia() {
   );
 }
 
+/** Nota de la columna derecha: rótulo en mono y un texto corto («Reserva», «Importante»). */
+export function NotaLateral({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <section className="card flex flex-col gap-2 !rounded-[22px] px-5 py-[18px]">
+      <p className="rotulo">{rotulo}</p>
+      <p className="text-sm leading-[21px] text-ink/80">{children}</p>
+    </section>
+  );
+}
+
 /** Aviso para quienes solo pueden ver: el servidor ya les niega las acciones; aquí se explica por qué no aparecen. */
 export function NotaSoloLectura({ className = '' }: { className?: string }) {
   return (

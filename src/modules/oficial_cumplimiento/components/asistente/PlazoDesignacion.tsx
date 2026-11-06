@@ -7,7 +7,7 @@ import { useCarga } from '../../hooks/useCarga';
 import { etiquetaDePlazo, fechaCorta, reglaTexto } from '../../lib/formato';
 import { oficialService, type CatalogosOficial } from '../../services/oficialService';
 import { esFechaCompleta } from '../campos';
-import { Tarjeta, URL_SISDEL } from '../piezas';
+import { NotaLateral, Tarjeta, URL_SISDEL } from '../piezas';
 
 /** Regla del plazo para comunicar la designación a la UIF (el valor y la unidad los fija el servidor). */
 export const REGLA_COMUNICAR_DESIGNACION = 'PLAZO_COMUNICAR_DESIGNACION';
@@ -66,11 +66,8 @@ export function TarjetaPlazoUif({ desde, catalogos }: { desde: string; catalogos
 /** «Reserva»: nota fija del diseño sobre el Registro Público. */
 export function TarjetaReserva() {
   return (
-    <section className="card flex flex-col gap-2 !rounded-[22px] px-5 py-[18px]">
-      <p className="rotulo">Reserva</p>
-      <p className="text-sm leading-[21px] text-ink/80">
-        La designación no se inscribe en Registros Públicos. Si el oficial tiene también un cargo gerencial, solo se inscribe la parte de ese cargo.
-      </p>
-    </section>
+    <NotaLateral rotulo="Reserva">
+      La designación no se inscribe en Registros Públicos. Si el oficial tiene también un cargo gerencial, solo se inscribe la parte de ese cargo.
+    </NotaLateral>
   );
 }

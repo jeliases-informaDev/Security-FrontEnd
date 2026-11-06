@@ -18,11 +18,12 @@ export const idDeRuta = (ruta: string): string => `oc-${ruta.replace(/[^A-Za-z0-
 const mensajeDeError = (errors: object, ruta: string): string | undefined => get(errors, ruta)?.message as string | undefined;
 
 /** Rótulo, campo, ayuda y error (el error reemplaza a la ayuda). */
-export function Campo({ id, texto, opcional = false, error, ayuda, children, className = '' }: { id: string; texto: string; opcional?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
+export function Campo({ id, texto, lector, opcional = false, error, ayuda, children, className = '' }: { id: string; texto: string; lector?: string; opcional?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
       <label htmlFor={id} className="label">
         {texto}
+        {lector && <span className="sr-only"> {lector}</span>}
         {opcional && <span className="font-normal text-muted"> (opcional)</span>}
       </label>
       {children}
@@ -36,6 +37,8 @@ const descritoPor = (id: string, error?: string, ayuda?: ReactNode): string | un
 interface PropsTexto {
   ruta: string;
   texto: string;
+  /** Aclaración solo para lectores de pantalla cuando el rótulo se repite («Fecha» de cada firma). */
+  lector?: string;
   opcional?: boolean;
   placeholder?: string;
   tipo?: 'text' | 'email' | 'tel';
@@ -47,12 +50,12 @@ interface PropsTexto {
 }
 
 /** Campo de texto de una línea. */
-export function CampoTexto({ ruta, texto, opcional, placeholder, tipo = 'text', maxLength, ayuda, autoComplete = 'off', deshabilitado, className }: PropsTexto) {
+export function CampoTexto({ ruta, texto, lector, opcional, placeholder, tipo = 'text', maxLength, ayuda, autoComplete = 'off', deshabilitado, className }: PropsTexto) {
   const { register, formState: { errors } } = useFormContext();
   const id = idDeRuta(ruta);
   const error = mensajeDeError(errors, ruta);
   return (
-    <Campo id={id} texto={texto} opcional={opcional} error={error} ayuda={ayuda} className={className}>
+    <Campo id={id} texto={texto} lector={lector} opcional={opcional} error={error} ayuda={ayuda} className={className}>
       <input
         id={id}
         type={tipo}
@@ -148,7 +151,7 @@ function aIso(texto: string): string | null {
 export const esFechaCompleta = (valor: string): boolean => ISO.test(valor);
 
 /** Campo de fecha con calendario. `min` y `max` (AAAA-MM-DD) solo limitan el calendario; la validación va aparte. */
-export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilitado, className }: { ruta: string; texto: string; opcional?: boolean; ayuda?: ReactNode; min?: string; max?: string; deshabilitado?: boolean; className?: string }) {
+export function CampoFecha({ ruta, texto, lector, opcional, ayuda, min, max, deshabilitado, className }: { ruta: string; texto: string; lector?: string; opcional?: boolean; ayuda?: ReactNode; min?: string; max?: string; deshabilitado?: boolean; className?: string }) {
   const { control, formState: { errors } } = useFormContext();
   const selector = useRef<HTMLInputElement>(null);
   const id = idDeRuta(ruta);
@@ -172,7 +175,7 @@ export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilita
       render={({ field }) => {
         const valor = String(field.value ?? '');
         return (
-          <Campo id={id} texto={texto} opcional={opcional} error={error} ayuda={ayuda} className={className}>
+          <Campo id={id} texto={texto} lector={lector} opcional={opcional} error={error} ayuda={ayuda} className={className}>
             <div className="relative">
               <input
                 id={id}
@@ -194,7 +197,7 @@ export function CampoFecha({ ruta, texto, opcional, ayuda, min, max, deshabilita
                 type="button"
                 onClick={abrirCalendario}
                 disabled={deshabilitado}
-                aria-label={`Elegir ${texto.toLowerCase()} en el calendario`}
+                aria-label={`Elegir ${texto.toLowerCase()}${lector ? ` ${lector}` : ''} en el calendario`}
                 className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />

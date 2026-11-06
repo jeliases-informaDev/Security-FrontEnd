@@ -136,6 +136,7 @@ export function TarjetaDenuncias({ estado, bloque, periodoEtiqueta, onReintentar
         )
       }
       derechaCorta
+      estira="mucho"
     >
       {vacio ? (
         <VacioTarjeta

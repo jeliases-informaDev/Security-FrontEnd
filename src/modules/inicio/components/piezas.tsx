@@ -63,8 +63,17 @@ interface TarjetaProps {
   derecha?: ReactNode;
   /** `derecha` es solo un chip corto (sin enlace): entonces cabe al lado del título desde mucho más angosto (17 rem de tarjeta en vez de 30). */
   derechaCorta?: boolean;
+  /** Cuánto puede crecer si el tablero la estira para que su columna termine pareja con la otra: `poco` (+2,5 rem) o `mucho` (+6 rem, para las de muchos bloques, donde el reparto se nota menos). */
+  estira?: 'poco' | 'mucho';
   children?: ReactNode;
 }
+
+// Tope de estiramiento: `calc-size` limita la tarjeta a su alto natural más una holgura. Con dos bloques o menos (título y un bloque
+// de cargando, error o vacío) no hay holgura: esas tarjetas nunca se estiran. Clases completas para que Tailwind las encuentre.
+const ESTIRA = {
+  poco: 'max-h-[calc-size(max-content,size)] has-[>:nth-child(3)]:max-h-[calc-size(max-content,size_+_2.5rem)]',
+  mucho: 'max-h-[calc-size(max-content,size)] has-[>:nth-child(3)]:max-h-[calc-size(max-content,size_+_6rem)]',
+} as const;
 
 // Cabecera de dos filas (título y lo de la derecha / subtítulo), solo desde cierto ancho de tarjeta. Son clases escritas completas
 // para que Tailwind las encuentre: no se pueden armar con texto.
@@ -94,16 +103,15 @@ const CABECERA = {
  *
  * Altura: si el tablero la estira (la última tarjeta de la columna más corta, para que las dos terminen parejas), la diferencia
  * se reparte entre los bloques (`justify-between`, solo con tres o más: cargando, error y vacío son título + un bloque y ese
- * bloque se queda pegado al título) en vez de dejar un vacío al final. Y no se estira de más: `calc-size` limita la tarjeta a
- * su alto natural + 6 rem; con una diferencia mayor (estados raros) las columnas terminan distintas, como siempre.
- * (Un navegador sin `calc-size` ignora ese tope y estira del todo.)
+ * bloque se queda pegado al título) en vez de dejar un vacío al final. Y no se estira de más (ver `ESTIRA`); con una diferencia
+ * mayor (estados raros) las columnas terminan distintas, como siempre. Un navegador sin `calc-size` ignora el tope y estira del todo.
  */
-export function Tarjeta({ id, icono: Icono, avatar, titulo, subtitulo, nombreAccesible, derecha, derechaCorta = false, children }: TarjetaProps) {
+export function Tarjeta({ id, icono: Icono, avatar, titulo, subtitulo, nombreAccesible, derecha, derechaCorta = false, estira = 'poco', children }: TarjetaProps) {
   const idTitulo = `${id}-titulo`;
   const c = derechaCorta ? CABECERA.corta : CABECERA.larga;
   return (
     <section
-      className="card @container flex max-h-[calc-size(max-content,size_+_6rem)] flex-col gap-4 p-4 has-[>:nth-child(3)]:justify-between sm:p-5"
+      className={`card @container flex flex-col gap-4 p-4 has-[>:nth-child(3)]:justify-between sm:p-5 ${ESTIRA[estira]}`}
       aria-labelledby={nombreAccesible ? undefined : idTitulo}
       aria-label={nombreAccesible}
     >

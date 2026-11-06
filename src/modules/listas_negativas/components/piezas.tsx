@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { COLORES_MEDIDOR } from '@/modules/inicio/components/MedidorCoincidencia';
 import type { EstadoFila } from '../services/listasNegativasService';
+import { COLORES_MEDIDOR } from '../lib/coloresMedidor';
 import { clasificacionCorta } from '../lib/formato';
 
 /** Estilos por clasificación (los tres códigos que manda el backend); lo desconocido se ve neutro. */

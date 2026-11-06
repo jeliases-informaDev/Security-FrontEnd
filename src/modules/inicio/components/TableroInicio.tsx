@@ -1,157 +1,141 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import type { ComponentType, CSSProperties, ReactNode, SVGProps } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
-import { esAdministrador, modulosVisibles, type ModuloDashboard } from '@/shared/lib/modulos';
 import { useIndira } from '@/shared/ui/IndiraContexto';
-import { IconoDerecha, IconoDestello, IconoDestellos, IconoFlecha } from '@/shared/ui/iconos';
-import { listasNegativasService, type InicioListas } from '@/modules/listas_negativas/services/listasNegativasService';
-import { MedidorCoincidencia } from './MedidorCoincidencia';
-import { UltimasBusquedas, type EstadoUltimas } from './UltimasBusquedas';
+import { IconoDestellos, IconoLupa, IconoMas, IconoMensaje, IconoOficial, IconoRecibo } from '@/shared/ui/iconos';
+import { useResumenInicio } from '../hooks/useResumenInicio';
+import { LimiteError } from './LimiteError';
+import { ErrorTarjeta, Tarjeta } from './piezas';
+import { TarjetaDenuncias } from './TarjetaDenuncias';
+import { TarjetaListas } from './TarjetaListas';
+import { TarjetaOficial } from './TarjetaOficial';
+import { TarjetaOperaciones } from './TarjetaOperaciones';
 
 /**
- * Turno de un bloque en la entrada de la página (`.inicio-entra` en globals.css, Figma 109:153). Orden del diseño: 0 bienvenida y tarjeta
- * de Listas Negativas (en el marco son un solo bloque), 1 últimas búsquedas, 2 en adelante los módulos y al final Indira.
+ * Turno de un bloque en la entrada de la página (`.inicio-entra` en globals.css, Figma 109:153): primero la bienvenida y
+ * después una tarjeta tras otra, en el orden en que se leen.
  */
 const turno = (paso: number) => ({ '--paso': paso }) as CSSProperties;
 
-/** Tarjeta de un módulo: icono, rótulos de lo que hay dentro, nombre, descripción y «Abrir». */
-function TarjetaModulo({ modulo }: { modulo: ModuloDashboard }) {
-  const Icono = modulo.icono;
+type Icono = ComponentType<SVGProps<SVGSVGElement>>;
+
+/** Una tarjeta con su propia red: si al dibujarla algo falla, solo ella muestra el error (y deja reintentar). */
+function Bloque({ id, icono, titulo, onReintentar, children }: { id: string; icono: Icono; titulo: string; onReintentar: () => void; children: ReactNode }) {
   return (
-    <Link href={modulo.href} className="card card-hover group flex h-full min-h-[188px] flex-col gap-3.5 px-6 py-[22px]">
-      <span className="flex items-center justify-between gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-brand-soft text-ink" aria-hidden="true">
-          <Icono />
-        </span>
-        {modulo.etiquetas && (
-          <span className="flex flex-wrap justify-end gap-1.5">
-            {modulo.etiquetas.map((etiqueta) => <span key={etiqueta} className="badge badge-neutral">{etiqueta}</span>)}
-          </span>
-        )}
-      </span>
-      <span className="block">
-        <span className="block text-[17px] font-semibold leading-[1.5] tracking-[-0.01em] text-ink">{modulo.nombre}</span>
-        <span className="mt-1 block text-[15px] leading-[22px] text-muted">{modulo.descripcion}</span>
-      </span>
-      <span className="mt-auto flex items-center gap-1.5 text-sm font-semibold leading-5 text-ink">
-        Abrir <IconoFlecha className="transition-transform duration-150 group-hover:translate-x-0.5" />
-      </span>
-    </Link>
+    <LimiteError respaldo={<Tarjeta id={id} icono={icono} titulo={titulo}><ErrorTarjeta onReintentar={onReintentar} /></Tarjeta>}>
+      {children}
+    </LimiteError>
   );
 }
 
+/** «tus listas negativas, tus operaciones y el canal de denuncias»: solo nombra lo que la cuenta ve en la página. */
+function frase(visibles: { listas: boolean; operaciones: boolean; oficial: boolean; denuncias: boolean }): string {
+  const partes = [
+    visibles.listas && 'tus listas negativas',
+    visibles.operaciones && 'tus operaciones',
+    visibles.oficial && 'tu oficial de cumplimiento',
+    visibles.denuncias && 'el canal de denuncias',
+  ].filter((parte): parte is string => typeof parte === 'string');
+  if (partes.length === 0) return 'Elige un módulo del menú para empezar. Todo lo que hagas queda registrado.';
+  const lista = partes.length === 1 ? partes[0] : `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
+  return `Lo urgente va primero. Aquí tienes cómo van ${lista}.`;
+}
+
 /**
- * Página principal (diseño «Propuesta suave», Figma PLAFT 167:704): bienvenida, tarjeta de Listas Negativas con la rueda de
- * coincidencia, últimas búsquedas (historial real) y una tarjeta por módulo, con Indira al final.
+ * Página principal (diseño «Propuesta suave»): bienvenida y cuatro tarjetas con datos reales del servidor
+ * (GET /api/inicio/resumen): listas negativas y registro de operaciones a la izquierda, oficial de cumplimiento y
+ * canal de denuncias a la derecha. Debajo de 1024 px todo va en una sola columna. Una tarjeta que el servidor manda null no se muestra.
  */
 export function TableroInicio() {
   const { usuario } = useAuth();
   const { alternar: alternarIndira } = useIndira();
-  const [inicio, setInicio] = useState<InicioListas | null>(null);
-  const [falloInicio, setFalloInicio] = useState(false);
-
-  // Una sola lectura alimenta la rueda (el mayor porcentaje de las tres últimas consultas) y «Últimas búsquedas».
-  useEffect(() => {
-    let vigente = true;
-    listasNegativasService
-      .inicio()
-      .then((datos) => { if (vigente) setInicio(datos); })
-      .catch(() => { if (vigente) setFalloInicio(true); });
-    return () => { vigente = false; };
-  }, []);
+  const { datos, estado, version, recargar } = useResumenInicio();
 
   if (!usuario) return null;
 
-  const ultimas: EstadoUltimas = inicio ? { fase: 'listo', items: inicio.ultimas } : falloInicio ? { fase: 'error' } : { fase: 'cargando' };
-
   const nombre = (usuario.nombreCompleto || usuario.usuario).split(' ')[0];
   const fecha = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-  // Listas Negativas tiene su propia tarjeta grande; los módulos que aún no existen no se muestran aquí.
-  const modulos = modulosVisibles(usuario).filter((modulo) => modulo.disponible && modulo.codigo !== 'listas-negativas');
+
+  // Mientras llega la respuesta (o si falla) se arman las cuatro tarjetas; con la respuesta, solo las que no vienen null.
+  const resumen = estado === 'listo' ? datos : null;
+  const ve = {
+    listas: !resumen || resumen.listas != null,
+    operaciones: !resumen || resumen.operaciones != null,
+    oficial: !resumen || resumen.oficial != null,
+    denuncias: !resumen || resumen.denuncias != null,
+  };
+  const hayIzquierda = ve.listas || ve.operaciones;
+  const hayDerecha = ve.oficial || ve.denuncias;
+  const periodo = datos?.periodoEtiqueta ?? null;
+  const propiedades = { estado, periodoEtiqueta: periodo, onReintentar: recargar };
 
   return (
     <main className="px-4 pb-10 pt-4 sm:px-6 lg:pb-12 lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)] lg:pt-[35px]">
       {/* Bienvenida */}
       <section className="inicio-entra flex flex-wrap items-end justify-between gap-x-8 gap-y-5" style={turno(0)}>
         <div className="min-w-0 lg:pl-1">
-          <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.16em] text-muted">
+          <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink" aria-hidden="true" />
             {fecha}
           </p>
-          <h1 className="titulo-serif mt-2 text-[clamp(2.75rem,4.17vw,5rem)]">Bienvenido, {nombre}</h1>
-          <p className="mt-3.5 text-[clamp(1rem,0.94vw,1.125rem)] text-muted">
-            {esAdministrador(usuario) ? 'Tienes acceso a todos los módulos y a la administración de cuentas.' : 'Elige un módulo para empezar. Todo lo que hagas queda registrado.'}
-          </p>
+          <h1 className="titulo-serif mt-2 break-words text-[clamp(2.25rem,3.3vw,4rem)]">Bienvenido, {nombre}</h1>
+          <p className="mt-3 max-w-[42rem] text-[clamp(0.9375rem,0.94vw,1.0625rem)] leading-relaxed text-muted">{frase(ve)}</p>
         </div>
-        <button type="button" onClick={alternarIndira} className="btn btn-noche btn-lg lg:mb-1.5">
-          <IconoDestellos className="h-[18px] w-[18px]" /> Preguntarle a Indira
-        </button>
+        <div className="flex flex-wrap items-center gap-3 lg:mb-1.5">
+          {/* «Nueva evaluación» lleva a Scoring de riesgo, donde se evalúa a un cliente. */}
+          <Link href="/scoring" className="btn btn-primary btn-lg">
+            <IconoMas /> Nueva evaluación
+          </Link>
+          <button type="button" onClick={alternarIndira} className="btn btn-secondary btn-lg">
+            <IconoDestellos className="h-[18px] w-[18px]" /> Preguntarle a Indira
+          </button>
+        </div>
       </section>
 
-      <div className="mt-9 grid gap-6 xl:grid-cols-[minmax(0,800fr)_minmax(0,654fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
-          {/* Listas Negativas */}
-          <section className="inicio-entra sombra-calida relative overflow-hidden rounded-[28px] border border-white/90 bg-white/95 sm:rounded-[34px]" style={turno(0)} aria-labelledby="titulo-listas">
-            {/* Brillo suave bajo la rueda */}
-            <div className="pointer-events-none absolute -bottom-12 right-5 h-[260px] w-[620px] max-w-full rounded-[50%] bg-white/60 blur-[30px]" aria-hidden="true" />
-            <div className="relative grid gap-x-1 gap-y-8 p-[27px] md:grid-cols-[minmax(0,324fr)_minmax(0,424fr)] md:items-center">
-              <div className="flex min-w-0 flex-col items-start">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/60 py-[7px] pl-3.5 pr-4 text-[13px] font-medium text-muted">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-vivo" aria-hidden="true" />
-                  Listas negativas · datos en vivo
-                </span>
-                <h2 id="titulo-listas" className="mt-[22px] max-w-[5.95em] font-serif text-[clamp(2.25rem,2.81vw,3.375rem)] leading-[0.98] tracking-[-0.015em] text-ink">
-                  Revisa las listas <em>negativas</em> de tus clientes
-                </h2>
-                <p className="mt-3.5 max-w-[290px] text-[15px] leading-snug text-ink/65">Busca PEP, sanciones y noticias en una sola consulta.</p>
-                <Link href="/listas-negativas" className="btn btn-primary btn-lg mt-5">
-                  Ir a Listas Negativas <IconoDerecha />
-                </Link>
-              </div>
-              <MedidorCoincidencia valor={inicio?.rueda.porcentaje ?? null} sinConsultas={inicio != null && inicio.rueda.porcentaje == null} />
+      {!hayIzquierda && !hayDerecha ? (
+        <p className="card mt-7 px-6 py-10 text-center text-sm text-muted">Con tu cuenta no hay resúmenes para mostrar aquí. Elige un módulo en el menú para empezar.</p>
+      ) : (
+        <div className={`mt-7 grid items-start gap-4 lg:gap-[17px] ${hayIzquierda && hayDerecha ? 'lg:grid-cols-[minmax(0,1.96fr)_minmax(0,1fr)]' : ''}`}>
+          {hayIzquierda && (
+            <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
+              {ve.listas && (
+                <div className="inicio-entra" style={turno(1)}>
+                  <Bloque key={`listas-${version}`} id="inicio-listas" icono={IconoLupa} titulo="Listas negativas" onReintentar={recargar}>
+                    <TarjetaListas bloque={datos?.listas} {...propiedades} />
+                  </Bloque>
+                </div>
+              )}
+              {ve.operaciones && (
+                <div className="inicio-entra" style={turno(2)}>
+                  <Bloque key={`operaciones-${version}`} id="inicio-operaciones" icono={IconoRecibo} titulo="Registro de operaciones" onReintentar={recargar}>
+                    <TarjetaOperaciones bloque={datos?.operaciones} {...propiedades} />
+                  </Bloque>
+                </div>
+              )}
             </div>
-          </section>
-
-          <div className="inicio-entra" style={turno(1)}>
-            <UltimasBusquedas estado={ultimas} />
-          </div>
+          )}
+          {hayDerecha && (
+            <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
+              {ve.oficial && (
+                <div className="inicio-entra" style={turno(3)}>
+                  <Bloque key={`oficial-${version}`} id="inicio-oficial" icono={IconoOficial} titulo="Oficial de cumplimiento" onReintentar={recargar}>
+                    <TarjetaOficial bloque={datos?.oficial} {...propiedades} />
+                  </Bloque>
+                </div>
+              )}
+              {ve.denuncias && (
+                <div className="inicio-entra" style={turno(4)}>
+                  <Bloque key={`denuncias-${version}`} id="inicio-denuncias" icono={IconoMensaje} titulo="Canal de denuncias" onReintentar={recargar}>
+                    <TarjetaDenuncias bloque={datos?.denuncias} {...propiedades} />
+                  </Bloque>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-        {/* Módulos */}
-        <ul className="grid min-w-0 gap-6 sm:grid-cols-2 xl:auto-rows-fr" aria-label="Módulos">
-          {modulos.map((modulo, i) => (
-            <li key={modulo.codigo} className="inicio-entra" style={turno(2 + i)}>
-              <TarjetaModulo modulo={modulo} />
-            </li>
-          ))}
-          <li className="inicio-entra" style={turno(2 + modulos.length)}>
-            <button
-              type="button"
-              onClick={alternarIndira}
-              className="card-hover group flex h-full min-h-[188px] w-full flex-col gap-3.5 rounded-[20px] bg-noche px-6 py-[22px] text-left shadow-[0_18px_36px_-14px_rgb(51_36_13/0.28)] sm:rounded-[28px]"
-            >
-              <span className="flex items-center justify-between gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/12 text-paper" aria-hidden="true">
-                  <IconoDestello />
-                </span>
-                <span className="flex flex-wrap justify-end gap-1.5">
-                  <span className="badge badge-noche">Asistente</span>
-                  <span className="badge badge-noche">IA</span>
-                </span>
-              </span>
-              <span className="block">
-                <span className="block text-[17px] font-semibold leading-[1.5] tracking-[-0.01em] text-paper">Preguntarle a Indira</span>
-                <span className="mt-1 block text-[15px] leading-[22px] text-paper/70">Resuelve dudas sobre la norma y tus evaluaciones</span>
-              </span>
-              <span className="mt-auto flex items-center gap-1.5 text-sm font-semibold leading-5 text-paper">
-                Abrir <IconoFlecha className="transition-transform duration-150 group-hover:translate-x-0.5" />
-              </span>
-            </button>
-          </li>
-        </ul>
-      </div>
+      )}
     </main>
   );
 }

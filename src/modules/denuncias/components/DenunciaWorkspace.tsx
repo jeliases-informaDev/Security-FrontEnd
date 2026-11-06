@@ -39,7 +39,8 @@ export function DenunciaWorkspace() {
   const { usuario } = useAuth();
 
   const rol = usuario?.rol?.trim().toUpperCase();
-  const puedeGestionarDenuncias = rol === 'ADMINISTRADOR' || rol === 'SUPERVISOR';
+  // Gestionan las denuncias recibidas el administrador, el administrador de empresa y el supervisor (este solo las asignadas).
+  const puedeGestionarDenuncias = rol === 'ADMINISTRADOR' || rol === 'ADMINISTRADOR_EMPRESA' || rol === 'SUPERVISOR';
 
   const [vista, setVista] = useState<VistaDenuncias>('resumen');
 

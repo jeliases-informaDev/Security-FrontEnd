@@ -14,11 +14,20 @@ import {
 } from "react";
 
 import {
+  useCatalogoDenuncias,
+} from "../../hooks/useCatalogoDenuncias";
+
+import {
+  comentarioPublico,
+  esLineaDerivacion,
+  nombreDe,
+} from "../../lib/denuncias";
+
+import {
   denunciaService,
 } from "../../services/denuncia.service";
 
 import type {
-  CausaDenuncia,
   ConsultarDenunciaRequest,
   ConsultarDenunciaResponse,
   EstadoDenuncia,
@@ -41,25 +50,12 @@ const labelClass =
 // LABELS
 // ============================================================
 
-const causaLabels:
-  Record<CausaDenuncia, string> = {
-    SOBORNO: "Soborno",
-    CONFLICTO: "Conflicto",
-    ACOSO: "Acoso",
-  };
-
+// La situación y el estado se muestran con los nombres que manda el servidor (catálogo).
 const relacionLabels:
   Record<RelacionEmpresa, string> = {
     TRABAJADOR: "Trabajador",
     CLIENTE: "Cliente",
     PROVEEDOR: "Proveedor",
-  };
-
-const estadoLabels:
-  Record<EstadoDenuncia, string> = {
-    RECIBIDO: "Recibido",
-    EN_PROCESO: "En proceso",
-    CERRADO: "Cerrado",
   };
 
 
@@ -122,6 +118,9 @@ function estadoBadgeClass(
 // ============================================================
 
 export function ConsultaDenuncia() {
+
+  const catalogo =
+    useCatalogoDenuncias();
 
   const [
     codigoSeguimiento,
@@ -251,6 +250,18 @@ export function ConsultaDenuncia() {
     setResultado(null);
     setError(null);
   }
+
+
+  // Quien denunció no ve lo reservado: la línea neutra de la derivación no se muestra. El resultado del cierre tampoco
+  // (todavía no está decidido que el denunciante lo vea): se quita del comentario del movimiento.
+  const historial =
+    (resultado?.historial ?? [])
+      .filter(
+        (registro) =>
+          !esLineaDerivacion(
+            registro.comentario
+          )
+      );
 
 
   // ==========================================================
@@ -468,9 +479,10 @@ export function ConsultaDenuncia() {
                   )}
                 `}
               >
-                {estadoLabels[
+                {nombreDe(
+                  catalogo.estados,
                   resultado.estado
-                ]}
+                )}
               </span>
 
             </div>
@@ -478,18 +490,19 @@ export function ConsultaDenuncia() {
 
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-              {/* CAUSA */}
+              {/* SITUACIÓN */}
 
               <div className="rounded-xl border border-line bg-surface-2 p-5">
 
                 <p className="eyebrow">
-                  Causa
+                  Situación
                 </p>
 
-                <p className="mt-2 text-sm font-bold text-ink">
-                  {causaLabels[
+                <p className="mt-2 break-words text-sm font-bold text-ink">
+                  {nombreDe(
+                    catalogo.situaciones,
                     resultado.causa
-                  ]}
+                  )}
                 </p>
 
               </div>
@@ -595,7 +608,7 @@ export function ConsultaDenuncia() {
 
             <div className="mt-8">
 
-              {resultado.historial.length === 0 ? (
+              {historial.length === 0 ? (
 
                 <div className="rounded-xl border border-dashed border-line-strong bg-surface-2 px-6 py-8 text-center">
 
@@ -614,7 +627,7 @@ export function ConsultaDenuncia() {
 
                 <div className="space-y-0">
 
-                  {resultado.historial.map(
+                  {historial.map(
                     (
                       registro,
                       index
@@ -622,7 +635,12 @@ export function ConsultaDenuncia() {
 
                       const ultimo =
                         index ===
-                        resultado.historial.length - 1;
+                        historial.length - 1;
+
+                      const comentario =
+                        comentarioPublico(
+                          registro.comentario
+                        );
 
                       return (
 
@@ -653,14 +671,15 @@ export function ConsultaDenuncia() {
 
                           {/* CONTENIDO */}
 
-                          <div className={`flex-1 ${ultimo ? "" : "pb-7"}`}>
+                          <div className={`min-w-0 flex-1 ${ultimo ? "" : "pb-7"}`}>
 
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 
                               <p className="text-sm font-bold text-ink">
-                                {estadoLabels[
+                                {nombreDe(
+                                  catalogo.estados,
                                   registro.estadoNuevo
-                                ]}
+                                )}
                               </p>
 
                               <p className="text-xs text-faint">
@@ -671,10 +690,10 @@ export function ConsultaDenuncia() {
 
                             </div>
 
-                            {registro.comentario && (
+                            {comentario && (
 
-                              <p className="mt-1.5 text-sm leading-6 text-muted">
-                                {registro.comentario}
+                              <p className="mt-1.5 break-words text-sm leading-6 text-muted">
+                                {comentario}
                               </p>
 
                             )}

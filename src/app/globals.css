@@ -299,7 +299,21 @@
 .aparece { animation: aparece 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .zoom-entra { animation: zoom-entra 160ms ease-out both; }
 
+/*
+ * Entrada de la página principal (Figma «ANIMACIÓN DE ENTRADA · tarjetas», marco 109:153): cada bloque baja 60 px mientras aparece,
+ * 250 ms en línea recta, y entran de uno en uno. El turno 0 arranca a los 200 ms y cada turno siguiente 130 ms después
+ * (en Figma son dos pasos de 120 ms con 10 ms de espera entre un cuadro y el siguiente). El turno se pone con --paso.
+ * «both»: oculto mientras espera su turno (sin parpadeo) y sin salto al terminar.
+ */
+@keyframes inicio-entra { from { transform: translateY(-60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.inicio-entra {
+  animation: inicio-entra 250ms linear both;
+  animation-delay: calc(200ms + var(--paso, 0) * 130ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* Sin movimiento no hay turnos: se ve todo de una vez. La regla de abajo solo acorta la duración, y los bloques seguirían ocultos esperando su turno. */
+  .inicio-entra { animation: none; }
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

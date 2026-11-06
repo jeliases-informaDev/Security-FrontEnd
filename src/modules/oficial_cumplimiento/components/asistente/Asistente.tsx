@@ -1,30 +1,32 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormProvider, useForm, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { IconoOficial } from '@/shared/ui/iconos';
-import { CAMPOS_PASO, crearEsquema, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
+import { CAMPOS_PASO, DEPENDIENTES, crearEsquema, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
 import { enfocarPrimerError, subirAlInicio } from '../../lib/pantalla';
-import type { CatalogosOficial, EstadoOficial } from '../../services/oficialService';
+import { oficialService, type CatalogosOficial, type EstadoOficial } from '../../services/oficialService';
 import { BTN, BarraGuia, RUTA_OFICIAL, Tarjeta } from '../piezas';
 import { PasoDatos } from './PasoDatos';
+import { PasoDesignacion } from './PasoDesignacion';
 import { PasosAsistente } from './PasosAsistente';
 
 /** Los cuatro pasos del asistente: el título sale del diseño; «Revisión y guardado» es el nombre que usa la lista de pasos de OC 0. */
 const PASOS = [
   { titulo: 'Datos de la persona', descripcion: 'Completa los datos de la persona. Son los mismos que se piden en la solicitud a la UIF.' },
-  { titulo: 'Designación', descripcion: '' },
+  { titulo: 'Designación', descripcion: 'Indica quién designa al oficial y adjunta el documento que lo acredita.' },
   { titulo: 'Declaraciones juradas', descripcion: '' },
   { titulo: 'Revisión y guardado', descripcion: '' },
 ];
 
 /** Asistente «Designar oficial de cumplimiento» (OC 2 a OC 6): un solo formulario con cuatro pasos. */
 export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalogos: CatalogosOficial }) {
+  const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [aviso, setAviso] = useState<AvisoDatos | null>(null);
   const inicio = useRef<HTMLDivElement>(null);
@@ -34,14 +36,17 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
     defaultValues: valoresIniciales(catalogos, estado),
     mode: 'onTouched',
   });
-  const { handleSubmit, trigger, subscribe, getFieldState } = metodos;
+  const { handleSubmit, trigger, subscribe, getFieldState, getValues } = metodos;
 
   // Un campo que ya tiene error se vuelve a validar mientras se corrige, para que el rojo se quite apenas queda bien.
   useEffect(
     () => subscribe({
       formState: { values: true },
       callback: ({ name }) => {
-        if (name && getFieldState(name as FieldPath<FormularioDesignacion>).error) void trigger(name as FieldPath<FormularioDesignacion>);
+        if (!name) return;
+        const campo = name as FieldPath<FormularioDesignacion>;
+        const afectados = [campo, ...(DEPENDIENTES[campo] ?? [])].filter((c) => getFieldState(c).error);
+        if (afectados.length > 0) void trigger(afectados);
       },
     }),
     [subscribe, trigger, getFieldState],
@@ -67,9 +72,24 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
 
   const alEnviar = handleSubmit(() => undefined);
 
+  // Cancelar: los archivos que ya se subieron quedaron sueltos en el servidor; se pide borrarlos (sin esperar) y se vuelve al módulo.
+  const cancelar = () => {
+    const v = getValues();
+    const subidos = [v.designacion.adjunto, v.declaraciones.requisitos.adjunto, v.declaraciones.designante.adjunto];
+    for (const adjunto of subidos) if (adjunto) void oficialService.borrarAdjunto(adjunto.id).catch(() => undefined);
+    router.push(RUTA_OFICIAL);
+  };
+
+  // Botones al pie de cada paso: en el primero se puede cancelar; en los demás, volver al paso anterior.
   const pie = (
     <>
-      <Link href={RUTA_OFICIAL} className={`btn btn-secondary ${BTN}`}>Cancelar</Link>
+      {paso === 0 ? (
+        <button type="button" onClick={cancelar} className={`btn btn-secondary ${BTN}`}>Cancelar</button>
+      ) : (
+        <button type="button" onClick={() => irAlPaso(paso - 1)} className={`btn btn-secondary ${BTN}`}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Atrás
+        </button>
+      )}
       <Boton type="submit" icono={ArrowRight} className={BTN}>Continuar</Boton>
     </>
   );
@@ -97,12 +117,13 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
           }}
           className="flex flex-col gap-[18px]"
         >
-          {paso === 0 && <BarraGuia />}
+          <BarraGuia />
           <PasosAsistente pasos={PASOS.map((p) => p.titulo)} actual={paso} />
           {aviso && <div className="scroll-mt-6"><Aviso aviso={aviso} onCerrar={() => setAviso(null)} /></div>}
 
           {paso === 0 && <PasoDatos catalogos={catalogos} estado={estado} pie={pie} />}
-          {paso > 0 && <Tarjeta titulo="Este paso está en construcción" />}
+          {paso === 1 && <PasoDesignacion catalogos={catalogos} pie={pie} />}
+          {paso > 1 && <Tarjeta titulo="Este paso está en construcción" />}
         </form>
       </PageShell>
     </FormProvider>

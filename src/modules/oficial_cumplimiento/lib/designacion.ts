@@ -39,6 +39,7 @@ const FORMA = z.object({
     documentoFecha: texto,
     fechaDesignacion: texto,
     adjunto: archivo,
+    reemplazaOficialAnterior: z.boolean(),
   }),
   declaraciones: z.object({
     requisitos: z.object({ puntos: z.array(texto), firmaNombre: texto, fechaFirma: texto, adjunto: archivo }),
@@ -63,10 +64,18 @@ export const CAMPOS_PASO: FieldPath<FormularioDesignacion>[][] = [
     'persona.fechaNacimiento', 'persona.domicilio', 'persona.telefono', 'persona.correo',
     'cargo.cargo', 'cargo.fechaIngreso', 'cargo.vinculo', 'cargo.direccionOficina',
   ],
-  [],
+  [
+    'designacion.designa', 'designacion.nombreOrgano', 'designacion.documentoTipo', 'designacion.documentoFecha',
+    'designacion.fechaDesignacion', 'designacion.adjunto',
+  ],
   [],
   [],
 ];
+
+/** Al cambiar uno de estos campos, el que depende de él (si ya tiene error) se vuelve a validar. */
+export const DEPENDIENTES: Partial<Record<FieldPath<FormularioDesignacion>, FieldPath<FormularioDesignacion>[]>> = {
+  'designacion.fechaDesignacion': ['designacion.documentoFecha'],
+};
 
 // ============================================================
 // Valores iniciales
@@ -77,6 +86,12 @@ const cargoInicial = (cat: CatalogosOficial): string => cat.tiposCargo.find((c) 
 
 /** La dedicación con que abre el diseño («No exclusiva»), si el catálogo la trae. */
 const dedicacionInicial = (cat: CatalogosOficial): string => cat.dedicaciones.find((d) => d.codigo === 'NO_EXCLUSIVA')?.codigo ?? '';
+
+/** Quién designa cuando el tipo de empresa solo admite a una persona u órgano (si admite varios, se elige en el paso 2). */
+export function designanteUnico(cat: CatalogosOficial, tipoEmpresa: string): string {
+  const permitidos = cat.tiposEmpresa.find((t) => t.codigo === tipoEmpresa)?.designantesPermitidos ?? [];
+  return permitidos.length === 1 ? permitidos[0] : '';
+}
 
 export function valoresIniciales(cat: CatalogosOficial, estado: EstadoOficial): FormularioDesignacion {
   const tipoEmpresa = cat.tiposEmpresa.some((t) => t.codigo === estado.tipoEmpresa) ? (estado.tipoEmpresa as string) : '';
@@ -96,7 +111,16 @@ export function valoresIniciales(cat: CatalogosOficial, estado: EstadoOficial): 
       correo: '',
     },
     cargo: { cargo: '', fechaIngreso: '', vinculo: '', direccionOficina: '' },
-    designacion: { designa: '', nombreOrgano: '', documentoTipo: '', documentoFecha: '', fechaDesignacion: '', adjunto: null },
+    designacion: {
+      designa: designanteUnico(cat, tipoEmpresa),
+      nombreOrgano: '',
+      documentoTipo: '',
+      documentoFecha: '',
+      fechaDesignacion: '',
+      adjunto: null,
+      // Con el cargo vacante, la nueva designación reemplaza al oficial que se removió.
+      reemplazaOficialAnterior: estado.estado === 'VACANTE',
+    },
     declaraciones: {
       requisitos: { puntos: [], firmaNombre: '', fechaFirma: '', adjunto: null },
       designante: { aceptada: false, firmaNombre: '', fechaFirma: '', adjunto: null },
@@ -114,7 +138,7 @@ const FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 /** Formato del número según el tipo de documento (los códigos del catálogo). */
 const FORMATO_DOCUMENTO: Record<string, { patron: RegExp; mensaje: string }> = {
   DNI: { patron: /^\d{8}$/, mensaje: 'El DNI tiene 8 dígitos.' },
-  CE: { patron: /^\d{9,12}$/, mensaje: 'El carné de extranjería tiene de 9 a 12 dígitos.' },
+  CE: { patron: /^[A-Za-z0-9]{6,12}$/, mensaje: 'El carné de extranjería tiene de 6 a 12 letras o números.' },
   PASAPORTE: { patron: /^[A-Za-z0-9]{5,12}$/, mensaje: 'El pasaporte tiene de 5 a 12 letras o números.' },
 };
 
@@ -174,5 +198,18 @@ export function crearEsquema(cat: CatalogosOficial) {
     fecha('cargo.fechaIngreso', c.fechaIngreso, 'Indica la fecha de ingreso.', 'no-futura', 'La fecha de ingreso no puede ser futura.');
     if (!cat.vinculos.some((x) => x.codigo === c.vinculo)) error('cargo.vinculo', 'Elige el vínculo con la empresa.');
     if (obligatorio('cargo.direccionOficina', c.direccionOficina, 'Escribe la dirección de la oficina.')) largo('cargo.direccionOficina', c.direccionOficina, 255, 'La dirección admite hasta 255 caracteres.');
+
+    // Designación
+    const d = v.designacion;
+    const permitidos = cat.tiposEmpresa.find((t) => t.codigo === v.tipoEmpresa)?.designantesPermitidos ?? [];
+    if (!permitidos.includes(d.designa) || !cat.quienDesigna.some((q) => q.codigo === d.designa)) error('designacion.designa', 'Elige quién designa.');
+    if (obligatorio('designacion.nombreOrgano', d.nombreOrgano, 'Escribe el nombre del órgano.')) largo('designacion.nombreOrgano', d.nombreOrgano, 255, 'El nombre del órgano admite hasta 255 caracteres.');
+    if (!cat.documentosDesignacion.some((x) => x.codigo === d.documentoTipo)) error('designacion.documentoTipo', 'Elige el tipo de documento.');
+    fecha('designacion.fechaDesignacion', d.fechaDesignacion, 'Indica la fecha de designación.', 'no-futura', 'La fecha de designación no puede ser futura.');
+    fecha('designacion.documentoFecha', d.documentoFecha, 'Indica la fecha del documento.', 'no-futura', 'La fecha del documento no puede ser futura.');
+    if (FECHA_ISO.test(d.documentoFecha) && FECHA_ISO.test(d.fechaDesignacion) && d.documentoFecha > d.fechaDesignacion) {
+      error('designacion.documentoFecha', 'La fecha del documento no puede ser posterior a la fecha de designación.');
+    }
+    if (!d.adjunto) error('designacion.adjunto', 'Adjunta el acta o el documento de designación.');
   });
 }

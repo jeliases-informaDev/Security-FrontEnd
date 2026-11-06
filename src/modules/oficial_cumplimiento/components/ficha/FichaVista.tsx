@@ -8,6 +8,7 @@ import { IconoOficial } from '@/shared/ui/iconos';
 import { fechaCorta, minusculaInicial, reglaTexto, textoOGuion } from '../../lib/formato';
 import type { CatalogosOficial, ComunicacionFicha, FichaOficial } from '../../services/oficialService';
 import { FilaAdjunto } from '../ArchivoDescargable';
+import { TarjetaPendientes } from '../comunicacion/TarjetaPendientes';
 import { BTN, BotonPronto, Dato, EtiquetaServidor, FilaCheck, NotaLateral, NotaSoloLectura, RUTA_OFICIAL, Tarjeta } from '../piezas';
 import { TarjetaDeclaraciones } from './TarjetaDeclaraciones';
 
@@ -66,7 +67,7 @@ function FilaObligacion({ nombre, frecuencia }: { nombre: string; frecuencia: st
  * OC 9 · Ficha del oficial de cumplimiento (también para los estados «Pendiente de comunicar» y «En evaluación», y para una designación
  * anterior). Los botones de la cabecera salen de los permisos que manda el servidor; lo que todavía no existe (alterno) queda «Pronto».
  */
-export function FichaVista({ ficha, catalogos, idExplicito }: { ficha: FichaOficial; catalogos: CatalogosOficial; idExplicito?: string | null }) {
+export function FichaVista({ ficha, catalogos, recargar, idExplicito }: { ficha: FichaOficial; catalogos: CatalogosOficial; recargar: () => void; idExplicito?: string | null }) {
   const p = ficha.permisos;
   const { persona, cargo, designacion: d, comunicacion } = ficha;
   const sufijo = idExplicito ? `?id=${encodeURIComponent(idExplicito)}` : '';
@@ -109,6 +110,8 @@ export function FichaVista({ ficha, catalogos, idExplicito }: { ficha: FichaOfic
           <section className="card flex flex-wrap gap-2 !rounded-[18px] px-5 py-[18px]" aria-label="Estado del oficial">
             {ficha.etiquetas.map((etiqueta) => <EtiquetaServidor key={etiqueta.codigo} etiqueta={etiqueta} />)}
           </section>
+
+          <TarjetaPendientes pendientes={ficha.pendientes} catalogos={catalogos} puedeRegistrar={p.puedeRegistrarPendientes} alGuardar={recargar} />
 
           <Tarjeta titulo="Datos de la persona" className="!gap-[18px]">
             <div className={GRILLA}>

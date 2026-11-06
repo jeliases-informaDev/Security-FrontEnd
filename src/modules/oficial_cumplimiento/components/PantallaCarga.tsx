@@ -26,6 +26,18 @@ export function MarcoCarga({ titulo, children }: { titulo: string; children: Rea
   );
 }
 
+/**
+ * Pantalla que esta cuenta no puede usar ahora: si solo puede ver, se le explica; si puede escribir, es que el estado del oficial
+ * ya no admite la acción (`motivo`). Siempre hay salida de vuelta al módulo.
+ */
+export function AccesoDenegado({ titulo, puedeEscribir, motivo }: { titulo: string; puedeEscribir: boolean; motivo: string }) {
+  return (
+    <MarcoCarga titulo={titulo}>
+      <ErrorPagina mensaje={puedeEscribir ? motivo : 'Tu cuenta puede ver esta información, pero no cambiarla. Eso lo hace el administrador de tu empresa.'} />
+    </MarcoCarga>
+  );
+}
+
 /** Lee el estado de la empresa y las opciones del módulo; mientras tanto muestra el esqueleto y, si falla, el error con «Reintentar». */
 export function ConEstado({ titulo, children }: { titulo: string; children: (estado: EstadoOficial, catalogos: CatalogosOficial, recargar: () => void) => ReactNode }) {
   const estado = useEstadoOficial();

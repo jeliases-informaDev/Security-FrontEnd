@@ -8,6 +8,11 @@ import { FilaClave, Tarjeta } from './piezas';
 const TONO: Record<EstadoPlazo, 'ok' | 'warn' | 'bad'> = { EN_PLAZO: 'ok', POR_VENCER: 'warn', VENCIDO: 'bad' };
 const RELLENO: Record<EstadoPlazo, string> = { EN_PLAZO: 'bg-brand', POR_VENCER: 'bg-warn', VENCIDO: 'bg-bad' };
 
+/** Etiqueta del estado de un plazo («En plazo», «Por vencer», «Vencido»), con el texto y el tono que corresponden. */
+export function EtiquetaPlazo({ plazo, className = '' }: { plazo: Plazo; className?: string }) {
+  return <Etiqueta tono={TONO[plazo.estado]} className={className}>{plazo.estadoEtiqueta}</Etiqueta>;
+}
+
 /** Lo que va en grande: los días que quedan, tal como los contó el servidor (la unidad también la manda él). */
 export function textoDeDiasRestantes(plazo: Plazo): string {
   if (plazo.estado === 'VENCIDO') return 'Plazo vencido';

@@ -12,7 +12,7 @@ export function PantallaFicha() {
   const id = useSearchParams().get('id');
   return (
     <ConFicha titulo="Oficial de cumplimiento" designacionId={id}>
-      {({ ficha, catalogos }) => <FichaVista ficha={ficha} catalogos={catalogos} idExplicito={id} />}
+      {({ ficha, catalogos, recargar }) => <FichaVista ficha={ficha} catalogos={catalogos} recargar={recargar} idExplicito={id} />}
     </ConFicha>
   );
 }

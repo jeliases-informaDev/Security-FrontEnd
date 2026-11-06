@@ -1038,7 +1038,7 @@ export function DenunciaForm() {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-ink">
+                          <p className="text-sm font-semibold text-ink [overflow-wrap:anywhere]">
                             {archivo.name}
                           </p>
                           <p className="mt-0.5 text-xs text-muted">

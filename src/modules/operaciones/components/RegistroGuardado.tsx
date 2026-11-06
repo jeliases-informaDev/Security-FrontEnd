@@ -119,7 +119,7 @@ export function RegistroGuardado({ id }: { id: number }) {
         </div>
 
         <div className="flex flex-col gap-4">
-          <Tarjeta espacio="gap-[14px]" titulo="Siguiente paso" descripcion="Envío a la UIF-Perú." derecha={<InsigniaEstado estado={detalle.estado} />}>
+          <Tarjeta espacio="gap-[14px]" titulo="Siguiente paso" descripcion="Envío a la UIF-Perú." derecha={<InsigniaEstado estado={detalle.estadoEnvio ?? detalle.estado} />}>
             {enviado ? (
               <>
                 <p className="text-[15px] leading-[22px] text-muted">

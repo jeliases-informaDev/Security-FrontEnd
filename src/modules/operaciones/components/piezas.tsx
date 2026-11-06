@@ -1,13 +1,11 @@
 'use client';
 
-import type { ComponentType, ReactNode, SVGProps } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, Esqueleto, EstadoVacio, Etiqueta } from '@/shared/ui/kit';
 import { nombreCorto } from '../lib/formato';
 import type { ResponsableOperacion } from '../services/operacionesService';
-
-type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 
 /**
  * Alto y tamaño de los botones del diseño (RO 0 a RO 11): el secundario mide 46 px (44 + el borde de 1 px por lado) y el
@@ -25,19 +23,8 @@ export const CAMPO_BORDE = 'border-line hover:border-ink/30 focus:border-brand d
 /** Rótulo de un campo (14 px, seminegrita, 8 px de separación con el campo). */
 export const ETIQUETA = 'mb-2 flex items-center gap-2 text-sm font-semibold leading-[normal] text-ink';
 
-/** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad. */
+/** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad (hoy, solo los formatos de exportación sin estructura). */
 export const Pronto = ({ compacto = false }: { compacto?: boolean }) => <Etiqueta className={compacto ? '!px-2 !py-px !leading-[normal]' : ''}>Pronto</Etiqueta>;
-
-/** Botón apagado con insignia «Pronto». Usa aria-disabled (y no disabled) para que se pueda enfocar y leer con teclado. */
-export function BotonPronto({ icono: Icono, children, className = '' }: { icono?: Icono; children: ReactNode; className?: string }) {
-  return (
-    <button type="button" aria-disabled="true" title="Próximamente" onClick={(e) => e.preventDefault()} className={`btn btn-secondary cursor-not-allowed opacity-60 ${className}`}>
-      {Icono && <Icono className="h-4 w-4" aria-hidden="true" />}
-      {children}
-      <Pronto />
-    </button>
-  );
-}
 
 /**
  * Estado del registro (chip de la lista, RO 1): en la entrega A solo llega «Pendiente»; «Enviado» e «Inusual» ya tienen su

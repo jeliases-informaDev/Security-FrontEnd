@@ -144,8 +144,8 @@ export interface CabinaTendencia {
   denuncias?: number[] | null;
 }
 
-/** Un departamento con algo que mostrar. `codigo` es el INEI de 2 dígitos (01 a 25) o null si el nombre no calzó («Extranjero»). */
-export interface DepartamentoMapa {
+/** Las cifras de un departamento con algo que mostrar (no confundir con el dibujo del departamento, en `lib/peruDepartamentos.ts`). `codigo` es el INEI de 2 dígitos (01 a 25) o null si el nombre no calzó («Extranjero»). */
+export interface DepartamentoCifras {
   codigo?: string | null;
   nombre?: string | null;
   registros?: number | null;
@@ -157,7 +157,7 @@ export interface DepartamentoMapa {
 
 export interface CabinaMapa {
   /** Solo los que tienen algo: el front completa los 25 con 0. */
-  departamentos?: DepartamentoMapa[] | null;
+  departamentos?: DepartamentoCifras[] | null;
 }
 
 export type TipoPlazoCabina = 'COMUNICACION_UIF' | 'DENUNCIA' | 'REGISTRO_MENSUAL' | 'DECLARACION';

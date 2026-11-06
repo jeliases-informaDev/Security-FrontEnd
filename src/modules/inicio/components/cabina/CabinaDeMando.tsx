@@ -7,6 +7,7 @@ import { calcularLuces, estadoGeneral } from '../../lib/luces';
 import type { CabinaInicio, ResumenInicio } from '../../services/inicioService';
 import { ChipEstado } from './Instrumento';
 import { LucesAlerta } from './LucesAlerta';
+import { MedidorAguja } from './MedidorAguja';
 
 /*
  * «Cabina de mando» de Inicio: una banda oscura con instrumentos de panel de avión (aguja, radar, líneas, mapa, combustible, luces
@@ -75,8 +76,19 @@ export function CabinaDeMando({ estado, resumen }: Props) {
           )}
         </header>
 
-        <div className="mt-4 grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-12">
-          {luces.length > 0 && <LucesAlerta luces={luces} className="@[40rem]:col-span-2 @[72rem]:col-span-12" />}
+        <div className="mt-4 flex flex-col gap-3">
+          {luces.length > 0 && <LucesAlerta luces={luces} />}
+
+          {/*
+            Instrumentos. Ancho completo (≥ 72rem): dos columnas, 7/12 y 5/12. A la izquierda: aguja y radar, las líneas y, abajo, combustible
+            e indicadores; a la derecha, el mapa (alto) y los vencimientos. De 40 a 72rem: dos columnas parejas. Debajo, uno tras otro.
+            El orden del documento es el de lectura en el celular. Se mide el ancho de la banda, no el de la pantalla.
+          */}
+          <div className="grid gap-3 @[72rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <div className="grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-7 @[72rem]:content-start">
+              <MedidorAguja scoring={cabina.scoring} className="@[72rem]:col-span-3" />
+            </div>
+          </div>
         </div>
       </section>
     </div>

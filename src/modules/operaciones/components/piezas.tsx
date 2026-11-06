@@ -133,19 +133,31 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
   );
 }
 
-/** Interruptor accesible (role="switch"). Con `fila` el rótulo ocupa el ancho y el interruptor queda a la derecha (panel de filtros). */
-export function Interruptor({ activo, onCambiar, etiqueta, id, fila = false }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string; fila?: boolean }) {
+/**
+ * Interruptor accesible (role="switch"). Con `fila` el rótulo ocupa el ancho y el interruptor queda a la derecha (panel de filtros).
+ * Con `descripcion` el rótulo va en seminegrita con su explicación debajo (sector y umbrales, RO 16).
+ */
+export function Interruptor({ activo, onCambiar, etiqueta, id, fila = false, descripcion, deshabilitado = false }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string; fila?: boolean; descripcion?: ReactNode; deshabilitado?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span id={`${id}-texto`} className={fila ? 'min-w-0 flex-1 text-[15px] font-medium leading-[normal] text-ink' : 'text-sm font-medium leading-[normal] text-ink/80'}>{etiqueta}</span>
+      {descripcion ? (
+        <span className="min-w-0 flex-1">
+          <span id={`${id}-texto`} className="block text-[15px] font-semibold leading-[normal] text-ink">{etiqueta}</span>
+          <span id={`${id}-descripcion`} className="mt-0.5 block text-sm leading-[normal] text-muted">{descripcion}</span>
+        </span>
+      ) : (
+        <span id={`${id}-texto`} className={fila ? 'min-w-0 flex-1 text-[15px] font-medium leading-[normal] text-ink' : 'text-sm font-medium leading-[normal] text-ink/80'}>{etiqueta}</span>
+      )}
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={activo}
         aria-labelledby={`${id}-texto`}
+        aria-describedby={descripcion ? `${id}-descripcion` : undefined}
+        disabled={deshabilitado}
         onClick={() => onCambiar(!activo)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${activo ? 'bg-brand' : 'bg-ink/15'}`}
       >
         <span className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform ${activo ? 'translate-x-5' : ''}`} aria-hidden="true" />
       </button>

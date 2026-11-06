@@ -32,6 +32,11 @@ export interface OperacionItem {
   monedaSimbolo: string | null;
   estado: string;
   responsable: ResponsableOperacion | null;
+  /** Entrega B: envío a la UIF, calificación de inusualidad, monto en US$ y resultado del umbral (o `null` si no se calculó). */
+  estadoEnvio?: EstadoEnvio;
+  inusualidad?: EstadoInusualidad;
+  montoUsd?: number | null;
+  umbralEstado?: EstadoUmbral | null;
 }
 
 export interface PaginaOperaciones {
@@ -48,11 +53,16 @@ export interface Indicadores {
   pendientesDeEnvio: number;
   sinResponsable: number;
   total: number;
+  /** Entrega B. */
+  enviados?: number;
+  inusualesEnAnalisis?: number;
+  sospechosas?: number;
 }
 
 export interface FiltrosOperaciones {
   q?: string;
-  estado?: string;
+  /** Uno o varios (PENDIENTE, ENVIADO, INUSUAL): con varios cuenta cualquiera de ellos. */
+  estado?: string | string[];
   desde?: string;
   hasta?: string;
   tipoOperacion?: string;
@@ -60,6 +70,10 @@ export interface FiltrosOperaciones {
   moneda?: string;
   responsableId?: number;
   sinResponsable?: boolean;
+  /** Entrega B. */
+  oficina?: string;
+  montoMinUsd?: number;
+  montoMaxUsd?: number;
 }
 
 /** Opción de un catálogo que sirve el backend (el front manda el `codigo`). */
@@ -68,6 +82,10 @@ export interface OpcionCodigo {
   nombre: string;
   pideTexto: boolean;
   sector?: string;
+  /** Tipos de operación (entrega B): `LOTE_TERRENO` o `UNIDAD_INMOBILIARIA`. */
+  tipoBien?: string;
+  /** Formatos de exportación (entrega B): `false` = «Pronto» (todavía no tiene estructura). */
+  disponible?: boolean;
 }
 
 export interface CatalogoOpcion {
@@ -104,6 +122,14 @@ export interface CatalogosOperacion {
   origenesFondos: OpcionCodigo[];
   tiposOperacion: OpcionCodigo[];
   tipoDocumentoInicial: string;
+  /** Entrega B (el servicio las deja siempre presentes, vacías si el servidor aún no las manda). */
+  sectores: OpcionCodigo[];
+  senalesAlerta: OpcionCodigo[];
+  fuentesSenal: OpcionCodigo[];
+  formatosExportacion: OpcionCodigo[];
+  /** Oficinas de la empresa (lista vacía = no configuró: la oficina sigue como texto libre). */
+  oficinas: string[];
+  tiposOperacionPorConfigurar: boolean;
 }
 
 /** Persona del detalle (los campos de jurídica o los opcionales pueden venir vacíos). */
@@ -174,7 +200,7 @@ export interface CambioRegistro {
 
 export interface EventoHistorial {
   id: number | null;
-  tipo: 'CREACION' | 'EDICION' | 'RESPONSABLE' | 'DESCARGA' | 'ANTERIOR' | string;
+  tipo: 'CREACION' | 'EDICION' | 'RESPONSABLE' | 'DESCARGA' | 'ANTERIOR' | 'ANALISIS' | 'UMBRAL' | 'ENVIO' | string;
   titulo: string;
   detalle: string | null;
   motivo: string | null;
@@ -205,6 +231,11 @@ export interface DetalleOperacion {
   responsable: ResponsableOperacion | null;
   conservarHasta: string;
   historialReciente: EventoHistorial[];
+  /** Entrega B: umbral guardado con el registro (`null` en los anteriores), resumen del análisis y constancia de envío. */
+  umbral?: VerificacionUmbral | null;
+  inusualidad?: unknown;
+  envio?: EnvioRegistro | null;
+  estadoEnvio?: EstadoEnvio;
 }
 
 // ---- Lo que se envía al guardar (alta y edición) ----
@@ -267,6 +298,8 @@ export interface RegistroGuardado {
   estado: string;
   responsable: ResponsableOperacion | null;
   mensaje: string;
+  /** Entrega B: verificación de umbral hecha al guardar. */
+  umbral?: VerificacionUmbral | null;
 }
 
 export interface RegistroEditado {
@@ -317,13 +350,22 @@ export const TAMANO_PAGINA = 8;
 
 /** Quita los filtros vacíos para no mandar parámetros sin valor. */
 function limpiar(parametros: object): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(parametros).filter(([, valor]) => valor !== undefined && valor !== '' && valor !== false));
+  return Object.fromEntries(Object.entries(parametros).filter(([, valor]) => valor !== undefined && valor !== '' && valor !== false && !(Array.isArray(valor) && valor.length === 0)));
 }
 
 export const operacionesService = {
   async catalogos(): Promise<CatalogosOperacion> {
     const { data } = await apiClient.get<CatalogosOperacion>('/operaciones/catalogos');
-    return data;
+    // Las claves de la entrega B se dejan siempre presentes (vacías si el servidor aún no las manda).
+    return {
+      ...data,
+      sectores: data.sectores ?? [],
+      senalesAlerta: data.senalesAlerta ?? [],
+      fuentesSenal: data.fuentesSenal ?? [],
+      formatosExportacion: data.formatosExportacion ?? [],
+      oficinas: data.oficinas ?? [],
+      tiposOperacionPorConfigurar: data.tiposOperacionPorConfigurar ?? false,
+    };
   },
 
   async provincias(idDepartamento: number): Promise<ProvinciaOpcion[]> {
@@ -332,7 +374,8 @@ export const operacionesService = {
   },
 
   async resumen(filtros: FiltrosOperaciones, page: number, size = TAMANO_PAGINA): Promise<PaginaOperaciones> {
-    const { data } = await apiClient.get<PaginaOperaciones>('/operaciones/resumen', { params: { ...limpiar(filtros), page, size } });
+    // `indexes: null`: un parámetro repetido viaja como «estado=A&estado=B» (sin corchetes), que es lo que lee el servidor.
+    const { data } = await apiClient.get<PaginaOperaciones>('/operaciones/resumen', { params: { ...limpiar(filtros), page, size }, paramsSerializer: { indexes: null } });
     return data;
   },
 
@@ -392,6 +435,111 @@ export const operacionesService = {
       };
     });
   },
+
+  // ---- Entrega B (CONTRATO-OPERACIONES-B.md): ninguna de estas rutas cobra tokens ----
+
+  async configuracion(): Promise<Configuracion> {
+    const { data } = await apiClient.get<Configuracion>('/operaciones/configuracion');
+    return { ...data, umbralesNorma: data.umbralesNorma ?? [], oficinas: data.oficinas ?? [] };
+  },
+
+  async guardarConfiguracion(solicitud: SolicitudConfiguracion): Promise<Configuracion> {
+    const { data } = await apiClient.put<Configuracion>('/operaciones/configuracion', solicitud);
+    return { ...data, umbralesNorma: data.umbralesNorma ?? [], oficinas: data.oficinas ?? [] };
+  },
+
+  async tiposCambio(anio: number): Promise<TiposCambio> {
+    const { data } = await apiClient.get<TiposCambio>('/operaciones/tipos-cambio', { params: { anio } });
+    return { ...data, monedas: data.monedas ?? [], valores: data.valores ?? [] };
+  },
+
+  async guardarTipoCambio(solicitud: SolicitudTipoCambio): Promise<ValorTipoCambio> {
+    const { data } = await apiClient.put<ValorTipoCambio>('/operaciones/tipos-cambio', solicitud);
+    return data;
+  },
+
+  /** No cobra, no guarda nada y nunca bloquea el registro: es solo informativa. */
+  async verificarUmbral(solicitud: SolicitudUmbral): Promise<VerificacionUmbral> {
+    const { data } = await apiClient.post<VerificacionUmbral>('/operaciones/verificar-umbral', solicitud);
+    return data;
+  },
+
+  async inusualidad(id: number): Promise<Inusualidad> {
+    const { data } = await apiClient.get<Inusualidad>(`/operaciones/${id}/inusualidad`);
+    return { ...data, adjuntos: data.adjuntos ?? [] };
+  },
+
+  async guardarInusualidad(id: number, solicitud: SolicitudInusualidad): Promise<Inusualidad> {
+    const { data } = await apiClient.put<Inusualidad>(`/operaciones/${id}/inusualidad`, solicitud);
+    return { ...data, adjuntos: data.adjuntos ?? [] };
+  },
+
+  async subirAdjunto(id: number, archivo: File): Promise<AdjuntoAnalisis> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+    const { data } = await apiClient.post<AdjuntoAnalisis>(`/operaciones/${id}/inusualidad/adjuntos`, formulario);
+    return data;
+  },
+
+  async descargarAdjunto(id: number, adjuntoId: number): Promise<Blob> {
+    const { data } = await apiClient.get<Blob>(`/operaciones/${id}/inusualidad/adjuntos/${adjuntoId}`, { responseType: 'blob' });
+    return data;
+  },
+
+  async calificar(id: number, decision: DecisionInusualidad): Promise<Inusualidad> {
+    const { data } = await apiClient.post<Inusualidad>(`/operaciones/${id}/inusualidad/decision`, { decision });
+    return { ...data, adjuntos: data.adjuntos ?? [] };
+  },
+
+  async ros(id: number): Promise<Ros> {
+    const { data } = await apiClient.get<Ros>(`/operaciones/${id}/ros`);
+    return { ...data, datosMinimos: data.datosMinimos ?? [] };
+  },
+
+  async guardarRos(id: number, solicitud: SolicitudRos): Promise<Ros> {
+    const { data } = await apiClient.put<Ros>(`/operaciones/${id}/ros`, solicitud);
+    return { ...data, datosMinimos: data.datosMinimos ?? [] };
+  },
+
+  async validarExportacion(periodo: string, formato: string): Promise<ValidacionExportacion> {
+    const { data } = await apiClient.get<ValidacionExportacion>('/operaciones/exportaciones/validacion', { params: { periodo, formato } });
+    return { ...data, chequeos: data.chequeos ?? [], observaciones: data.observaciones ?? [] };
+  },
+
+  async generarExportacion(periodo: string, formato: string): Promise<Exportacion> {
+    const { data } = await apiClient.post<Exportacion>('/operaciones/exportaciones', { periodo, formato });
+    return data;
+  },
+
+  async exportaciones(page: number, size = 10): Promise<PaginaExportaciones> {
+    const { data } = await apiClient.get<PaginaExportaciones>('/operaciones/exportaciones', { params: { page, size } });
+    return data;
+  },
+
+  async exportacion(id: number): Promise<Exportacion> {
+    const { data } = await apiClient.get<Exportacion>(`/operaciones/exportaciones/${id}`);
+    return data;
+  },
+
+  async archivoExportacion(id: number, tipo: 'xlsx' | 'csv'): Promise<Blob> {
+    const { data } = await apiClient.get<Blob>(`/operaciones/exportaciones/${id}/archivo`, { params: { tipo }, responseType: 'blob' });
+    return data;
+  },
+
+  async registrarConstancia(id: number, constancia: { fechaEnvio: string; numeroAcuse: string; notas: string; archivo: File | null }): Promise<RespuestaConstancia> {
+    const formulario = new FormData();
+    formulario.append('fechaEnvio', constancia.fechaEnvio);
+    formulario.append('numeroAcuse', constancia.numeroAcuse);
+    if (constancia.notas.trim()) formulario.append('notas', constancia.notas.trim());
+    if (constancia.archivo) formulario.append('archivo', constancia.archivo);
+    const { data } = await apiClient.post<RespuestaConstancia>(`/operaciones/exportaciones/${id}/constancia`, formulario);
+    return data;
+  },
+
+  async archivoConstancia(id: number): Promise<Blob> {
+    const { data } = await apiClient.get<Blob>(`/operaciones/exportaciones/${id}/constancia/archivo`, { responseType: 'blob' });
+    return data;
+  },
 };
 
 /** Errores por campo (`campos` del 400 OPERACIONES_DATOS_INVALIDOS): clave del contrato → mensaje. */
@@ -404,4 +552,251 @@ export function camposDeError(error: unknown): Record<string, string> | null {
 /** 404 OPERACIONES_NO_ENCONTRADA (no existe o es de otra empresa). */
 export function esNoEncontrada(error: unknown): boolean {
   return isAxiosError(error) && error.response?.status === 404;
+}
+
+/** `code` del error que manda el servidor (por ejemplo `OPERACIONES_ANALISIS_CERRADO`), o `null`. */
+export function codigoDeError(error: unknown): string | null {
+  if (!isAxiosError(error)) return null;
+  const code = (error.response?.data as { code?: unknown } | undefined)?.code;
+  return typeof code === 'string' ? code : null;
+}
+
+/** El servidor dice que un administrador es quien puede hacer esto (403 OPERACIONES_SOLO_ADMINISTRADOR). */
+export const esSoloAdministrador = (error: unknown): boolean => codigoDeError(error) === 'OPERACIONES_SOLO_ADMINISTRADOR';
+
+/** Estado de inusualidad del detalle: llega como texto (o como objeto con `estado`); lo desconocido cuenta como «sin análisis». */
+export function estadoInusualidadDe(valor: unknown): EstadoInusualidad {
+  const estado = typeof valor === 'string' ? valor : (valor as { estado?: unknown } | null | undefined)?.estado;
+  return estado === 'EN_ANALISIS' || estado === 'DESCARTADA' || estado === 'SOSPECHOSA' ? estado : 'SIN_ANALISIS';
+}
+
+// ============================================================
+// ENTREGA B: TIPOS (reflejan CONTRATO-OPERACIONES-B.md)
+// ============================================================
+
+export type EstadoEnvio = 'PENDIENTE' | 'ENVIADO';
+export type EstadoInusualidad = 'SIN_ANALISIS' | 'EN_ANALISIS' | 'DESCARTADA' | 'SOSPECHOSA';
+export type EstadoUmbral = 'SIN_MONTO' | 'SIN_CONFIGURAR' | 'SIN_TIPO_DE_BIEN' | 'SIN_TIPO_DE_CAMBIO' | 'SI_SE_REGISTRA' | 'NO_ALCANZA_UMBRAL';
+
+/** Constancia de envío a la UIF que lleva un registro (`null` mientras esté pendiente). */
+export interface EnvioRegistro {
+  exportacionId: number;
+  fechaEnvio: string;
+  numeroAcuse: string;
+}
+
+/** Verificación de umbral (RO 2, 3, 4, 5): el servidor decide el estado y escribe el mensaje. Los campos que no aplican llegan `null`. */
+export interface VerificacionUmbral {
+  estado: EstadoUmbral;
+  mensaje: string;
+  sector: string | null;
+  sectorNombre: string | null;
+  tipoBien: string | null;
+  tipoBienNombre: string | null;
+  umbralUsd: number | null;
+  umbralNormaUsd: number | null;
+  umbralInterno: boolean | null;
+  montoUsd: number | null;
+  /** `usd` = soles por 1 dólar; `moneda` = soles por 1 unidad de la moneda (solo euros). */
+  tipoCambio: { mes: string; usd: number; moneda: number | null } | null;
+  tipoCambioNota: string | null;
+}
+
+export interface SolicitudUmbral {
+  tipoOperacion: string | null;
+  moneda: string | null;
+  monto: number | null;
+  fechaOperacion: string | null;
+}
+
+export interface UmbralNorma {
+  tipoBien: string;
+  nombre: string;
+  umbralUsd: number;
+}
+
+export interface UmbralInterno {
+  montoUsd: number;
+  motivo: string;
+}
+
+/** RO 16 · Sector, umbrales y oficinas de la empresa. */
+export interface Configuracion {
+  empresa: string;
+  sector: string | null;
+  sectorNombre: string | null;
+  porConfigurar: boolean;
+  unRoPorActividad: boolean;
+  umbralesNorma: UmbralNorma[];
+  notaUmbral: string | null;
+  umbralInterno: UmbralInterno | null;
+  oficinas: string[];
+  actualizadoEn: string | null;
+  actualizadoPor: string | null;
+  puedeEditar: boolean;
+}
+
+export interface SolicitudConfiguracion {
+  sector: string | null;
+  unRoPorActividad: boolean;
+  umbralInterno: UmbralInterno | null;
+  oficinas: string[];
+}
+
+export interface ValorTipoCambio {
+  moneda: string;
+  mes: string;
+  valor: number;
+  ambito: 'EMPRESA' | 'SULOTEC' | string;
+  fuente: string | null;
+  cargadoPor: string | null;
+  cargadoEn: string | null;
+}
+
+export interface TiposCambio {
+  anio: number;
+  monedas: string[];
+  puedeEditar: boolean;
+  valores: ValorTipoCambio[];
+}
+
+export interface SolicitudTipoCambio {
+  moneda: string;
+  mes: string;
+  valor: number;
+  fuente: string | null;
+}
+
+export interface AdjuntoAnalisis {
+  id: number;
+  nombre: string;
+  tipo: string;
+  tamano: number;
+  subidoEn: string;
+  subidoPor: string | null;
+}
+
+export type DecisionInusualidad = 'NO_SOSPECHOSA' | 'SOSPECHOSA';
+
+/** RO 12 · Análisis de inusualidad de un registro. Sin análisis: `estado: SIN_ANALISIS` y lo demás vacío. */
+export interface Inusualidad {
+  id: number;
+  numeroRegistro: string;
+  estado: EstadoInusualidad;
+  senal: string | null;
+  senalNombre: string | null;
+  senalTexto: string | null;
+  fuente: string | null;
+  fuenteNombre: string | null;
+  fechaDeteccion: string | null;
+  descripcionSenal: string | null;
+  descripcionOperacion: string | null;
+  analisis: string | null;
+  decision: string | null;
+  calificadaEn: string | null;
+  calificadaPor: string | null;
+  venceEn: string | null;
+  adjuntos: AdjuntoAnalisis[];
+  datosOperacion: {
+    fechaOperacion: string;
+    tipoOperacion: string;
+    monto: number;
+    moneda: string;
+    modalidadPago: string;
+    origenFondos: string;
+    numeroComprobante: string | null;
+    participantes: number;
+  };
+  actualizadoEn: string | null;
+  actualizadoPor: string | null;
+  puedeCalificar: boolean;
+}
+
+export interface SolicitudInusualidad {
+  senal: string;
+  senalTexto: string | null;
+  fuente: string;
+  fechaDeteccion: string;
+  descripcionSenal: string | null;
+  descripcionOperacion: string | null;
+  analisis: string | null;
+}
+
+export type EstadoPlazo = 'EN_PLAZO' | 'VENCIDO' | 'CERRADO';
+
+/** RO 13 · Preparar el ROS (solo registros calificados como sospechosos). */
+export interface Ros {
+  id: number;
+  numeroRegistro: string;
+  calificadaEn: string;
+  calificadaPor: string | null;
+  venceEn: string;
+  restanteSegundos: number;
+  estadoPlazo: EstadoPlazo;
+  datosMinimos: { codigo: string; nombre: string; completo: boolean }[];
+  datosListos: boolean;
+  numeroRos: string | null;
+  enviadoEn: string | null;
+  registradoEn: string | null;
+  registradoPor: string | null;
+  enviadoFueraDePlazo: boolean | null;
+  puedeRegistrar: boolean;
+}
+
+export interface SolicitudRos {
+  numeroRos: string;
+  enviadoEn: string;
+}
+
+/** RO 14 · Lo que se revisa antes de generar el archivo (sobre los registros pendientes del periodo). */
+export interface ValidacionExportacion {
+  periodo: string;
+  formato: string;
+  formatoNombre: string;
+  formatoDisponible: boolean;
+  registros: number;
+  pendientes: number;
+  enviados: number;
+  chequeos: { codigo: string; texto: string; ok: boolean }[];
+  observaciones: { idRegistro: number; numeroRegistro: string; texto: string }[];
+  puedeGenerar: boolean;
+}
+
+export interface ConstanciaEnvio {
+  fechaEnvio: string;
+  numeroAcuse: string;
+  notas: string | null;
+  archivo: string | null;
+  registradoEn: string;
+  registradoPor: string | null;
+}
+
+/** RO 15 · Archivo generado. El archivo es la foto de lo que se generó: si luego se edita un registro, no cambia. */
+export interface Exportacion {
+  id: number;
+  periodo: string;
+  formato: string;
+  formatoNombre: string;
+  registros: number;
+  generadoEn: string;
+  generadoPor: string | null;
+  archivoXlsx: string;
+  archivoCsv: string;
+  estado: 'GENERADO' | 'ENVIADO';
+  constancia: ConstanciaEnvio | null;
+  puedeRegistrarConstancia: boolean;
+}
+
+export interface PaginaExportaciones {
+  content: Exportacion[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+  size: number;
+}
+
+export interface RespuestaConstancia {
+  id: number;
+  enviados: number;
+  constancia: ConstanciaEnvio;
 }

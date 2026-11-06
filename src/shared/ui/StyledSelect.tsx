@@ -1,12 +1,16 @@
 'use client';
 
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
-import type { ComponentType, SVGProps } from 'react';
+import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 
 export interface StyledSelectOption {
   value: string;
   label: string;
+  /** Opción apagada: se ve pero no se puede elegir (por ejemplo, lo que todavía es «Pronto»). */
+  disabled?: boolean;
+  /** Insignia a la derecha del nombre en la lista (no se muestra en el botón). */
+  etiqueta?: ReactNode;
 }
 
 interface StyledSelectProps {
@@ -26,11 +30,17 @@ interface StyledSelectProps {
   className?: string;
   /** El texto largo pasa a varias líneas (y el campo crece en alto) en vez de cortarse con «…». Por defecto se corta, como siempre. */
   envolver?: boolean;
+  /**
+   * Como `envolver` en el texto (el botón y la lista), pero sin tocar el alto: quien lo use debe dejar que el botón crezca
+   * (`h-auto min-h-…` en `className`), porque el alto fijo de `.input` no alcanza para dos líneas.
+   */
+  ajustar?: boolean;
 }
 
 /** Selector con la misma apariencia que los campos de texto (input) del sistema visual. */
-export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '', envolver = false }: StyledSelectProps) {
+export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '', envolver = false, ajustar = false }: StyledSelectProps) {
   const seleccionada = options.find((option) => option.value === value) ?? null;
+  const textoLargo = envolver || ajustar ? 'break-words' : 'truncate';
   const altura = envolver ? (tamano === 'lg' ? 'h-auto min-h-[52px] px-4 py-3' : 'h-auto min-h-11 py-2.5') : tamano === 'lg' ? 'h-[52px] px-4' : '';
 
   return (
@@ -42,7 +52,7 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
           className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${altura} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
         >
           {Icono && <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />}
-          <span className={`block ${envolver ? 'min-w-0 break-words' : 'truncate'} ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>
+          <span className={`block min-w-0 ${textoLargo} ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted" aria-hidden="true">
             <ChevronDown className="h-4 w-4" strokeWidth={2} />
           </span>
@@ -57,9 +67,11 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
             <ListboxOption
               key={option.value}
               value={option.value}
-              className={`group relative flex cursor-pointer select-none items-center justify-between rounded-lg px-3 py-2 text-sm text-ink outline-none transition-colors data-[focus]:bg-brand-soft data-[focus]:text-brand-ink data-[selected]:font-semibold data-[selected]:text-brand-ink ${envolver ? 'gap-2' : ''}`}
+              disabled={option.disabled}
+              className="group relative flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-ink outline-none transition-colors data-[disabled]:cursor-not-allowed data-[disabled]:text-muted data-[focus]:bg-brand-soft data-[focus]:text-brand-ink data-[selected]:font-semibold data-[selected]:text-brand-ink"
             >
-              <span className={envolver ? 'min-w-0 break-words' : 'truncate'}>{option.label}</span>
+              <span className={`min-w-0 flex-1 ${textoLargo}`}>{option.label}</span>
+              {option.etiqueta}
               <Check className="hidden h-4 w-4 shrink-0 text-brand group-data-[selected]:block" strokeWidth={2.5} aria-hidden="true" />
             </ListboxOption>
           ))}

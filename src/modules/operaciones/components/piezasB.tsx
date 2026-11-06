@@ -9,13 +9,13 @@ import { ACEPTA_ADJUNTOS, errorDeAdjunto } from '../lib/archivos';
 // FilaValor, Interruptor, Pronto…) se toma de piezas.tsx.
 
 /**
- * Campos del diseño de la entrega B: 46 px de alto, esquinas de 10 px y texto de 15 px. Se suman a `.input`; el borde claro va
- * aparte (`BORDE_CAMPO`) porque en un campo con error manda el borde rojo.
+ * Los campos de la entrega B son los mismos del formulario de alta (`CAMPO` y `CAMPO_BORDE` de piezas.tsx: 46 px de alto,
+ * esquinas de 10 px, texto de 15 px). Las áreas de texto usan el mismo molde, con alto libre y renglones de 22 px.
  */
-export const CAMPO_B = 'h-[46px] rounded-[10px] text-[15px]';
-export const BORDE_CAMPO = 'border-line hover:border-ink/30 focus:border-brand disabled:bg-paper';
-/** Áreas de texto: mismo molde, con alto mínimo y renglones de 22 px. */
 export const AREA_B = 'h-auto rounded-[10px] py-3 text-[15px] leading-[22px]';
+
+/** Contenido y columna lateral de las pantallas de la entrega B: la misma rejilla del detalle y del alta (aside de 340 a 460 px). */
+export const REJILLA_B = 'grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_clamp(21.25rem,24vw,28.75rem)]';
 
 /** Campo del diseño: rótulo de 14 px en seminegrita, el control, una ayuda opcional y el error (con `role="alert"`). */
 export function CampoB({ id, texto, opcional = false, ayuda, error, children, className = '' }: { id: string; texto: ReactNode; opcional?: boolean; ayuda?: ReactNode; error?: string; children: ReactNode; className?: string }) {

@@ -4,9 +4,8 @@ import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
-import { IconoAlerta } from '@/shared/ui/iconos';
+import { IconoAlerta, IconoTriangulo } from '@/shared/ui/iconos';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { descargarBlob, tamanoLegible } from '../lib/archivos';
@@ -19,8 +18,8 @@ import {
   camposDeError, operacionesService,
   type AdjuntoAnalisis, type CatalogosOperacion, type DecisionInusualidad, type Inusualidad, type SolicitudInusualidad,
 } from '../services/operacionesService';
-import { BTN, ErrorPagina, EsqueletoPagina, FilaValor, Tarjeta } from './piezas';
-import { AREA_B, BORDE_CAMPO, BotonAdjuntar, CAMPO_B, CampoB, ChipArchivo, OpcionRadio } from './piezasB';
+import { BTN, BTN_P, CAMPO, CAMPO_BORDE, ErrorPagina, EsqueletoPagina, FilaValor, Tarjeta } from './piezas';
+import { AREA_B, BotonAdjuntar, CampoB, ChipArchivo, OpcionRadio, REJILLA_B } from './piezasB';
 
 const DESCRIPCION = 'Documenta la señal de alerta y tu análisis. Si la calificas como sospechosa, el ROS debe comunicarse a la UIF en un máximo de 24 horas.';
 
@@ -28,8 +27,6 @@ const DECISIONES: { valor: DecisionInusualidad; titulo: string; texto: string }[
   { valor: 'NO_SOSPECHOSA', titulo: 'No es sospechosa', texto: 'Se conserva el análisis y el motivo por el cual no se reporta.' },
   { valor: 'SOSPECHOSA', titulo: 'Es sospechosa: preparar el ROS', texto: 'Se abre el ROS con los datos de esta operación y corre el plazo de 24 horas.' },
 ];
-
-const GRANDE = 'xl:grid-cols-[minmax(0,1fr)_clamp(340px,28.75vw,460px)]';
 
 /** Lo que la persona escribe en el formulario (todo texto; al enviar se arma la solicitud). */
 interface Borrador {
@@ -220,15 +217,15 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
   const opcionesSenal = catalogos.senalesAlerta.map((o) => ({ value: o.codigo, label: o.nombre }));
   const opcionesFuente = catalogos.fuentesSenal.map((o) => ({ value: o.codigo, label: o.nombre }));
   const pideSenalTexto = pideTexto(catalogos.senalesAlerta, b.senal);
-  const clase = (campo: string) => `input ${CAMPO_B} ${errores[campo] ? 'input-error' : BORDE_CAMPO}`;
-  const claseArea = (campo: string, minimo: string) => `input ${AREA_B} ${minimo} resize-y ${errores[campo] ? 'input-error' : BORDE_CAMPO}`;
+  const clase = (campo: string) => `input ${CAMPO} ${errores[campo] ? 'input-error' : CAMPO_BORDE}`;
+  const claseArea = (campo: string, minimo: string) => `input ${AREA_B} ${minimo} resize-y ${errores[campo] ? 'input-error' : CAMPO_BORDE}`;
   const ariaError = (campo: string) => (errores[campo] ? { 'aria-invalid': true as const, 'aria-describedby': `inu-${campo}-error` } : {});
 
   return (
     <PageShell ancho="amplio">
       <PageHeader antetitulo={actual.numeroRegistro} titulo="Marcar como inusual" descripcion={DESCRIPCION} icono={IconoAlerta} sinLinea />
 
-      <form onSubmit={(e) => e.preventDefault()} noValidate className={`grid items-start gap-6 ${GRANDE}`}>
+      <form onSubmit={(e) => e.preventDefault()} noValidate className={REJILLA_B}>
         <div className="flex min-w-0 flex-col gap-5">
           {aviso && <div id="aviso-inusual" className="scroll-mt-6"><Aviso aviso={aviso} onCerrar={() => setAviso(null)} /></div>}
 
@@ -243,13 +240,13 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
             />
           )}
 
-          <Tarjeta titulo="Señal de alerta" descripcion="Qué te llamó la atención." className="!gap-[18px]">
+          <Tarjeta titulo="Señal de alerta" descripcion="Qué te llamó la atención." espacio="gap-[18px]">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <CampoB id="inu-senal" texto="Señal de alerta" error={errores.senal}>
-                <StyledSelect id="inu-senal" value={b.senal} options={opcionesSenal} onChange={(v) => poner({ senal: v })} placeholder="Elige una señal" disabled={bloqueado} error={!!errores.senal} className={`${CAMPO_B} ${errores.senal ? '' : BORDE_CAMPO}`} />
+                <StyledSelect id="inu-senal" value={b.senal} options={opcionesSenal} onChange={(v) => poner({ senal: v })} placeholder="Elige una señal" disabled={bloqueado} error={!!errores.senal} className={`${CAMPO} ${errores.senal ? '' : CAMPO_BORDE}`} />
               </CampoB>
               <CampoB id="inu-fuente" texto="Fuente de la señal" error={errores.fuente}>
-                <StyledSelect id="inu-fuente" value={b.fuente} options={opcionesFuente} onChange={(v) => poner({ fuente: v })} placeholder="Elige una fuente" disabled={bloqueado} error={!!errores.fuente} className={`${CAMPO_B} ${errores.fuente ? '' : BORDE_CAMPO}`} />
+                <StyledSelect id="inu-fuente" value={b.fuente} options={opcionesFuente} onChange={(v) => poner({ fuente: v })} placeholder="Elige una fuente" disabled={bloqueado} error={!!errores.fuente} className={`${CAMPO} ${errores.fuente ? '' : CAMPO_BORDE}`} />
               </CampoB>
               <CampoB id="inu-fechaDeteccion" texto="Fecha de detección" error={errores.fechaDeteccion}>
                 <input id="inu-fechaDeteccion" type="date" max={hoy} value={b.fechaDeteccion} onChange={(e) => poner({ fechaDeteccion: e.target.value })} disabled={bloqueado} className={clase('fechaDeteccion')} {...ariaError('fechaDeteccion')} />
@@ -265,7 +262,7 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
             </CampoB>
           </Tarjeta>
 
-          <Tarjeta titulo="Análisis de la operación" descripcion="Queda como constancia documental." className="!gap-[18px]">
+          <Tarjeta titulo="Análisis de la operación" descripcion="Queda como constancia documental." espacio="gap-[18px]">
             <CampoB id="inu-descripcionOperacion" texto="Descripción de la operación y argumentos" error={errores.descripcionOperacion}>
               <textarea id="inu-descripcionOperacion" rows={3} maxLength={4000} value={b.descripcionOperacion} onChange={(e) => poner({ descripcionOperacion: e.target.value })} disabled={bloqueado} className={claseArea('descripcionOperacion', 'min-h-[96px]')} {...ariaError('descripcionOperacion')} />
             </CampoB>
@@ -296,7 +293,7 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
             </div>
           </Tarjeta>
 
-          <Tarjeta titulo="Decisión" descripcion="Elige una opción y documenta por qué." className="!gap-[18px]">
+          <Tarjeta titulo="Decisión" descripcion="Elige una opción y documenta por qué." espacio="gap-[18px]">
             <div role="radiogroup" aria-label="Decisión" className="flex flex-col gap-[18px]">
               {DECISIONES.map((o) => (
                 <OpcionRadio key={o.valor} nombre="decision-inusual" valor={o.valor} marcada={decision === o.valor} onElegir={(v) => setDecision(v as DecisionInusualidad)} titulo={o.titulo} texto={o.texto} deshabilitada={bloqueado || !actual.puedeCalificar} />
@@ -309,14 +306,14 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
             {cerrado ? (
               <>
                 <Link href={volver} className={`btn btn-secondary ${BTN}`}>Volver al registro</Link>
-                {actual.estado === 'SOSPECHOSA' && <Link href={`/operaciones/${id}/ros`} className={`btn btn-primary ${BTN}`}>Preparar el ROS</Link>}
+                {actual.estado === 'SOSPECHOSA' && <Link href={`/operaciones/${id}/ros`} className={`btn btn-primary ${BTN_P}`}>Preparar el ROS</Link>}
               </>
             ) : (
               <>
                 <Link href={volver} className={`btn btn-secondary ${BTN}`}>Cancelar</Link>
                 <Boton variante="secundario" className={BTN} onClick={guardarAnalisis} cargando={enviando === 'guardar'} disabled={bloqueado}>Guardar análisis</Boton>
                 {actual.puedeCalificar && (
-                  <Boton icono={decision === 'NO_SOSPECHOSA' ? undefined : AlertTriangle} className={BTN} onClick={calificar} cargando={enviando === 'calificar'} disabled={bloqueado || !decision}>
+                  <Boton icono={decision === 'NO_SOSPECHOSA' ? undefined : IconoTriangulo} className={BTN_P} onClick={calificar} cargando={enviando === 'calificar'} disabled={bloqueado || !decision}>
                     {decision === 'NO_SOSPECHOSA' ? 'Calificar como no sospechosa' : 'Calificar como sospechosa'}
                   </Boton>
                 )}
@@ -326,7 +323,7 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
         </div>
 
         <div className="flex flex-col gap-4 xl:sticky xl:top-4">
-          <Tarjeta titulo="Datos de la operación" descripcion="Se completan solos desde el registro." className="!gap-3">
+          <Tarjeta titulo="Datos de la operación" descripcion="Se completan solos desde el registro." espacio="gap-3">
             <div className="flex flex-col gap-3">
               <FilaValor etiqueta="Fecha">{fechaCorta(d.fechaOperacion) ?? '—'}</FilaValor>
               <FilaValor etiqueta="Tipo">{textoOGuion(d.tipoOperacion)}</FilaValor>
@@ -337,7 +334,7 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
               <FilaValor etiqueta="Participantes">{`${d.participantes} ${d.participantes === 1 ? 'persona' : 'personas'}`}</FilaValor>
             </div>
           </Tarjeta>
-          <Tarjeta titulo="Plazo del ROS" descripcion="Desde que lo calificas como sospechoso." derecha={<span className="badge badge-warn">24 horas</span>} className="!gap-3">
+          <Tarjeta titulo="Plazo del ROS" descripcion="Desde que lo calificas como sospechoso." derecha={<span className="badge badge-warn">24 horas</span>} espacio="gap-3">
             <p className="text-sm leading-[21px] text-ink/80">El ROS no debe identificar al oficial de cumplimiento ni a la empresa; solo se usan los códigos secretos de la UIF-Perú.</p>
           </Tarjeta>
         </div>

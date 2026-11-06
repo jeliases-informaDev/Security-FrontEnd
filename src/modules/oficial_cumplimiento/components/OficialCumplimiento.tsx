@@ -4,7 +4,9 @@ import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { IconoOficial } from '@/shared/ui/iconos';
 import { useCatalogosOficial, useEstadoOficial } from '../hooks/useCarga';
 import { DesignacionGuardada } from './DesignacionGuardada';
+import { FichaVista } from './ficha/FichaVista';
 import { OficialResumen } from './OficialResumen';
+import { ConFichaDe } from './PantallaCarga';
 import { EsqueletoPagina, ErrorPagina } from './piezas';
 import { SinOficial } from './SinOficial';
 
@@ -23,9 +25,8 @@ function PantallaDeError({ mensaje, onReintentar }: { mensaje: string; onReinten
 }
 
 /**
- * Pantalla raíz del módulo: según el estado que entrega el servidor muestra OC 0 (sin oficial) u OC 7 (designación guardada).
- * Los demás estados (en evaluación, vigente, cargo vacante) usan una pantalla provisional con lo pendiente en «Pronto» hasta que
- * estén las pantallas OC 9 a OC 13.
+ * Pantalla raíz del módulo: según el estado que entrega el servidor muestra OC 0 (sin oficial), OC 7 (designación guardada) u OC 9 (ficha,
+ * en evaluación y vigente). El cargo vacante usa todavía una pantalla provisional hasta que esté OC 13.
  */
 export function OficialCumplimiento() {
   const estado = useEstadoOficial();
@@ -56,6 +57,15 @@ export function OficialCumplimiento() {
       return datos.titular
         ? <DesignacionGuardada estado={datos} titular={datos.titular} />
         : <PantallaDeError mensaje="No llegaron los datos del oficial designado. Inténtalo de nuevo." onReintentar={recargar} />;
+    case 'EN_EVALUACION':
+    case 'VIGENTE':
+      return datos.titular ? (
+        <ConFichaDe id={datos.titular.id} titulo="Oficial de cumplimiento" estado={datos} catalogos={catalogos.datos} recargarEstado={recargar}>
+          {({ ficha, catalogos: opciones, recargar: alGuardar }) => <FichaVista ficha={ficha} catalogos={opciones} recargar={alGuardar} />}
+        </ConFichaDe>
+      ) : (
+        <PantallaDeError mensaje="No llegaron los datos del oficial designado. Inténtalo de nuevo." onReintentar={recargar} />
+      );
     default:
       return <OficialResumen estado={datos} />;
   }

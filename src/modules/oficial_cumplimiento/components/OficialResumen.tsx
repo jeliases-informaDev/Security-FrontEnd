@@ -1,23 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, History, Pencil, Plus, UserMinus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { IconoOficial } from '@/shared/ui/iconos';
 import { fechaCorta } from '../lib/formato';
 import type { EstadoOficial } from '../services/oficialService';
-import { TarjetaOficial } from './DesignacionGuardada';
-import { BTN, BotonPronto, Dato, NotaLateral, NotaSoloLectura, RUTA_OFICIAL, Tarjeta } from './piezas';
+import { BTN, Dato, NotaLateral, NotaSoloLectura, RUTA_OFICIAL, Tarjeta } from './piezas';
 import { TarjetaPlazo } from './TarjetaPlazo';
 
 /**
- * Pantalla provisional de los estados «En evaluación», «Vigente» y «Cargo vacante»: sus pantallas definitivas (ficha, cambio de datos,
- * historial, remoción y cargo vacante) todavía no están hechas. Muestra lo que ya manda el servidor y deja apagado con «Pronto» lo que
- * aún no se puede hacer. Lo único que funciona es «Designar nuevo oficial» cuando el cargo está vacante.
+ * Pantalla provisional del «Cargo vacante»: su pantalla definitiva (OC 13) todavía no está hecha. Muestra lo que ya manda el servidor
+ * y deja funcionando «Designar nuevo oficial». Los estados «En evaluación» y «Vigente» ya usan la ficha (OC 9).
  */
 export function OficialResumen({ estado }: { estado: EstadoOficial }) {
-  const vacante = estado.estado === 'VACANTE';
-  const titular = estado.titular;
   const vacancia = estado.vacancia;
   const puedeDesignar = estado.permisos.puedeDesignar;
 
@@ -30,23 +26,14 @@ export function OficialResumen({ estado }: { estado: EstadoOficial }) {
         descripcion={estado.estadoEtiqueta}
         sinLinea
         acciones={
-          vacante ? (
-            puedeDesignar && (
-              <Link href={`${RUTA_OFICIAL}/designar`} className={`btn btn-primary ${BTN}`}>
-                <Plus className="h-4 w-4" aria-hidden="true" /> Designar nuevo oficial
-              </Link>
-            )
-          ) : (
-            <>
-              <BotonPronto icono={Eye} className={BTN}>Ver ficha</BotonPronto>
-              <BotonPronto icono={Pencil} className={BTN}>Cambiar datos</BotonPronto>
-              <BotonPronto icono={History} className={BTN}>Historial</BotonPronto>
-              <BotonPronto icono={UserMinus} className={BTN}>Remover o reemplazar</BotonPronto>
-            </>
+          puedeDesignar && (
+            <Link href={`${RUTA_OFICIAL}/designar`} className={`btn btn-primary ${BTN}`}>
+              <Plus className="h-4 w-4" aria-hidden="true" /> Designar nuevo oficial
+            </Link>
           )
         }
       />
-      {vacante && !puedeDesignar && <NotaSoloLectura className="mb-5" />}
+      {!puedeDesignar && <NotaSoloLectura className="mb-5" />}
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_clamp(19rem,33%,28.75rem)]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -59,25 +46,11 @@ export function OficialResumen({ estado }: { estado: EstadoOficial }) {
               </div>
             </Tarjeta>
           )}
-          {titular && (
-            <Tarjeta titulo="Designación">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-                <Dato rotulo="Designa">{titular.nombreOrgano}</Dato>
-                <Dato rotulo="Fecha de designación">{fechaCorta(titular.fechaDesignacion)}</Dato>
-                {titular.fechaNotificacion && <Dato rotulo="Respuesta de la UIF">{fechaCorta(titular.fechaNotificacion)}</Dato>}
-              </div>
-            </Tarjeta>
-          )}
-          <NotaLateral rotulo="Próximamente">
-            {vacante
-              ? 'El detalle del cargo vacante y su historial se están preparando.'
-              : 'La ficha completa, el cambio de datos, el historial y la remoción de este cargo se están preparando.'}
-          </NotaLateral>
+          <NotaLateral rotulo="Próximamente">El detalle del cargo vacante y su historial se están preparando.</NotaLateral>
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-4" aria-label="Plazo y oficial designado">
+        <aside className="flex min-w-0 flex-col gap-4" aria-label="Plazo para designar">
           {vacancia && <TarjetaPlazo plazo={vacancia.plazoDesignar} titulo="Plazo para designar" />}
-          {titular && <TarjetaOficial titular={titular} />}
         </aside>
       </div>
     </PageShell>

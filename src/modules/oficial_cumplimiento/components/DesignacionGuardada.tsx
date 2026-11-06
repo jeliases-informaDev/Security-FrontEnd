@@ -1,12 +1,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { ArrowRight, Check, Eye, Pencil } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Etiqueta } from '@/shared/ui/kit';
 import { fechaCorta, fechaYHora, minusculaInicial } from '../lib/formato';
 import type { EstadoOficial, ResumenDesignacion } from '../services/oficialService';
-import { BTN, BotonPronto, EtiquetaEstado, Iniciales, NotaSoloLectura, Tarjeta, URL_SISDEL } from './piezas';
+import { BTN, BotonPronto, EtiquetaEstado, Iniciales, NotaSoloLectura, RUTA_OFICIAL, Tarjeta, URL_SISDEL } from './piezas';
 import { TarjetaPlazo } from './TarjetaPlazo';
 
 /** Un paso de la lista: círculo con su número (o visto), título y lo que hay que hacer. */
@@ -45,7 +46,7 @@ export function TarjetaOficial({ titular }: { titular: Pick<ResumenDesignacion, 
 /**
  * OC 7 · Designación guardada: lo que sigue es comunicarla a la UIF por SISDEL (fuera de PLAFT) y registrar aquí esa comunicación.
  * Si la UIF respondió «No procedente», el servidor lo avisa en `observacionUif` y no hay plazo nuevo: se muestra su respuesta.
- * «Ver ficha» y «Registrar comunicación» (OC 9 y OC 8) todavía no tienen pantalla: quedan apagados con «Pronto».
+ * «Ver ficha» y «Registrar comunicación» llevan a OC 9 y OC 8. «Corregir los datos» queda «Pronto» hasta que esté la corrección.
  */
 export function DesignacionGuardada({ estado, titular }: { estado: EstadoOficial; titular: ResumenDesignacion }) {
   const puedeComunicar = estado.permisos.puedeComunicar;
@@ -61,8 +62,14 @@ export function DesignacionGuardada({ estado, titular }: { estado: EstadoOficial
         sinLinea
         acciones={
           <>
-            <BotonPronto icono={Eye} className={BTN}>Ver ficha</BotonPronto>
-            {puedeComunicar && <BotonPronto icono={ArrowRight} className={BTN}>Registrar comunicación</BotonPronto>}
+            <Link href={`${RUTA_OFICIAL}/ficha`} className={`btn btn-secondary ${BTN}`}>
+              <Eye className="h-4 w-4" aria-hidden="true" /> Ver ficha
+            </Link>
+            {puedeComunicar && (
+              <Link href={`${RUTA_OFICIAL}/comunicacion`} className={`btn btn-secondary ${BTN}`}>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" /> Registrar comunicación
+              </Link>
+            )}
           </>
         }
       />
@@ -91,7 +98,11 @@ export function DesignacionGuardada({ estado, titular }: { estado: EstadoOficial
 
             <Paso titulo="Registra la comunicación y los códigos secretos" circulo={<span className={`${circuloBase} border border-line bg-white text-ink/50`} aria-hidden="true">3</span>}>
               <Texto>Cuando la UIF notifique que la designación es procedente, anota la constancia y los códigos secretos que te asigne.</Texto>
-              {puedeComunicar && <BotonPronto icono={Pencil} className={`mt-1 self-start ${BTN}`}>Registrar comunicación</BotonPronto>}
+              {puedeComunicar && (
+                <Link href={`${RUTA_OFICIAL}/comunicacion`} className={`btn btn-secondary mt-1 self-start ${BTN}`}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" /> Registrar comunicación
+                </Link>
+              )}
             </Paso>
           </ol>
         </section>

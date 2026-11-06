@@ -9,6 +9,7 @@ import { esAdministrador } from '@/shared/lib/modulos';
 import { PageHeader, PageShell, Panel } from '@/shared/ui/PageShell';
 import { EstadoVacio, Pestanas } from '@/shared/ui/kit';
 import { CuentasPanel } from './CuentasPanel';
+import { DatosDemostracion } from './DatosDemostracion';
 import { EmpresasPanel } from './EmpresasPanel';
 
 type Pestana = 'cuentas' | 'empresas';
@@ -59,6 +60,9 @@ function Contenido({ usuarioActual }: { usuarioActual: string }) {
       {pestana === 'empresas' && (
         <EmpresasPanel empresas={empresas.datos} cargando={empresas.cargando} error={empresas.error} onRecargar={recargarTodo} />
       )}
+
+      {/* Solo el administrador universal la ve: la tarjeta misma pregunta al servidor si puede gestionar la demostración. */}
+      <DatosDemostracion />
     </PageShell>
   );
 }

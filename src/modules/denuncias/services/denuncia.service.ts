@@ -1,8 +1,11 @@
 import { apiClient } from "@/shared/api/apiClient";
 import { conConsumo } from "@/modules/licencias/lib/consumo";
 
+import { CATALOGO_LOCAL } from "../lib/denuncias";
+
 import type {
   ActualizarEstadoDenunciaRequest,
+  CatalogoDenuncias,
   ConsultarDenunciaRequest,
   ConsultarDenunciaResponse,
   CrearDenunciaRequest,
@@ -16,6 +19,82 @@ import type {
 
 const BASE_URL =
   "/denuncias";
+
+
+// ============================================================
+// CATÁLOGO (situaciones, estados y resultados del cierre)
+// ============================================================
+
+/** Se guarda solo lo que contestó el servidor: si falla, se vuelve a intentar la próxima vez. */
+let catalogoDelServidor:
+  CatalogoDenuncias | null = null;
+
+
+function conRespaldo<T>(
+  lista: T[] | undefined,
+  respaldo: T[]
+): T[] {
+
+  return Array.isArray(lista) &&
+    lista.length > 0
+    ? lista
+    : respaldo;
+}
+
+
+/**
+ * GET /api/denuncias/catalogo. Si el servidor todavía no lo tiene (404) o falla, devuelve el catálogo local con las
+ * 6 situaciones: nunca lanza error, para que el formulario y las listas no se rompan.
+ */
+async function obtenerCatalogo():
+  Promise<CatalogoDenuncias> {
+
+  if (catalogoDelServidor) {
+    return catalogoDelServidor;
+  }
+
+  try {
+
+    const { data } =
+      await apiClient.get<
+        Partial<CatalogoDenuncias>
+      >(
+        `${BASE_URL}/catalogo`
+      );
+
+    catalogoDelServidor = {
+
+      situaciones:
+        conRespaldo(
+          data?.situaciones,
+          CATALOGO_LOCAL.situaciones
+        ),
+
+      estados:
+        conRespaldo(
+          data?.estados,
+          CATALOGO_LOCAL.estados
+        ),
+
+      resultadosCierre:
+        conRespaldo(
+          data?.resultadosCierre,
+          CATALOGO_LOCAL.resultadosCierre
+        ),
+
+      plazoAtencionDias:
+        typeof data?.plazoAtencionDias === "number"
+          ? data.plazoAtencionDias
+          : null,
+    };
+
+    return catalogoDelServidor;
+
+  } catch {
+
+    return CATALOGO_LOCAL;
+  }
+}
 
 
 // ============================================================
@@ -196,6 +275,36 @@ async function actualizarEstado(
 
 
 // ============================================================
+// DERIVAR AL OFICIAL DE CUMPLIMIENTO - ADMINISTRACIÓN (RESERVADO)
+// ============================================================
+
+/**
+ * POST /api/denuncias/{id}/derivar-oficial. Es idempotente y se puede hacer en cualquier estado; devuelve el detalle.
+ * El motivo es opcional (hasta 500).
+ */
+async function derivarAlOficial(
+  id: number,
+  motivo?: string | null
+): Promise<DenunciaDetalle> {
+
+  const texto =
+    motivo?.trim() || null;
+
+  const { data } =
+    await apiClient.post<
+      DenunciaDetalle
+    >(
+      `${BASE_URL}/${id}/derivar-oficial`,
+      {
+        motivo: texto,
+      }
+    );
+
+  return data;
+}
+
+
+// ============================================================
 // DESCARGAR DOCUMENTO - ADMINISTRACIÓN
 // ============================================================
 
@@ -275,6 +384,10 @@ export const denunciaService = {
   listarReceptores,
 
   actualizarEstado,
+
+  derivarAlOficial,
+
+  obtenerCatalogo,
 
   descargarDocumento,
 };

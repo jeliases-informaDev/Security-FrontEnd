@@ -2,10 +2,20 @@
 // ENUMS / TIPOS
 // ============================================================
 
+/** Las 6 situaciones que acepta el servidor (el nombre para mostrar sale de GET /api/denuncias/catalogo). */
 export type CausaDenuncia =
   | "SOBORNO"
   | "CONFLICTO"
-  | "ACOSO";
+  | "ACOSO"
+  | "FRAUDE"
+  | "OPERACION_SOSPECHOSA"
+  | "OTRAS";
+
+/** Cómo se cierra una denuncia. */
+export type ResultadoCierre =
+  | "FUNDADA"
+  | "INFUNDADA"
+  | "ARCHIVADA";
 
 export type RelacionEmpresa =
   | "TRABAJADOR"
@@ -61,6 +71,40 @@ export interface CrearDenunciaRequest {
 export interface ActualizarEstadoDenunciaRequest {
   estado: EstadoDenuncia;
   comentario?: string | null;
+
+  /** Obligatorio solo al pasar a CERRADO. */
+  resultadoCierre?: ResultadoCierre | null;
+
+  /** Obligatorio solo con ARCHIVADA (hasta 1000 caracteres). */
+  motivoCierre?: string | null;
+}
+
+/** POST /api/denuncias/{id}/derivar-oficial (el cuerpo es opcional). */
+export interface DerivarOficialRequest {
+  /** Hasta 500 caracteres. */
+  motivo?: string | null;
+}
+
+
+// ============================================================
+// CATÁLOGO (GET /api/denuncias/catalogo)
+// ============================================================
+
+export interface OpcionCatalogoDenuncia {
+  codigo: string;
+  nombre: string;
+}
+
+export interface ResultadoCierreCatalogo extends OpcionCatalogoDenuncia {
+  /** true: al elegir este resultado el motivo es obligatorio. */
+  pideMotivo: boolean;
+}
+
+export interface CatalogoDenuncias {
+  situaciones: OpcionCatalogoDenuncia[];
+  estados: OpcionCatalogoDenuncia[];
+  resultadosCierre: ResultadoCierreCatalogo[];
+  plazoAtencionDias: number | null;
 }
 
 
@@ -171,10 +215,54 @@ export interface DenunciaHistorial {
 
 
 // ============================================================
+// CAMPOS DE GESTIÓN (listado y detalle de administración)
+// ============================================================
+
+/**
+ * Los trae el servidor nuevo (Security-Backend #39). Todos son opcionales: el servidor desplegado antes de ese cambio no los
+ * manda (llegan `undefined`) y la pantalla oculta lo que depende de ellos. `vencida` siempre llega (true/false) desde el
+ * servidor nuevo: sirve para saber si los demás campos existen.
+ */
+export interface CamposGestionDenuncia {
+  causaEtiqueta?: string | null;
+  estadoEtiqueta?: string | null;
+
+  /** AAAA-MM-DD. */
+  fechaLimiteAtencion?: string | null;
+
+  /** Negativo = vencida hace N días. null si ya está cerrada. */
+  diasParaVencer?: number | null;
+  vencida?: boolean;
+
+  /** null mientras siga abierta. */
+  atendidaATiempo?: boolean | null;
+
+  resultadoCierre?: ResultadoCierre | null;
+  resultadoCierreEtiqueta?: string | null;
+  motivoCierre?: string | null;
+
+  /**
+   * RESERVADO. true/false solo para quien puede ver lo reservado (administrador y administrador de empresa);
+   * para los demás (por ejemplo el supervisor) llega null y no se muestra nada de la derivación.
+   */
+  derivadaAlOficial?: boolean | null;
+}
+
+/** RESERVADO: solo llega en el detalle y solo a quien puede ver lo reservado. */
+export interface DerivacionDenuncia {
+  /** AAAA-MM-DDTHH:mm:ss */
+  fechaDerivacion: string | null;
+  derivadaPorUsuarioId: number | null;
+  derivadaPor: string | null;
+  motivo: string | null;
+}
+
+
+// ============================================================
 // LISTADO
 // ============================================================
 
-export interface DenunciaResumen {
+export interface DenunciaResumen extends CamposGestionDenuncia {
   id: number;
 
   causa: CausaDenuncia;
@@ -197,8 +285,12 @@ export interface DenunciaResumen {
 // DETALLE
 // ============================================================
 
-export interface DenunciaDetalle {
+export interface DenunciaDetalle extends CamposGestionDenuncia {
   id: number;
+
+  /** RESERVADO: null (o ausente) si la cuenta no puede ver lo reservado o si la denuncia no está derivada. */
+  derivacion?: DerivacionDenuncia | null;
+
 
   causa: CausaDenuncia;
   relacionEmpresa: RelacionEmpresa;

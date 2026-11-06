@@ -22,6 +22,9 @@ import {
   denunciaService,
 } from "../../services/denuncia.service";
 import { mensajeDeFalla } from "@/modules/licencias/lib/consumo";
+import {
+  useCatalogoDenuncias,
+} from "../../hooks/useCatalogoDenuncias";
 import type {
   CausaDenuncia,
   CrearDenunciaRequest,
@@ -62,20 +65,6 @@ function formatearTamanoArchivo(
     (1024 * 1024)
   ).toFixed(2)} MB`;
 }
-const causaOptions = [
-  {
-    value: "SOBORNO",
-    label: "Soborno",
-  },
-  {
-    value: "CONFLICTO",
-    label: "Conflicto",
-  },
-  {
-    value: "ACOSO",
-    label: "Acoso",
-  },
-];
 const relacionEmpresaOptions = [
   {
     value: "TRABAJADOR",
@@ -117,6 +106,16 @@ export function DenunciaForm() {
   /* ==========================================================
      DENUNCIA
      ========================================================== */
+  // Las 6 situaciones salen del catálogo del servidor (si aún no lo tiene, de la lista local).
+  const catalogo =
+    useCatalogoDenuncias();
+  const causaOptions =
+    catalogo.situaciones.map(
+      (situacion) => ({
+        value: situacion.codigo,
+        label: situacion.nombre,
+      })
+    );
   const [
     causa,
     setCausa,
@@ -537,7 +536,7 @@ export function DenunciaForm() {
   function validar():
     string | null {
     if (!causa) {
-      return "Selecciona la causa de la denuncia.";
+      return "Selecciona la situación que deseas denunciar.";
     }
     if (!relacionEmpresa) {
       return "Selecciona la relación con la empresa.";
@@ -796,12 +795,13 @@ export function DenunciaForm() {
           <div className="grid gap-5 lg:grid-cols-2">
             <div>
               <label className={labelClass}>
-                Causa de la denuncia *
+                Situación que denuncias *
               </label>
               <StyledSelect
                 value={causa}
                 options={causaOptions}
-                placeholder="Seleccionar causa"
+                placeholder="Seleccionar situación"
+                envolver
                 onChange={(value) =>
                   setCausa(
                     value as CausaDenuncia

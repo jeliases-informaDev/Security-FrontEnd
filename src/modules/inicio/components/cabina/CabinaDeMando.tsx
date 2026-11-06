@@ -3,6 +3,7 @@
 import { IconoMedidor } from '@/shared/ui/iconos';
 import { calcularLuces, estadoGeneral } from '../../lib/luces';
 import type { CabinaInicio, ResumenInicio } from '../../services/inicioService';
+import { CombustibleTokens } from './CombustibleTokens';
 import { ChipEstado } from './Instrumento';
 import { LucesAlerta } from './LucesAlerta';
 import { MapaPeru } from './MapaPeru';
@@ -69,6 +70,7 @@ export function CabinaDeMando({ resumen }: Props) {
               <MedidorAguja scoring={cabina.scoring} className="@[72rem]:col-span-3" />
               <RadarPerfil scoring={cabina.scoring} className="@[72rem]:col-span-4" />
               <PulsoLineas tendencia={cabina.tendencia} className="@[40rem]:col-span-2 @[72rem]:col-span-7" />
+              <CombustibleTokens licencia={cabina.licencia} className="@[40rem]:col-span-2 @[72rem]:col-span-7" />
             </div>
             <div className="grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-1 @[72rem]:content-start">
               <MapaPeru mapa={cabina.mapa} />

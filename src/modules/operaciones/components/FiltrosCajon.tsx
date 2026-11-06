@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, X } from 'lucide-react';
+import { IconoCerrar, IconoVisto } from '@/shared/ui/iconos';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
 import { Boton } from '@/shared/ui/kit';
 import type { CatalogosOperacion, UsuarioEmpresa } from '../services/operacionesService';
-import { Interruptor, Pronto, Segmentado } from './piezas';
+import { BTN, BTN_P, CAMPO, CAMPO_BORDE, ETIQUETA, Interruptor, Pronto, Segmentado } from './piezas';
 
 /** Filtros de la lista (todos se resuelven en el servidor). El estado lo comparten las pestañas y el panel. */
 export interface FiltrosLista {
@@ -34,8 +34,12 @@ interface Props {
   onCerrar: () => void;
 }
 
-const SECCION = 'text-sm font-semibold text-ink';
-const CHIP = 'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors';
+const SECCION = 'text-sm font-semibold leading-[normal] text-ink';
+/** Fichas de estado: la elegida va rellena y sin borde; las demás llevan borde de 1 px (como en el diseño). */
+const CHIP = 'inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold leading-[normal] transition-colors';
+/** Un grupo del panel: su título y debajo los campos, a 10 px. */
+const GRUPO = 'flex flex-col gap-2.5';
+const CAMPO_FILTRO = `input ${CAMPO} ${CAMPO_BORDE}`;
 
 /** RO 11 · Panel lateral de filtros. Se monta solo después de un clic, así que `document` ya existe. */
 export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar }: Props) {
@@ -56,27 +60,28 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
   const fechasMal = borrador.desde !== '' && borrador.hasta !== '' && borrador.desde > borrador.hasta;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-end bg-ink/55" onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>
-      <aside role="dialog" aria-modal="true" aria-labelledby="titulo-filtros-ro" className="flex h-full w-full max-w-[420px] flex-col bg-white shadow-lg" style={{ overscrollBehavior: 'contain' }}>
-        <div className="flex items-start gap-3 px-6 pb-4 pt-6">
-          <div className="min-w-0 flex-1">
-            <h2 id="titulo-filtros-ro" className="text-xl font-semibold tracking-[-0.01em] text-ink">Filtros</h2>
-            <p className="rotulo mt-0.5 !normal-case">Registro de operaciones</p>
+    <div className="fixed inset-0 z-50 flex justify-end bg-ink/45" onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>
+      <aside role="dialog" aria-modal="true" aria-labelledby="titulo-filtros-ro" className="flex h-full w-full max-w-[520px] flex-col bg-white shadow-[-16px_0_60px_-20px_rgba(14,17,22,0.25)]" style={{ overscrollBehavior: 'contain' }}>
+        <div className="flex items-center gap-3 pb-[18px] pl-7 pr-6 pt-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 id="titulo-filtros-ro" className="text-[22px] font-bold leading-[normal] text-ink">Filtros</h2>
+            <p className="font-mono text-xs leading-[normal] tracking-[0.04em] text-muted">Registro de operaciones</p>
           </div>
-          <button ref={cerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar los filtros" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-line bg-white transition-colors hover:bg-paper">
-            <X className="h-[18px] w-[18px]" aria-hidden="true" />
+          <button ref={cerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar los filtros" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-line bg-white text-ink/80 transition-colors hover:bg-paper">
+            <IconoCerrar className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
+        <div className="h-px shrink-0 bg-line" />
 
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6">
-          <fieldset className="flex flex-col gap-2.5">
+        <div className="flex min-h-0 flex-1 flex-col gap-[22px] overflow-y-auto px-7 py-6">
+          <fieldset>
             <legend className={`${SECCION} mb-2.5`}>Estado</legend>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" aria-pressed={borrador.estado === 'PENDIENTE'} onClick={() => poner({ estado: borrador.estado === 'PENDIENTE' ? '' : 'PENDIENTE' })} className={`${CHIP} ${borrador.estado === 'PENDIENTE' ? 'border-ink bg-ink text-paper' : 'border-line bg-white text-ink hover:bg-paper'}`}>
+            <div className="flex flex-wrap items-start gap-2">
+              <button type="button" aria-pressed={borrador.estado === 'PENDIENTE'} onClick={() => poner({ estado: borrador.estado === 'PENDIENTE' ? '' : 'PENDIENTE' })} className={`${CHIP} ${borrador.estado === 'PENDIENTE' ? 'bg-ink text-paper' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}>
                 Pendiente de envío
               </button>
               {['Enviado', 'Inusual'].map((texto) => (
-                <button key={texto} type="button" aria-disabled="true" title="Próximamente" onClick={(e) => e.preventDefault()} className={`${CHIP} cursor-not-allowed border-line bg-white text-faint`}>
+                <button key={texto} type="button" aria-disabled="true" title="Próximamente" onClick={(e) => e.preventDefault()} className={`${CHIP} cursor-not-allowed border border-line bg-white text-faint`}>
                   {texto} <Pronto />
                 </button>
               ))}
@@ -85,65 +90,68 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
 
           <fieldset>
             <legend className={`${SECCION} mb-2.5`}>Fecha de la operación</legend>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="ro-filtro-desde" className="label">Desde</label>
-                <input id="ro-filtro-desde" type="date" className="input" value={borrador.desde} max={borrador.hasta || undefined} onChange={(e) => poner({ desde: e.target.value })} />
+                <label htmlFor="ro-filtro-desde" className={ETIQUETA}>Desde</label>
+                <input id="ro-filtro-desde" type="date" className={CAMPO_FILTRO} value={borrador.desde} max={borrador.hasta || undefined} onChange={(e) => poner({ desde: e.target.value })} />
               </div>
               <div>
-                <label htmlFor="ro-filtro-hasta" className="label">Hasta</label>
-                <input id="ro-filtro-hasta" type="date" className="input" value={borrador.hasta} min={borrador.desde || undefined} onChange={(e) => poner({ hasta: e.target.value })} />
+                <label htmlFor="ro-filtro-hasta" className={ETIQUETA}>Hasta</label>
+                <input id="ro-filtro-hasta" type="date" className={CAMPO_FILTRO} value={borrador.hasta} min={borrador.desde || undefined} onChange={(e) => poner({ hasta: e.target.value })} />
               </div>
             </div>
             {fechasMal && <p role="alert" className="error-text">La fecha «Desde» no puede ser posterior a «Hasta».</p>}
           </fieldset>
 
-          <div>
-            <p className={`${SECCION} mb-2.5`}>Operación</p>
-            <label htmlFor="ro-filtro-tipo" className="label">Tipo de operación</label>
-            <StyledSelect id="ro-filtro-tipo" value={borrador.tipoOperacion} options={tipos} onChange={(v) => poner({ tipoOperacion: v })} placeholder="Todas" disabled={!catalogos} />
+          <div className={GRUPO}>
+            <p className={SECCION}>Operación</p>
+            <div>
+              <label htmlFor="ro-filtro-tipo" className={ETIQUETA}>Tipo de operación</label>
+              <StyledSelect id="ro-filtro-tipo" value={borrador.tipoOperacion} options={tipos} onChange={(v) => poner({ tipoOperacion: v })} placeholder="Todas" disabled={!catalogos} className={`${CAMPO} ${CAMPO_BORDE}`} />
+            </div>
           </div>
 
-          <div>
-            <p id="ro-filtro-moneda" className={`${SECCION} mb-2.5`}>Moneda</p>
-            <Segmentado ariaLabel="Moneda" valor={borrador.moneda} opciones={monedas} onCambiar={(v) => poner({ moneda: v })} />
+          <div className={GRUPO}>
+            <p id="ro-filtro-moneda" className={SECCION}>Moneda</p>
+            <Segmentado grande ariaLabel="Moneda" valor={borrador.moneda} opciones={monedas} onCambiar={(v) => poner({ moneda: v })} />
           </div>
 
           <fieldset>
             <legend className={`${SECCION} mb-2.5 flex items-center gap-2`}>Monto (US$ equivalente) <Pronto /></legend>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="ro-filtro-min" className="label">Mínimo</label>
-                <input id="ro-filtro-min" className="input" placeholder="Ej. 30,000" disabled />
+                <label htmlFor="ro-filtro-min" className={ETIQUETA}>Mínimo</label>
+                <input id="ro-filtro-min" className={CAMPO_FILTRO} placeholder="Ej. 30,000" disabled />
               </div>
               <div>
-                <label htmlFor="ro-filtro-max" className="label">Máximo</label>
-                <input id="ro-filtro-max" className="input" placeholder="Ej. 150,000" disabled />
+                <label htmlFor="ro-filtro-max" className={ETIQUETA}>Máximo</label>
+                <input id="ro-filtro-max" className={CAMPO_FILTRO} placeholder="Ej. 150,000" disabled />
               </div>
             </div>
           </fieldset>
 
-          <div>
-            <p className={`${SECCION} mb-2.5`}>Responsable y oficina</p>
-            <div className="grid grid-cols-2 gap-3">
+          <div className={GRUPO}>
+            <p className={SECCION}>Responsable y oficina</p>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="ro-filtro-responsable" className="label">Responsable</label>
-                <StyledSelect id="ro-filtro-responsable" value={borrador.responsableId} options={responsables} onChange={(v) => poner({ responsableId: v })} placeholder="Todos" disabled={borrador.sinResponsable || usuarios === null} />
+                <label htmlFor="ro-filtro-responsable" className={ETIQUETA}>Responsable</label>
+                <StyledSelect id="ro-filtro-responsable" value={borrador.responsableId} options={responsables} onChange={(v) => poner({ responsableId: v })} placeholder="Todos" disabled={borrador.sinResponsable || usuarios === null} className={`${CAMPO} ${CAMPO_BORDE}`} />
               </div>
               <div>
-                <label htmlFor="ro-filtro-oficina" className="label flex items-center gap-2">Oficina <Pronto /></label>
-                <StyledSelect id="ro-filtro-oficina" value="" options={[{ value: '', label: 'Todas' }]} onChange={() => undefined} placeholder="Todas" disabled />
+                <label htmlFor="ro-filtro-oficina" className={ETIQUETA}>Oficina <Pronto /></label>
+                <StyledSelect id="ro-filtro-oficina" value="" options={[{ value: '', label: 'Todas' }]} onChange={() => undefined} placeholder="Todas" disabled className={`${CAMPO} ${CAMPO_BORDE}`} />
               </div>
             </div>
             {usuarios !== null && usuarios.length === 0 && <p className="hint">No se pudo cargar la lista de responsables.</p>}
           </div>
 
-          <Interruptor id="ro-filtro-sin-responsable" activo={borrador.sinResponsable} onCambiar={(v) => poner({ sinResponsable: v, responsableId: v ? '' : borrador.responsableId })} etiqueta="Mostrar solo registros sin responsable" />
+          <Interruptor fila id="ro-filtro-sin-responsable" activo={borrador.sinResponsable} onCambiar={(v) => poner({ sinResponsable: v, responsableId: v ? '' : borrador.responsableId })} etiqueta="Mostrar solo registros sin responsable" />
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-line px-6 py-4">
-          <Boton variante="secundario" onClick={() => setBorrador(SIN_FILTROS)}>Limpiar</Boton>
-          <Boton icono={Check} disabled={fechasMal} onClick={() => onAplicar(borrador)}>Aplicar filtros</Boton>
+        <div className="h-px shrink-0 bg-line" />
+        <div className="flex items-center justify-end gap-2.5 px-7 pb-5 pt-4">
+          <Boton variante="secundario" onClick={() => setBorrador(SIN_FILTROS)} className={BTN}>Limpiar</Boton>
+          <Boton icono={IconoVisto} disabled={fechasMal} onClick={() => onAplicar(borrador)} className={BTN_P}>Aplicar filtros</Boton>
         </div>
       </aside>
     </div>,

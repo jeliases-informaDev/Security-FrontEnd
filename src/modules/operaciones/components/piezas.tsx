@@ -22,6 +22,8 @@ export const BTN_P = 'h-11 text-[15px]';
  */
 export const CAMPO = 'h-[46px] rounded-[10px] text-[15px]';
 export const CAMPO_BORDE = 'border-line hover:border-ink/30 focus:border-brand disabled:bg-paper';
+/** Rótulo de un campo (14 px, seminegrita, 8 px de separación con el campo). */
+export const ETIQUETA = 'mb-2 flex items-center gap-2 text-sm font-semibold leading-[normal] text-ink';
 
 /** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad. */
 export const Pronto = ({ compacto = false }: { compacto?: boolean }) => <Etiqueta className={compacto ? '!px-2 !py-px !leading-[normal]' : ''}>Pronto</Etiqueta>;
@@ -105,10 +107,10 @@ export function AccionFila({ href, onClick, etiqueta, children }: { href?: strin
   return <button type="button" onClick={onClick} aria-label={etiqueta} title={etiqueta} className={clase}>{children}</button>;
 }
 
-/** Selector segmentado del diseño; las opciones con `pronto` quedan apagadas con su insignia. */
-export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaLabel }: { valor: T; opciones: { valor: T; etiqueta: string; pronto?: boolean }[]; onCambiar: (valor: T) => void; ariaLabel: string }) {
+/** Selector segmentado del diseño; las opciones con `pronto` quedan apagadas con su insignia. `grande` es el del panel de filtros (opciones de 32 px). */
+export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaLabel, grande = false }: { valor: T; opciones: { valor: T; etiqueta: string; pronto?: boolean }[]; onCambiar: (valor: T) => void; ariaLabel: string; grande?: boolean }) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="flex max-w-full gap-1 overflow-x-auto rounded-[10px] border border-line bg-paper p-1">
+    <div role="radiogroup" aria-label={ariaLabel} className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[10px] border border-line bg-paper p-1">
       {opciones.map((o) => {
         const activa = o.valor === valor;
         return (
@@ -120,7 +122,7 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
             aria-disabled={o.pronto || undefined}
             title={o.pronto ? 'Próximamente' : undefined}
             onClick={() => { if (!o.pronto) onCambiar(o.valor); }}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[14px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : o.pronto ? 'cursor-not-allowed text-faint' : 'text-muted hover:text-ink'}`}
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg ${grande ? 'px-4 py-[7px]' : 'px-3.5 py-1.5'} text-[14px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : o.pronto ? 'cursor-not-allowed text-faint' : 'text-muted hover:text-ink'}`}
           >
             {o.etiqueta}
             {o.pronto && <Pronto compacto />}
@@ -131,11 +133,11 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
   );
 }
 
-/** Interruptor accesible (role="switch"). */
-export function Interruptor({ activo, onCambiar, etiqueta, id }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string }) {
+/** Interruptor accesible (role="switch"). Con `fila` el rótulo ocupa el ancho y el interruptor queda a la derecha (panel de filtros). */
+export function Interruptor({ activo, onCambiar, etiqueta, id, fila = false }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string; fila?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span id={`${id}-texto`} className="text-sm font-medium leading-[normal] text-ink/80">{etiqueta}</span>
+      <span id={`${id}-texto`} className={fila ? 'min-w-0 flex-1 text-[15px] font-medium leading-[normal] text-ink' : 'text-sm font-medium leading-[normal] text-ink/80'}>{etiqueta}</span>
       <button
         id={id}
         type="button"

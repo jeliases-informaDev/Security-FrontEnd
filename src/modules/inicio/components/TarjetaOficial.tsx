@@ -3,7 +3,7 @@ import { IconoOficial } from '@/shared/ui/iconos';
 import { Avatar, Etiqueta } from '@/shared/ui/kit';
 import type { ResumenOficial } from '../services/inicioService';
 import { cargoLegible, esNumero, fechaCorta, legible, SIN_DATO } from '../lib/formato';
-import { EnlaceModulo, ErrorTarjeta, Franja, ROTULO, Tarjeta, VacioTarjeta, type PropsBloque } from './piezas';
+import { EnlaceModulo, ErrorTarjeta, Franja, LINEA_ESQUELETO, ROTULO, Tarjeta, VacioTarjeta, type PropsBloque } from './piezas';
 
 const RUTA_OFICIAL = '/oficial-cumplimiento';
 
@@ -79,10 +79,10 @@ export function TarjetaOficial({ estado, bloque, onReintentar }: PropsBloque<Res
   if (estado === 'cargando') {
     return (
       <Tarjeta {...marco}>
-        <div role="status" aria-live="polite" aria-label="Cargando…" aria-busy="true" className="space-y-3">
-          <div className="skeleton h-3 w-4/5" />
-          <div className="skeleton h-3 w-3/5" />
-          <div className="skeleton h-3 w-2/3" />
+        <div role="status" aria-live="polite" aria-label="Cargando…" aria-busy="true" className="space-y-3.5">
+          <div className={`h-2 w-4/5 ${LINEA_ESQUELETO}`} />
+          <div className={`h-2 w-3/5 ${LINEA_ESQUELETO}`} />
+          <div className={`h-2 w-2/3 ${LINEA_ESQUELETO}`} />
         </div>
       </Tarjeta>
     );
@@ -111,6 +111,7 @@ export function TarjetaOficial({ estado, bloque, onReintentar }: PropsBloque<Res
       nombreAccesible={marco.titulo}
       subtitulo={nombre ? `${cargo ? `${cargo} · ` : ''}Oficial de cumplimiento` : (cargo ?? legible(String(bloque.estado)))}
       derecha={chip ? <Etiqueta tono={chip.tono} punto>{chip.texto}</Etiqueta> : undefined}
+      derechaCorta
     >
       {vacante ? (
         <Franja tono="bad">El cargo está vacante. Designa a un nuevo oficial de cumplimiento.</Franja>

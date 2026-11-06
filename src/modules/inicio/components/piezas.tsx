@@ -22,8 +22,11 @@ export interface PropsBloque<T> {
   onReintentar: () => void;
 }
 
-/** Rótulo en mono de 10 px (rótulos de las cifras y subtítulos de cada bloque). */
-export const ROTULO = 'font-mono text-[10px] font-normal uppercase leading-[1.5] tracking-[0.05em] text-muted';
+/** Rótulo en mono de 10 px (rótulos de las cifras y subtítulos de cada bloque). Tinta al 70 %: 7:1 de contraste sobre blanco (el gris `muted` daba 5,3:1 y se veía pálido a 10 px). */
+const ROTULO_BASE = 'font-mono text-[10px] font-normal uppercase leading-[1.5] text-ink/70';
+export const ROTULO = `${ROTULO_BASE} tracking-[0.05em]`;
+/** El rótulo de una cifra, con la letra un poco más junta: así «Homónimos descartados» cabe en una línea en la cifra más angosta (cuatro por fila con la ventana a 1235 px). */
+const ROTULO_CIFRA = `${ROTULO_BASE} tracking-[0.03em]`;
 
 /** Color de la serie o del valor: la clase de texto que toma `currentColor`. El ámbar sale de mezclar los tokens `media` y `warn`. */
 export const COLOR_SERIE = {
@@ -58,31 +61,71 @@ interface TarjetaProps {
   nombreAccesible?: string;
   /** Lo que va a la derecha del título (chip y enlace). Pasa a otra línea si no cabe. */
   derecha?: ReactNode;
+  /** `derecha` es solo un chip corto (sin enlace): entonces cabe al lado del título desde mucho más angosto (17 rem de tarjeta en vez de 30). */
+  derechaCorta?: boolean;
+  /** Cuánto puede crecer si el tablero la estira para que su columna termine pareja con la otra: `poco` (+2,5 rem) o `mucho` (+6 rem, para las de muchos bloques, donde el reparto se nota menos). */
+  estira?: 'poco' | 'mucho';
   children?: ReactNode;
 }
+
+// Tope de estiramiento: `calc-size` limita la tarjeta a su alto natural más una holgura. Con dos bloques o menos (título y un bloque
+// de cargando, error o vacío) no hay holgura: esas tarjetas nunca se estiran. Clases completas para que Tailwind las encuentre.
+const ESTIRA = {
+  poco: 'max-h-[calc-size(max-content,size)] has-[>:nth-child(3)]:max-h-[calc-size(max-content,size_+_2.5rem)]',
+  mucho: 'max-h-[calc-size(max-content,size)] has-[>:nth-child(3)]:max-h-[calc-size(max-content,size_+_6rem)]',
+} as const;
+
+// Cabecera de dos filas (título y lo de la derecha / subtítulo), solo desde cierto ancho de tarjeta. Son clases escritas completas
+// para que Tailwind las encuentre: no se pueden armar con texto.
+const CABECERA = {
+  larga: {
+    rejilla: '@[30rem]:grid-cols-[minmax(0,1fr)_auto] @[30rem]:gap-x-3 @[30rem]:gap-y-0',
+    titulo: '@[30rem]:col-start-1 @[30rem]:row-start-1',
+    subtitulo: '@[30rem]:col-span-2 @[30rem]:row-start-2',
+    derecha: '@[30rem]:col-start-2 @[30rem]:row-start-1 @[30rem]:justify-end',
+  },
+  corta: {
+    rejilla: '@[17rem]:grid-cols-[minmax(0,1fr)_auto] @[17rem]:gap-x-3 @[17rem]:gap-y-0',
+    titulo: '@[17rem]:col-start-1 @[17rem]:row-start-1',
+    subtitulo: '@[17rem]:col-span-2 @[17rem]:row-start-2',
+    derecha: '@[17rem]:col-start-2 @[17rem]:row-start-1 @[17rem]:justify-end',
+  },
+} as const;
 
 /**
  * Superficie blanca de un bloque del tablero. Es además un «contenedor» de CSS: las cuadrículas de cifras y los dos
  * bloques de abajo se acomodan según el ancho de la tarjeta (no el de la pantalla), así caben igual en la columna ancha,
  * en la angosta y en una sola columna.
+ *
+ * Cabecera (como en el diseño): a la izquierda la caja de icono o el avatar; al lado, el título con lo de la derecha (chip y
+ * enlace) a su altura, y el subtítulo debajo, con todo el ancho para no partirse. Desde 30 rem de tarjeta va así (17 rem si la
+ * derecha es solo un chip); más angosta, en una sola columna: título, subtítulo y, debajo, el chip y el enlace.
+ *
+ * Altura: si el tablero la estira (la última tarjeta de la columna más corta, para que las dos terminen parejas), la diferencia
+ * se reparte entre los bloques (`justify-between`, solo con tres o más: cargando, error y vacío son título + un bloque y ese
+ * bloque se queda pegado al título) en vez de dejar un vacío al final. Y no se estira de más (ver `ESTIRA`); con una diferencia
+ * mayor (estados raros) las columnas terminan distintas, como siempre. Un navegador sin `calc-size` ignora el tope y estira del todo.
  */
-export function Tarjeta({ id, icono: Icono, avatar, titulo, subtitulo, nombreAccesible, derecha, children }: TarjetaProps) {
+export function Tarjeta({ id, icono: Icono, avatar, titulo, subtitulo, nombreAccesible, derecha, derechaCorta = false, estira = 'poco', children }: TarjetaProps) {
   const idTitulo = `${id}-titulo`;
+  const c = derechaCorta ? CABECERA.corta : CABECERA.larga;
   return (
-    <section className="card @container flex flex-col gap-4 p-4 sm:p-5" aria-labelledby={nombreAccesible ? undefined : idTitulo} aria-label={nombreAccesible}>
-      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5">
-        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
-          {avatar ?? (
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-ink" aria-hidden="true">
-              {Icono && <Icono className="h-[18px] w-[18px]" />}
-            </span>
-          )}
-          <div className="min-w-0">
-            <h2 id={idTitulo} className="break-words text-[15px] font-semibold leading-snug tracking-[-0.01em] text-ink">{titulo}</h2>
-            {subtitulo && <p className={`${ROTULO} break-words`}>{subtitulo}</p>}
-          </div>
+    <section
+      className={`card @container flex flex-col gap-4 p-4 has-[>:nth-child(3)]:justify-between sm:p-5 ${ESTIRA[estira]}`}
+      aria-labelledby={nombreAccesible ? undefined : idTitulo}
+      aria-label={nombreAccesible}
+    >
+      <header className="flex items-center gap-3">
+        {avatar ?? (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-ink" aria-hidden="true">
+            {Icono && <Icono className="h-[18px] w-[18px]" />}
+          </span>
+        )}
+        <div className={`grid min-w-0 flex-1 items-center gap-y-1.5 ${c.rejilla}`}>
+          <h2 id={idTitulo} className={`min-w-0 break-words text-[15px] font-semibold leading-snug tracking-[-0.01em] text-ink ${c.titulo}`}>{titulo}</h2>
+          {subtitulo && <p className={`${ROTULO} min-w-0 break-words ${c.subtitulo}`}>{subtitulo}</p>}
+          {derecha && <div className={`flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 ${c.derecha}`}>{derecha}</div>}
         </div>
-        {derecha && <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">{derecha}</div>}
       </header>
       {children}
     </section>
@@ -140,8 +183,8 @@ interface CifraProps {
 
 export function Cifra({ rotulo, valor, unidad, detalle, tono = 'tinta', serie, conSerie = false, className = '' }: CifraProps) {
   return (
-    <div className={`${conSerie ? 'row-span-4' : 'row-span-3'} mb-2.5 grid min-w-0 grid-rows-subgrid rounded-2xl border border-line bg-white/70 px-3 py-3 ${className}`}>
-      <p className={`${ROTULO} break-words`}>{rotulo}</p>
+    <div className={`${conSerie ? 'row-span-4' : 'row-span-3'} mb-2.5 grid min-w-0 grid-rows-subgrid rounded-2xl border border-line bg-white/70 px-2.5 py-3 ${className}`}>
+      <p className={`${ROTULO_CIFRA} break-words`}>{rotulo}</p>
       <p className={`mt-1.5 flex flex-wrap items-baseline gap-x-1 ${TONO_VALOR[tono]}`}>
         <span className="text-[1.75rem] font-medium leading-none tracking-[-0.02em] tabular-nums">{valor}</span>
         {unidad && <span className="text-[13px] font-medium leading-none text-muted">{unidad}</span>}
@@ -152,14 +195,25 @@ export function Cifra({ rotulo, valor, unidad, detalle, tono = 'tinta', serie, c
   );
 }
 
-/** «▲ +5% vs. periodo anterior» (verde si sube; gris si baja o no cambia). Sin dato no dice nada. */
-export function Tendencia({ valor, contra }: { valor: number | null | undefined; contra: string }) {
+/**
+ * «▲ +5% vs. periodo anterior» (verde si sube; gris si baja o no cambia). Sin dato no dice nada. Con la tarjeta angosta (cada cifra mide
+ * menos de unos 160 px) la frase completa no cabe en una línea, y se dice «vs. anterior»; ancha, completa. Las dos dicen lo mismo.
+ */
+export function Tendencia({ valor, contra, contraCorto }: { valor: number | null | undefined; contra: string; contraCorto?: string }) {
   if (!esNumero(valor)) return null;
   const v = variacion(valor);
   return (
-    <span className={`font-mono text-[10px] leading-[1.5] tracking-[0.02em] ${v.tendencia === 'sube' ? 'text-ok' : 'text-muted'}`}>
+    <span className={`font-mono text-[10px] leading-[1.5] tracking-[0.02em] ${v.tendencia === 'sube' ? 'text-ok' : 'text-ink/70'}`}>
       {v.tendencia === 'sube' ? '▲ ' : v.tendencia === 'baja' ? '▼ ' : ''}
-      {v.texto} {contra}
+      {v.texto}{' '}
+      {contraCorto ? (
+        <>
+          <span className="@[48rem]:hidden">{contraCorto}</span>
+          <span className="hidden @[48rem]:inline">{contra}</span>
+        </>
+      ) : (
+        contra
+      )}
     </span>
   );
 }
@@ -194,10 +248,11 @@ export function MiniSerie({ valores, color, etiqueta }: { valores: readonly unkn
   return (
     <span className={`relative block h-9 w-full ${COLOR_SERIE[color]}`} role="img" aria-label={etiqueta}>
       <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} preserveAspectRatio="none" className="block h-full w-full overflow-visible" aria-hidden="true">
-        <path d={area} fill="currentColor" fillOpacity={0.1} stroke="none" />
-        <path d={linea} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+        <path d={area} fill="currentColor" fillOpacity={0.08} stroke="none" />
+        <path d={linea} fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       </svg>
-      <span className="absolute h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-current" style={{ left: 'calc(100% - 3px)', top: `${(yFinal / ALTO) * 100}%` }} aria-hidden="true" />
+      {/* Punto del último valor: redondo aunque la línea se estire, con un aro blanco para que se despegue del trazo. */}
+      <span className="absolute h-[7px] w-[7px] -translate-y-1/2 rounded-full bg-current ring-[1.5px] ring-white" style={{ left: 'calc(100% - 3.5px)', top: `${(yFinal / ALTO) * 100}%` }} aria-hidden="true" />
     </span>
   );
 }
@@ -221,13 +276,13 @@ export function BarraApilada({ segmentos, etiqueta }: { segmentos: Segmento[]; e
   const resumen = segmentos.map((s) => `${s.etiqueta} ${porcentaje(s.valor)} por ciento`).join(', ');
   return (
     <div>
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-line" role="img" aria-label={`${etiqueta}: ${resumen}`}>
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-line" role="img" aria-label={`${etiqueta}: ${resumen}`}>
         {conValor.map((s) => (
           // El ancho de cada tramo es su parte del total (así llena la barra aunque los porcentajes no sumen justo 100).
           <span key={s.clave} className={`block h-full min-w-[3px] ${s.fondo}`} style={{ flex: `${(s.valor / total) * 100} 1 0%` }} />
         ))}
       </div>
-      <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] leading-snug text-muted">
+      <ul className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-1.5 text-[11px] leading-snug text-muted">
         {segmentos.map((s) => (
           <li key={s.clave} className="flex min-w-0 items-baseline gap-1.5">
             <span className={`h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full ${s.fondo}`} aria-hidden="true" />
@@ -259,7 +314,7 @@ export function BarrasHorizontales({ filas, etiqueta }: { filas: FilaBarra[]; et
       {filas.map((fila) => (
         <li key={fila.clave} className="col-span-full grid grid-cols-subgrid items-center">
           <span className="min-w-[4.5rem] break-words">{fila.etiqueta}</span>
-          <span className="block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
+          <span className="block h-2 overflow-hidden rounded-full bg-line" aria-hidden="true">
             <span className="block h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (fila.valor / mayor) * 100))}%` }} />
           </span>
           <span className="text-right font-medium tabular-nums">{entero(fila.valor)}</span>
@@ -273,22 +328,29 @@ export function BarrasHorizontales({ filas, etiqueta }: { filas: FilaBarra[]; et
 // Estados de la tarjeta: carga, vacío y error
 // ------------------------------------------------------------
 
-/** Esqueleto con la forma de la tarjeta: la fila de cifras y los dos bloques de abajo. */
+/** Una línea de esqueleto: fina y redondeada, del tono de los rótulos (nada de cajas grises pesadas). Late suave; sin movimiento, queda quieta. */
+export const LINEA_ESQUELETO = 'animate-pulse rounded-full bg-ink/[0.06]';
+
+/** Esqueleto con la forma de la tarjeta: cada cifra con su recuadro (rótulo, valor y detalle) y los bloques de abajo como líneas finas. */
 export function EsqueletoTarjeta({ cifras = 4, bloques = 2 }: { cifras?: 3 | 4; bloques?: 1 | 2 }) {
   return (
     <div role="status" aria-live="polite" aria-label="Cargando…" aria-busy="true" className="flex flex-col gap-4">
       <div className={`grid grid-cols-2 gap-2.5 ${cifras === 3 ? '@[19.5rem]:grid-cols-3' : '@[41rem]:grid-cols-4'}`}>
         {Array.from({ length: cifras }, (_, i) => (
-          <div key={i} className="skeleton min-h-[6.5rem] rounded-2xl" />
+          <div key={i} className="flex min-h-[6.5rem] flex-col gap-2.5 rounded-2xl border border-line bg-white/70 px-2.5 py-3">
+            <div className={`h-2 w-2/5 ${LINEA_ESQUELETO}`} />
+            <div className="h-6 w-1/3 animate-pulse rounded-lg bg-ink/[0.06]" />
+            <div className={`h-2 w-3/5 ${LINEA_ESQUELETO}`} />
+          </div>
         ))}
       </div>
       <div className={`grid gap-x-7 gap-y-5 ${bloques === 2 ? '@[38rem]:grid-cols-2' : ''}`}>
         {Array.from({ length: bloques }, (_, i) => (
           <div key={i} className="space-y-3">
-            <div className="skeleton h-2.5 w-1/3" />
-            <div className="skeleton h-2.5 w-full rounded-full" />
-            <div className="skeleton h-2.5 w-4/5" />
-            <div className="skeleton h-2.5 w-3/5" />
+            <div className={`h-2 w-1/3 ${LINEA_ESQUELETO}`} />
+            <div className={`h-2 w-full ${LINEA_ESQUELETO}`} />
+            <div className={`h-2 w-4/5 ${LINEA_ESQUELETO}`} />
+            <div className={`h-2 w-3/5 ${LINEA_ESQUELETO}`} />
           </div>
         ))}
       </div>

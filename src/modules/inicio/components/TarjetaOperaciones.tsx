@@ -33,10 +33,10 @@ const ESTADO_REGISTRO: Record<string, { texto: string; tono: 'warn' | 'bad' | 'o
 function FilaRegistro({ registro }: { registro: UltimoRegistro }) {
   const estado = ESTADO_REGISTRO[registro.estado] ?? { texto: legible(String(registro.estado ?? '')), tono: 'neutral' as const };
   return (
-    <li className="relative col-span-full grid grid-cols-subgrid items-center gap-y-1 border-t border-line px-1 py-2.5 transition-colors first:border-t-0 hover:bg-brand-soft/40">
+    <li className="relative col-span-full grid grid-cols-subgrid items-center gap-y-1 border-t border-line px-1 py-2.5 transition-colors first:border-t-0 hover:bg-brand-soft/40 has-[a:focus-visible]:bg-brand-soft/40 has-[a:focus-visible]:outline has-[a:focus-visible]:outline-2 has-[a:focus-visible]:-outline-offset-2 has-[a:focus-visible]:outline-brand">
       <Link
         href={`/operaciones/${registro.id}`}
-        className="order-1 min-w-0 break-words font-mono text-[11px] leading-snug tracking-[0.02em] text-ink after:absolute after:inset-0 after:content-['']"
+        className="order-1 min-w-0 break-words font-mono text-[11px] leading-snug tracking-[0.02em] text-ink outline-none after:absolute after:inset-0 after:content-['']"
       >
         {registro.codigo || `Registro ${registro.id}`}
       </Link>
@@ -83,7 +83,7 @@ function ContenidoOperaciones({ b }: { b: ResumenOperaciones }) {
         <div>
           <Subtitulo>Últimos registros</Subtitulo>
           <ul
-            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-y border-line @[40rem]:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto]"
+            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-y border-line @[40rem]:grid-cols-[auto_minmax(0,1.1fr)_minmax(0,1fr)_auto_auto]"
             aria-label="Últimos registros de operaciones"
           >
             {ultimos.map((registro) => (

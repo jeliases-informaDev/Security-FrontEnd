@@ -6,6 +6,7 @@ import { Pencil } from 'lucide-react';
 import { documentoQueAcredita, textoFirma, type FormularioDesignacion } from '../../lib/designacion';
 import { fechaCorta, reglaTexto, textoOGuion } from '../../lib/formato';
 import type { CatalogosOficial } from '../../services/oficialService';
+import { CampoTextoLargo } from '../campos';
 import { Dato, FilaCheck, Tarjeta } from '../piezas';
 import { CuerpoPaso } from './CuerpoPaso';
 import { REGLA_COMUNICAR_DESIGNACION, TarjetaPlazoUif } from './PlazoDesignacion';
@@ -25,8 +26,11 @@ function Datos({ children }: { children: ReactNode }) {
   return <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
 }
 
-/** Paso 4 · Revisión y guardado (OC 6): resumen de todo lo escrito, con «Editar» por bloque, y lo que pasará al guardar. */
-export function PasoRevision({ catalogos, pie, alEditar, deshabilitado }: { catalogos: CatalogosOficial; pie: ReactNode; alEditar: (paso: number) => void; deshabilitado: boolean }) {
+/**
+ * Paso 4 · Revisión y guardado (OC 6): resumen de todo lo escrito, con «Editar» por bloque, y lo que pasará al guardar.
+ * Al corregir una designación (`correccion`) pide además el motivo, que queda en el historial junto con lo que cambió.
+ */
+export function PasoRevision({ catalogos, pie, alEditar, deshabilitado, correccion = false }: { catalogos: CatalogosOficial; pie: ReactNode; alEditar: (paso: number) => void; deshabilitado: boolean; correccion?: boolean }) {
   const { control } = useFormContext<FormularioDesignacion>();
   const v = useWatch({ control }) as FormularioDesignacion;
   const persona = v.persona;
@@ -38,9 +42,19 @@ export function PasoRevision({ catalogos, pie, alEditar, deshabilitado }: { cata
       lateral={
         <>
           <Tarjeta titulo="Qué pasará al guardar" centrada className="!gap-3">
-            <FilaCheck>Se guarda con sello de fecha y hora</FilaCheck>
-            <FilaCheck>Corre el plazo {regla ? `de ${regla} ` : ''}para comunicarla a la UIF</FilaCheck>
-            <FilaCheck>Queda anotado en el historial del oficial</FilaCheck>
+            {correccion ? (
+              <>
+                <FilaCheck>Se guardan los cambios con sello de fecha y hora</FilaCheck>
+                <FilaCheck>Queda anotado en el historial, con el motivo y lo que cambió</FilaCheck>
+                <FilaCheck>Después comunicas la designación a la UIF {regla ? `(plazo de ${regla})` : ''}</FilaCheck>
+              </>
+            ) : (
+              <>
+                <FilaCheck>Se guarda con sello de fecha y hora</FilaCheck>
+                <FilaCheck>Corre el plazo {regla ? `de ${regla} ` : ''}para comunicarla a la UIF</FilaCheck>
+                <FilaCheck>Queda anotado en el historial del oficial</FilaCheck>
+              </>
+            )}
           </Tarjeta>
           <TarjetaPlazoUif desde={v.designacion.fechaDesignacion} catalogos={catalogos} variante="resumen" />
         </>
@@ -72,6 +86,12 @@ export function PasoRevision({ catalogos, pie, alEditar, deshabilitado }: { cata
         <FilaCheck>Declaración jurada de requisitos · {textoFirma(v.declaraciones.requisitos)}</FilaCheck>
         <FilaCheck>Declaración jurada de quién designó · {textoFirma(v.declaraciones.designante)}</FilaCheck>
       </Tarjeta>
+
+      {correccion && (
+        <Tarjeta titulo="Motivo de la corrección" descripcion="Queda en el historial del oficial, junto con lo que cambió." className="!gap-[18px]">
+          <CampoTextoLargo ruta="motivoCorreccion" texto="¿Por qué se corrige la designación?" maxLength={500} filas={3} />
+        </Tarjeta>
+      )}
     </CuerpoPaso>
   );
 }

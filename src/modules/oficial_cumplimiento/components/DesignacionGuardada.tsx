@@ -7,7 +7,7 @@ import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Etiqueta } from '@/shared/ui/kit';
 import { fechaCorta, fechaYHora, minusculaInicial } from '../lib/formato';
 import type { EstadoOficial, ResumenDesignacion } from '../services/oficialService';
-import { BTN, BotonPronto, EtiquetaEstado, Iniciales, NotaSoloLectura, RUTA_OFICIAL, Tarjeta, URL_SISDEL } from './piezas';
+import { BTN, EtiquetaEstado, Iniciales, NotaSoloLectura, RUTA_OFICIAL, Tarjeta, URL_SISDEL } from './piezas';
 import { TarjetaPlazo } from './TarjetaPlazo';
 
 /** Un paso de la lista: círculo con su número (o visto), título y lo que hay que hacer. */
@@ -46,7 +46,7 @@ export function TarjetaOficial({ titular }: { titular: Pick<ResumenDesignacion, 
 /**
  * OC 7 · Designación guardada: lo que sigue es comunicarla a la UIF por SISDEL (fuera de PLAFT) y registrar aquí esa comunicación.
  * Si la UIF respondió «No procedente», el servidor lo avisa en `observacionUif` y no hay plazo nuevo: se muestra su respuesta.
- * «Ver ficha» y «Registrar comunicación» llevan a OC 9 y OC 8. «Corregir los datos» queda «Pronto» hasta que esté la corrección.
+ * «Ver ficha» y «Registrar comunicación» llevan a OC 9 y OC 8; «Corregir los datos» abre el asistente de designación ya lleno (`/corregir`).
  */
 export function DesignacionGuardada({ estado, titular }: { estado: EstadoOficial; titular: ResumenDesignacion }) {
   const puedeComunicar = estado.permisos.puedeComunicar;
@@ -117,7 +117,11 @@ export function DesignacionGuardada({ estado, titular }: { estado: EstadoOficial
               className="!gap-3"
             >
               <p className="whitespace-pre-line break-words text-[15px] leading-[22px] text-ink">{observacion.motivo}</p>
-              {estado.permisos.puedeCorregir && <BotonPronto className={`self-start ${BTN}`}>Corregir los datos</BotonPronto>}
+              {estado.permisos.puedeCorregir && (
+                <Link href={`${RUTA_OFICIAL}/corregir`} className={`btn btn-secondary self-start ${BTN}`}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" /> Corregir los datos
+                </Link>
+              )}
             </Tarjeta>
           ) : (
             estado.plazoComunicacion && (

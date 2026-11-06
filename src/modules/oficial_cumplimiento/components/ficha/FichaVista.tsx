@@ -92,7 +92,11 @@ export function FichaVista({ ficha, catalogos, recargar, idExplicito }: { ficha:
                 <Pencil className="h-4 w-4" aria-hidden="true" /> Cambiar datos
               </Link>
             )}
-            {p.puedeCorregir && <BotonPronto icono={Pencil} className={BTN}>Corregir los datos</BotonPronto>}
+            {p.puedeCorregir && (
+              <Link href={`${RUTA_OFICIAL}/corregir`} className={`btn btn-secondary ${BTN}`}>
+                <Pencil className="h-4 w-4" aria-hidden="true" /> Corregir los datos
+              </Link>
+            )}
             {p.puedeRemover && <Link href={`${RUTA_OFICIAL}/remover`} className={`btn btn-secondary ${BTN}`}>Reemplazar o remover</Link>}
             {ficha.estado === 'VIGENTE' && <BotonPronto icono={Plus} className={BTN}>Designar alterno</BotonPronto>}
             {p.puedeComunicar && ficha.estado !== 'VIGENTE' && (

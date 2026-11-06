@@ -8,6 +8,7 @@ import type { CabinaInicio, ResumenInicio } from '../../services/inicioService';
 import { ChipEstado } from './Instrumento';
 import { LucesAlerta } from './LucesAlerta';
 import { MedidorAguja } from './MedidorAguja';
+import { RadarPerfil } from './RadarPerfil';
 
 /*
  * «Cabina de mando» de Inicio: una banda oscura con instrumentos de panel de avión (aguja, radar, líneas, mapa, combustible, luces
@@ -87,6 +88,7 @@ export function CabinaDeMando({ estado, resumen }: Props) {
           <div className="grid gap-3 @[72rem]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <div className="grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-7 @[72rem]:content-start">
               <MedidorAguja scoring={cabina.scoring} className="@[72rem]:col-span-3" />
+              <RadarPerfil scoring={cabina.scoring} className="@[72rem]:col-span-4" />
             </div>
           </div>
         </div>

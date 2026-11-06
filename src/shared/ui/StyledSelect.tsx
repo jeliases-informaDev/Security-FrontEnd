@@ -24,11 +24,14 @@ interface StyledSelectProps {
   id?: string;
   /** Clases extra para el botón (por ejemplo, el alto y las esquinas de un formulario concreto). */
   className?: string;
+  /** El texto largo pasa a varias líneas (y el campo crece en alto) en vez de cortarse con «…». Por defecto se corta, como siempre. */
+  envolver?: boolean;
 }
 
 /** Selector con la misma apariencia que los campos de texto (input) del sistema visual. */
-export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '' }: StyledSelectProps) {
+export function StyledSelect({ value, options, onChange, placeholder = 'Seleccionar opción', disabled = false, error = false, tamano = 'md', icono: Icono, id, className = '', envolver = false }: StyledSelectProps) {
   const seleccionada = options.find((option) => option.value === value) ?? null;
+  const altura = envolver ? (tamano === 'lg' ? 'h-auto min-h-[52px] px-4 py-3' : 'h-auto min-h-11 py-2.5') : tamano === 'lg' ? 'h-[52px] px-4' : '';
 
   return (
     <Listbox value={value} onChange={onChange} disabled={disabled}>
@@ -36,10 +39,10 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
         <ListboxButton
           id={id}
           aria-invalid={error || undefined}
-          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${tamano === 'lg' ? 'h-[52px] px-4' : ''} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+          className={`input relative flex items-center pr-10 text-left ${Icono ? 'pl-11' : ''} ${altura} ${error ? 'input-error' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className}`}
         >
           {Icono && <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />}
-          <span className={`block truncate ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>
+          <span className={`block ${envolver ? 'min-w-0 break-words' : 'truncate'} ${seleccionada ? 'text-ink' : 'text-faint'}`}>{seleccionada ? seleccionada.label : placeholder}</span>
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted" aria-hidden="true">
             <ChevronDown className="h-4 w-4" strokeWidth={2} />
           </span>
@@ -54,9 +57,9 @@ export function StyledSelect({ value, options, onChange, placeholder = 'Seleccio
             <ListboxOption
               key={option.value}
               value={option.value}
-              className="group relative flex cursor-pointer select-none items-center justify-between rounded-lg px-3 py-2 text-sm text-ink outline-none transition-colors data-[focus]:bg-brand-soft data-[focus]:text-brand-ink data-[selected]:font-semibold data-[selected]:text-brand-ink"
+              className={`group relative flex cursor-pointer select-none items-center justify-between rounded-lg px-3 py-2 text-sm text-ink outline-none transition-colors data-[focus]:bg-brand-soft data-[focus]:text-brand-ink data-[selected]:font-semibold data-[selected]:text-brand-ink ${envolver ? 'gap-2' : ''}`}
             >
-              <span className="truncate">{option.label}</span>
+              <span className={envolver ? 'min-w-0 break-words' : 'truncate'}>{option.label}</span>
               <Check className="hidden h-4 w-4 shrink-0 text-brand group-data-[selected]:block" strokeWidth={2.5} aria-hidden="true" />
             </ListboxOption>
           ))}

@@ -114,6 +114,7 @@ export function CampoSeleccion({ ruta, texto, opciones, placeholder = 'Elige una
             placeholder={placeholder}
             disabled={deshabilitado}
             error={!!error}
+            envolver
             onChange={(valor) => { field.onChange(valor); alCambiar?.(valor); }}
           />
         </Campo>
@@ -253,7 +254,7 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, etiqu
       aria-labelledby={etiquetadoPor}
       aria-label={etiquetadoPor ? undefined : ariaLabel}
       onKeyDown={moverConTeclas}
-      className={`flex max-w-full gap-1 overflow-x-auto rounded-[10px] border border-line bg-paper p-1 ${className}`}
+      className={`flex max-w-full flex-wrap gap-1 rounded-[10px] border border-line bg-paper p-1 ${className}`}
     >
       {opciones.map((o) => {
         const marcada = o.valor === valor;

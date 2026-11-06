@@ -27,12 +27,15 @@ function FilaDeclaracion({ id, texto, marcada, onCambiar, invalida = false }: { 
   );
 }
 
-/** Valor de solo lectura con la forma de un campo (los datos que ya se escribieron en el paso 2). */
-function CampoLectura({ id, texto, valor }: { id: string; texto: string; valor: string }) {
+/**
+ * Valor de solo lectura con la forma de un campo (lo que ya se escribió en el paso 2). Es texto y no un campo de escribir:
+ * así un valor largo pasa a otra línea y el cuadro crece, en vez de cortarse.
+ */
+function CampoLectura({ texto, valor }: { texto: string; valor: string }) {
   return (
     <div className="min-w-0">
-      <label htmlFor={id} className="label">{texto}</label>
-      <input id={id} type="text" readOnly value={valor} className="input cursor-default bg-paper" />
+      <p className="label">{texto}</p>
+      <p className="min-h-11 break-words rounded-xl border border-line-strong bg-paper px-3.5 py-2.5 text-sm leading-6 text-ink">{valor || '—'}</p>
     </div>
   );
 }
@@ -85,7 +88,7 @@ export function PasoDeclaraciones({ catalogos, pie, alVerVistaPrevia }: { catalo
         className="!gap-2.5"
         derecha={
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2.5">
-            <button type="button" onClick={alVerVistaPrevia} className="btn btn-secondary btn-sm !h-10 !px-4 !text-sm">
+            <button type="button" onClick={alVerVistaPrevia} className="btn btn-secondary btn-sm !h-auto !min-h-10 !px-4 !py-2 !text-sm">
               <Eye className="h-4 w-4" aria-hidden="true" /> Ver vista previa
             </button>
             <Etiqueta tono={marcados.length >= puntos.length && puntos.length > 0 ? 'ok' : 'neutral'}>{marcados.length} de {puntos.length}</Etiqueta>
@@ -119,8 +122,8 @@ export function PasoDeclaraciones({ catalogos, pie, alVerVistaPrevia }: { catalo
 
       <Tarjeta titulo="Declaración jurada de quién designó" descripcion="Art. 7.3.">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CampoLectura id="oc-designo-organo" texto="Persona u órgano que designó" valor={valores.designacion?.nombreOrgano ?? ''} />
-          <CampoLectura id="oc-designo-documento" texto="Documento que acredita" valor={documentoQueAcredita(catalogos, valores)} />
+          <CampoLectura texto="Persona u órgano que designó" valor={valores.designacion?.nombreOrgano ?? ''} />
+          <CampoLectura texto="Documento que acredita" valor={documentoQueAcredita(catalogos, valores)} />
         </div>
         <Controller
           control={control}

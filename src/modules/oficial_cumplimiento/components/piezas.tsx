@@ -11,7 +11,7 @@ type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 export const RUTA_OFICIAL = '/oficial-cumplimiento';
 
 /** Alto y tamaño de los botones de la cabecera (como en Listas Negativas y Operaciones). */
-export const BTN = 'h-[46px] text-[15px]';
+export const BTN = 'h-auto min-h-[46px] max-w-full py-2 text-center text-[15px]';
 
 /** Enlace externo de la solicitud en SISDEL (el texto «plaft.sbs.gob.pe/sisdel» sale del diseño). Se abre fuera de PLAFT. */
 export const URL_SISDEL = 'https://plaft.sbs.gob.pe/sisdel';
@@ -51,8 +51,8 @@ export function Tarjeta({ titulo, descripcion, derecha, children, className = ''
   return (
     <section id={id} className={`card flex flex-col gap-4 p-5 sm:p-6 ${className}`}>
       {(titulo || derecha) && (
-        <div className={`flex justify-between gap-3 ${centrada ? 'items-center' : 'items-start'}`}>
-          <div className="min-w-0">
+        <div className={`flex flex-wrap justify-between gap-x-3 gap-y-2 ${centrada ? 'items-center' : 'items-start'}`}>
+          <div className="min-w-0 flex-1 basis-48">
             {titulo && <h2 className="text-[17px] font-semibold leading-[25px] tracking-[-0.01em] text-ink">{titulo}</h2>}
             {descripcion && <p className="mt-0.5 text-sm text-muted">{descripcion}</p>}
           </div>
@@ -72,6 +72,37 @@ export function Dato({ rotulo, children, className = '' }: { rotulo: string; chi
       <p className="mt-1 break-words text-base font-medium leading-[21px] text-ink">{children}</p>
     </div>
   );
+}
+
+/** Fila «rótulo ··· valor» de las tarjetas de plazo («Vence el 24/11/2026»). */
+export function FilaClave({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <span className="min-w-0 break-words text-muted">{rotulo}</span>
+      <span className="min-w-0 break-words text-right font-semibold tabular-nums text-ink">{children}</span>
+    </div>
+  );
+}
+
+/** Círculo lila con las iniciales de la persona (el servidor las manda calculadas). */
+export function Iniciales({ iniciales, className = 'h-[52px] w-[52px] text-base' }: { iniciales: string; className?: string }) {
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-brand-soft font-bold text-brand ${className}`} aria-hidden="true">
+      {iniciales}
+    </span>
+  );
+}
+
+const TONO_ESTADO_DESIGNACION: Record<string, 'ok' | 'warn' | 'bad' | 'brand' | 'neutral'> = {
+  PENDIENTE_COMUNICAR: 'warn',
+  EN_EVALUACION: 'brand',
+  VIGENTE: 'ok',
+  REMOVIDA: 'bad',
+};
+
+/** Etiqueta del estado de una designación con el tono del diseño (pendiente ámbar, en evaluación lila, vigente verde, removida roja). */
+export function EtiquetaEstado({ estado, texto, className = '' }: { estado: string; texto: string; className?: string }) {
+  return <Etiqueta tono={TONO_ESTADO_DESIGNACION[estado] ?? 'neutral'} className={className}>{texto}</Etiqueta>;
 }
 
 /** Fila con la marca de «hecho»: círculo lila con un visto y el texto al lado («Qué pasará al guardar», declaraciones firmadas). */

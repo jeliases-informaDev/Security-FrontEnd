@@ -1,25 +1,16 @@
 'use client';
 
-import { useCallback, type ReactNode } from 'react';
+import { useCallback } from 'react';
 import { Info } from 'lucide-react';
 import { Etiqueta } from '@/shared/ui/kit';
 import { useCarga } from '../../hooks/useCarga';
 import { etiquetaDePlazo, fechaCorta, reglaTexto } from '../../lib/formato';
 import { oficialService, type CatalogosOficial } from '../../services/oficialService';
 import { esFechaCompleta } from '../campos';
-import { NotaLateral, Tarjeta, URL_SISDEL } from '../piezas';
+import { FilaClave as Fila, NotaLateral, Tarjeta, URL_SISDEL } from '../piezas';
 
 /** Regla del plazo para comunicar la designación a la UIF (el valor y la unidad los fija el servidor). */
 export const REGLA_COMUNICAR_DESIGNACION = 'PLAZO_COMUNICAR_DESIGNACION';
-
-function Fila({ rotulo, children }: { rotulo: string; children: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <span className="text-muted">{rotulo}</span>
-      <span className="font-semibold tabular-nums text-ink">{children}</span>
-    </div>
-  );
-}
 
 /**
  * «Plazo para comunicar a la UIF» (aside del paso 2 y del paso 4). El vencimiento lo calcula el servidor con la fecha de designación

@@ -15,7 +15,7 @@ const nombreDe = (lista: { codigo: string; nombre: string }[], codigo: string): 
 /** «Editar» de una tarjeta de la revisión: vuelve al paso donde se escribió ese dato. */
 function BotonEditar({ paso, de, alEditar, deshabilitado }: { paso: number; de: string; alEditar: (paso: number) => void; deshabilitado: boolean }) {
   return (
-    <button type="button" onClick={() => alEditar(paso)} disabled={deshabilitado} className="btn btn-secondary h-11 shrink-0 text-sm">
+    <button type="button" onClick={() => alEditar(paso)} disabled={deshabilitado} className="btn btn-secondary h-auto min-h-11 py-2 text-sm">
       <Pencil className="h-4 w-4" aria-hidden="true" /> Editar<span className="sr-only"> {de}</span>
     </button>
   );

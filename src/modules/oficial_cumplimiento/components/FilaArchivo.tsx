@@ -99,7 +99,7 @@ export function FilaArchivo({ id, ambito, rotulo, valor, onCambiar, reglas, erro
         <div className="flex items-center gap-3 rounded-xl border border-line bg-paper px-4 py-3.5">
           <FileText className="h-[18px] w-[18px] shrink-0 text-muted" aria-hidden="true" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-medium text-ink">{valor.nombre}</p>
+            <p className="text-[15px] font-medium text-ink [overflow-wrap:anywhere]">{valor.nombre}</p>
             <p className="font-mono text-[11px] tracking-[0.02em] text-muted">{descripcionArchivo(valor)}</p>
           </div>
           <Etiqueta tono="ok">Adjunto</Etiqueta>

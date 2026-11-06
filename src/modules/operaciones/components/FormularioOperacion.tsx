@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, useWatch, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Info, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
 import { mensajeDeFalla } from '@/modules/licencias/lib/consumo';
-import { IconoAjustes, IconoAyuda, IconoCandado, IconoMas, IconoRecibo, IconoVisto } from '@/shared/ui/iconos';
+import { IconoAjustes, IconoAyuda, IconoCandado, IconoFlechaCambio, IconoInfo, IconoMas, IconoRecibo, IconoVisto } from '@/shared/ui/iconos';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
@@ -24,7 +24,7 @@ import {
   camposDeError, operacionesService,
   type CatalogosOperacion, type DetalleOperacion, type OpcionCodigo, type ProvinciaOpcion,
 } from '../services/operacionesService';
-import { BTN, BTN_P, BotonPronto, CAMPO, CAMPO_BORDE, Interruptor, Pronto, Tarjeta } from './piezas';
+import { BTN, BTN_P, BotonPronto, CAMPO, CAMPO_BORDE, FilaValor, Interruptor, Pronto, Tarjeta } from './piezas';
 
 // ============================================================
 // Piezas del formulario
@@ -46,14 +46,14 @@ function Campo({ id, texto, ruta, opcional = false, aclaracion, error, children,
   const antes = useContext(AntesContexto);
   const cambiado = ruta !== undefined && ruta in antes;
   return (
-    <div className={`min-w-0 ${className} ${cambiado ? '[&_.input]:border-brand [&_.input]:ring-4 [&_.input]:ring-brand/10' : ''}`}>
+    <div className={`min-w-0 ${className} ${cambiado ? '[&_.input]:border-[1.5px] [&_.input]:border-brand' : ''}`}>
       <label htmlFor={id} className="mb-2 flex items-center gap-2 text-sm font-semibold leading-[normal] text-ink">
         <span>{texto}{aclaracion && <span className="sr-only"> {aclaracion}</span>}{opcional && <span className="sr-only"> (opcional)</span>}</span>
-        {cambiado && <span className="badge badge-brand !px-2 !py-0.5 !text-[10px]">Cambiado</span>}
+        {cambiado && <span className="badge badge-brand !leading-[normal]">Cambiado</span>}
       </label>
       {children}
       {error && <p id={`${id}-error`} role="alert" className="error-text">{error}</p>}
-      {cambiado && <p className="mt-1 break-words font-mono text-[11px] text-muted">Antes: {antes[ruta]}</p>}
+      {cambiado && <p className="mt-2 break-words font-mono text-[11px] leading-[normal] tracking-[0.02em] text-muted">Antes: {antes[ruta]}</p>}
     </div>
   );
 }
@@ -302,11 +302,11 @@ export function FormularioOperacion({ catalogos, detalle }: Props) {
                 {aviso && <div id="aviso-formulario" className="scroll-mt-6"><Aviso aviso={aviso} onCerrar={() => setAviso(null)} /></div>}
 
                 {edicion && (
-                  <div className="flex items-start gap-3 rounded-2xl bg-accent-soft px-5 py-4">
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm font-semibold text-ink">Los registros no se pueden borrar</p>
-                      <p className="mt-0.5 text-sm text-muted">Puedes corregir datos, pero el valor anterior se conserva en el historial. Indica abajo el motivo del cambio.</p>
+                  <div className="flex items-start gap-[14px] rounded-[14px] bg-brand-soft px-[18px] py-4">
+                    <IconoInfo className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <p className="text-[15px] font-semibold leading-[normal] text-brand">Los registros no se pueden borrar</p>
+                      <p className="text-sm leading-[21px] text-ink/80">Puedes corregir datos, pero el valor anterior se conserva en el historial. Indica abajo el motivo del cambio.</p>
                     </div>
                   </div>
                 )}
@@ -380,13 +380,13 @@ export function FormularioOperacion({ catalogos, detalle }: Props) {
                 </Tarjeta>
 
                 {edicion && (
-                  <Tarjeta titulo="Motivo del cambio" descripcion="Obligatorio para guardar." derecha={<span className="badge badge-critica">Obligatorio</span>}>
+                  <Tarjeta espacio="gap-[18px]" titulo="Motivo del cambio" descripcion="Obligatorio para guardar." derecha={<span className="badge badge-critica !leading-[normal]">Obligatorio</span>}>
                     <div>
                       <label htmlFor="motivo" className="sr-only">Motivo del cambio</label>
-                      <textarea id="motivo" rows={4} maxLength={LIMITE_MOTIVO} placeholder="Explica por qué haces este cambio" aria-invalid={errors.motivo ? true : undefined} aria-describedby="motivo-contador" className={`input h-auto min-h-[110px] py-3 ${errors.motivo ? 'input-error' : ''}`} {...register('motivo')} />
+                      <textarea id="motivo" rows={3} maxLength={LIMITE_MOTIVO} placeholder="Explica por qué haces este cambio" aria-invalid={errors.motivo ? true : undefined} aria-describedby="motivo-contador" className={`input h-24 resize-y rounded-[10px] py-3 text-[15px] leading-[22px] ${errors.motivo ? 'input-error' : CAMPO_BORDE}`} {...register('motivo')} />
                       {errors.motivo && <p role="alert" className="error-text">{errors.motivo.message}</p>}
-                      <p id="motivo-contador" className="mt-2 font-mono text-[11px] text-muted">{motivo.length} de {LIMITE_MOTIVO} caracteres</p>
                     </div>
+                    <p id="motivo-contador" className="font-mono text-[11px] leading-[normal] tracking-[0.02em] text-muted">{motivo.length} de {LIMITE_MOTIVO} caracteres</p>
                   </Tarjeta>
                 )}
 
@@ -399,24 +399,27 @@ export function FormularioOperacion({ catalogos, detalle }: Props) {
               <div className="flex flex-col gap-4 xl:sticky xl:top-4">
                 {edicion ? (
                   <>
-                    <Tarjeta titulo="Cambios detectados" descripcion={cambios.length === 0 ? 'Todavía no cambiaste nada.' : `${cambios.length} ${cambios.length === 1 ? 'campo modificado' : 'campos modificados'}.`}>
+                    <Tarjeta espacio="gap-[14px]" titulo="Cambios detectados" descripcion={cambios.length === 0 ? 'Todavía no cambiaste nada.' : `${cambios.length} ${cambios.length === 1 ? 'campo modificado' : 'campos modificados'}.`}>
                       {cambios.length > 0 && (
-                        <ul className="flex flex-col gap-2.5">
+                        <ul className="flex flex-col gap-[14px]">
                           {cambios.map((c) => (
-                            <li key={c.ruta} className="rounded-xl border border-line bg-white px-3.5 py-3">
-                              <p className="rotulo">{c.etiqueta}</p>
-                              <p className="mt-1 break-words text-sm"><span className="text-muted">{c.antes}</span> <span aria-label="cambia a" className="text-muted">→</span> <span className="font-semibold text-ink">{c.despues}</span></p>
+                            <li key={c.ruta} className="flex flex-col gap-1.5 rounded-xl border border-line bg-paper px-3.5 py-3">
+                              <p className="rotulo leading-[normal] tracking-[0.04em]">{c.etiqueta}</p>
+                              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 break-words">
+                                <span className="text-sm leading-[normal] text-ink/50">{c.antes}</span>
+                                <IconoFlechaCambio className="h-3.5 w-3.5 shrink-0 text-ink/50" aria-hidden="true" />
+                                <span className="sr-only">cambia a</span>
+                                <span className="text-[15px] font-semibold leading-[normal] text-brand">{c.despues}</span>
+                              </p>
                             </li>
                           ))}
                         </ul>
                       )}
                     </Tarjeta>
-                    <Tarjeta titulo="Quién y cuándo">
-                      <div className="flex flex-col gap-2.5">
-                        <div className="flex items-baseline justify-between gap-4 text-sm"><span className="text-muted">Usuario</span><span className="font-medium text-ink">{usuario?.usuario}</span></div>
-                        <div className="flex items-baseline justify-between gap-4 text-sm"><span className="text-muted">Fecha y hora</span><span className="font-medium tabular-nums text-ink">{fechaHora(ahora)}</span></div>
-                        <div className="flex items-baseline justify-between gap-4 text-sm"><span className="text-muted">Se conserva el valor anterior</span><span className="font-medium text-ink">Sí</span></div>
-                      </div>
+                    <Tarjeta espacio="gap-3" titulo="Quién y cuándo">
+                      <FilaValor etiqueta="Usuario">{usuario?.usuario}</FilaValor>
+                      <FilaValor etiqueta="Fecha y hora">{fechaHora(ahora)}</FilaValor>
+                      <FilaValor etiqueta="Se conserva el valor anterior">Sí</FilaValor>
                     </Tarjeta>
                   </>
                 ) : (

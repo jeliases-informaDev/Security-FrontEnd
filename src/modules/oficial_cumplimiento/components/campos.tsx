@@ -18,10 +18,10 @@ export const idDeRuta = (ruta: string): string => `oc-${ruta.replace(/[^A-Za-z0-
 const mensajeDeError = (errors: object, ruta: string): string | undefined => get(errors, ruta)?.message as string | undefined;
 
 /** Rótulo, campo, ayuda y error (el error reemplaza a la ayuda). */
-export function Campo({ id, texto, lector, opcional = false, error, ayuda, children, className = '' }: { id: string; texto: string; lector?: string; opcional?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
+export function Campo({ id, texto, lector, opcional = false, rotuloOculto = false, error, ayuda, children, className = '' }: { id: string; texto: string; lector?: string; opcional?: boolean; rotuloOculto?: boolean; error?: string; ayuda?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
-      <label htmlFor={id} className="label">
+      <label htmlFor={id} className={rotuloOculto ? 'sr-only' : 'label'}>
         {texto}
         {lector && <span className="sr-only"> {lector}</span>}
         {opcional && <span className="font-normal text-muted"> (opcional)</span>}
@@ -74,13 +74,13 @@ export function CampoTexto({ ruta, texto, lector, opcional, placeholder, tipo = 
 }
 
 /** Campo de texto de varias líneas, con contador de caracteres. */
-export function CampoTextoLargo({ ruta, texto, opcional, placeholder, maxLength, filas = 3, ayuda, className }: { ruta: string; texto: string; opcional?: boolean; placeholder?: string; maxLength: number; filas?: number; ayuda?: ReactNode; className?: string }) {
+export function CampoTextoLargo({ ruta, texto, opcional, rotuloOculto, placeholder, maxLength, filas = 3, ayuda, className }: { ruta: string; texto: string; opcional?: boolean; rotuloOculto?: boolean; placeholder?: string; maxLength: number; filas?: number; ayuda?: ReactNode; className?: string }) {
   const { register, watch, formState: { errors } } = useFormContext();
   const id = idDeRuta(ruta);
   const error = mensajeDeError(errors, ruta);
   const largo = String(watch(ruta) ?? '').length;
   return (
-    <Campo id={id} texto={texto} opcional={opcional} error={error} ayuda={ayuda} className={className}>
+    <Campo id={id} texto={texto} opcional={opcional} rotuloOculto={rotuloOculto} error={error} ayuda={ayuda} className={className}>
       <textarea
         id={id}
         rows={filas}

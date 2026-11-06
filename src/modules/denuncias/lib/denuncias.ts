@@ -116,6 +116,7 @@ export type TonoChip =
   | "bad"
   | "info"
   | "lila"
+  | "reserva"
   | "neutral";
 
 export interface ChipDatos {

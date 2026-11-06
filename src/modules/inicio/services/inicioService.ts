@@ -102,6 +102,93 @@ export interface ResumenDenuncias {
   derivadasAlOficial: number | null;
 }
 
+// ------------------------------------------------------------
+// Cabina de mando (bloque `cabina`)
+// ------------------------------------------------------------
+// Todo es opcional: el backend desplegado hoy puede no mandar `cabina`, y cada sub-bloque llega null si el módulo no está o la cuenta no lo ve.
+// El front nunca asume que existe: sin dato, el instrumento lo dice («Sin dato») y no rompe nada.
+
+/** Cortes reales de la metodología de scoring (los manda el servidor; el front no inventa zonas). */
+export interface EscalaScoring {
+  min?: number | null;
+  max?: number | null;
+  corteMedio?: number | null;
+  corteAlto?: number | null;
+}
+
+/** Un factor del radar «Perfil de riesgo»: promedio del periodo y del periodo anterior (null si no hay). */
+export interface FactorRadar {
+  factor?: string | null;
+  valor?: number | null;
+  anterior?: number | null;
+}
+
+export interface CabinaScoring {
+  evaluaciones?: number | null;
+  porNivel?: { bajo?: number | null; medio?: number | null; alto?: number | null } | null;
+  puntajePromedio?: number | null;
+  puntajePromedioAnterior?: number | null;
+  escala?: EscalaScoring | null;
+  radar?: FactorRadar[] | null;
+}
+
+/** Un número por día, del más antiguo (`desde`) a hoy. Los días sin datos vienen en 0. */
+export interface CabinaTendencia {
+  dias?: number | null;
+  /** AAAA-MM-DD del primer día. */
+  desde?: string | null;
+  consultas?: number[] | null;
+  coincidencias?: number[] | null;
+  registros?: number[] | null;
+  evaluaciones?: number[] | null;
+  denuncias?: number[] | null;
+}
+
+/** Un departamento con algo que mostrar. `codigo` es el INEI de 2 dígitos (01 a 25) o null si el nombre no calzó («Extranjero»). */
+export interface DepartamentoMapa {
+  codigo?: string | null;
+  nombre?: string | null;
+  registros?: number | null;
+  montoUsd?: number | null;
+  evaluaciones?: number | null;
+  /** Evaluaciones que salieron en nivel ALTO. */
+  altos?: number | null;
+}
+
+export interface CabinaMapa {
+  /** Solo los que tienen algo: el front completa los 25 con 0. */
+  departamentos?: DepartamentoMapa[] | null;
+}
+
+export type TipoPlazoCabina = 'COMUNICACION_UIF' | 'DENUNCIA' | 'REGISTRO_MENSUAL' | 'DECLARACION';
+
+/** Un vencimiento próximo. `dias` negativo = ya venció. `enlace` es la ruta del front donde se resuelve. */
+export interface PlazoCabina {
+  tipo?: TipoPlazoCabina | string | null;
+  titulo?: string | null;
+  /** AAAA-MM-DD */
+  vence?: string | null;
+  dias?: number | null;
+  enlace?: string | null;
+}
+
+export interface CabinaLicencia {
+  plan?: string | null;
+  tokens?: { usados?: number | null; total?: number | null } | null;
+  usuarios?: { usados?: number | null; cupo?: number | null } | null;
+  /** AAAA-MM-DD */
+  vence?: string | null;
+  diasRestantes?: number | null;
+}
+
+export interface CabinaInicio {
+  scoring?: CabinaScoring | null;
+  tendencia?: CabinaTendencia | null;
+  mapa?: CabinaMapa | null;
+  plazos?: PlazoCabina[] | null;
+  licencia?: CabinaLicencia | null;
+}
+
 export interface ResumenInicio {
   periodo: string;
   periodoEtiqueta: string;
@@ -111,6 +198,8 @@ export interface ResumenInicio {
   operaciones: ResumenOperaciones | null;
   oficial: ResumenOficial | null;
   denuncias: ResumenDenuncias | null;
+  /** Instrumentos de la «Cabina de mando». Puede faltar (backend anterior) o ser null (la cuenta no ve ningún módulo): la banda no se dibuja. */
+  cabina?: CabinaInicio | null;
 }
 
 /** Cuántos datos se crearon o se quitaron, por tipo (consultas, registros, denuncias…). */

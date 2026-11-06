@@ -6,6 +6,7 @@ import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { useIndira } from '@/shared/ui/IndiraContexto';
 import { IconoDestellos, IconoLupa, IconoMas, IconoMensaje, IconoOficial, IconoRecibo } from '@/shared/ui/iconos';
 import { useResumenInicio } from '../hooks/useResumenInicio';
+import { CabinaDeMando } from './cabina/CabinaDeMando';
 import { LimiteError } from './LimiteError';
 import { ErrorTarjeta, Tarjeta } from './piezas';
 import { TarjetaDenuncias } from './TarjetaDenuncias';
@@ -94,6 +95,11 @@ export function TableroInicio() {
         </div>
       </section>
 
+      {/* Cabina de mando: banda oscura de instrumentos (turno 1). Si algo falla al dibujarla, desaparece sin afectar a las tarjetas. */}
+      <LimiteError key={`cabina-${version}`} respaldo={null}>
+        <CabinaDeMando estado={estado} resumen={resumen} />
+      </LimiteError>
+
       {!hayIzquierda && !hayDerecha ? (
         <p className="card mt-7 px-6 py-10 text-center text-sm text-muted">Con tu cuenta no hay resúmenes para mostrar aquí. Elige un módulo en el menú para empezar.</p>
       ) : (
@@ -101,14 +107,14 @@ export function TableroInicio() {
           {hayIzquierda && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.listas && (
-                <div className="inicio-entra" style={turno(1)}>
+                <div className="inicio-entra" style={turno(2)}>
                   <Bloque key={`listas-${version}`} id="inicio-listas" icono={IconoLupa} titulo="Listas negativas" onReintentar={recargar}>
                     <TarjetaListas bloque={datos?.listas} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.operaciones && (
-                <div className="inicio-entra" style={turno(2)}>
+                <div className="inicio-entra" style={turno(3)}>
                   <Bloque key={`operaciones-${version}`} id="inicio-operaciones" icono={IconoRecibo} titulo="Registro de operaciones" onReintentar={recargar}>
                     <TarjetaOperaciones bloque={datos?.operaciones} {...propiedades} />
                   </Bloque>
@@ -119,14 +125,14 @@ export function TableroInicio() {
           {hayDerecha && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.oficial && (
-                <div className="inicio-entra" style={turno(3)}>
+                <div className="inicio-entra" style={turno(4)}>
                   <Bloque key={`oficial-${version}`} id="inicio-oficial" icono={IconoOficial} titulo="Oficial de cumplimiento" onReintentar={recargar}>
                     <TarjetaOficial bloque={datos?.oficial} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.denuncias && (
-                <div className="inicio-entra" style={turno(4)}>
+                <div className="inicio-entra" style={turno(5)}>
                   <Bloque key={`denuncias-${version}`} id="inicio-denuncias" icono={IconoMensaje} titulo="Canal de denuncias" onReintentar={recargar}>
                     <TarjetaDenuncias bloque={datos?.denuncias} {...propiedades} />
                   </Bloque>

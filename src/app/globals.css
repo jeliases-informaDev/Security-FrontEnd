@@ -45,6 +45,34 @@
   --critica: #7d1236; --critica-soft: rgb(125 18 54 / 0.12);
   --media: #f7c928; --media-soft: rgb(247 201 40 / 0.16); --media-aviso: rgb(247 201 40 / 0.14);
 
+  /*
+    Cabina de mando (la banda oscura de Inicio): del marino hacia el negro «noche», texto papel y estados claros para leerse sobre
+    fondo oscuro (los de arriba son para fondo blanco). Contraste medido sobre el fondo y el panel: texto 11:1 o más, rótulos tenues
+    5,2:1 o más, verde / ámbar / rojo 4,6:1 o más. Los cinco colores de serie son un conjunto validado para fondo oscuro (vecinos
+    distinguibles también con daltonismo, 3:1 contra el panel); no se reordenan ni se reusan para estados.
+  */
+  --cabina-fondo-1: var(--brand);
+  --cabina-fondo-2: color-mix(in srgb, var(--brand) 50%, var(--noche));
+  --cabina-panel: rgb(255 255 255 / 0.05);
+  --cabina-panel-2: rgb(255 255 255 / 0.09);
+  --cabina-borde: rgb(255 255 255 / 0.13);
+  --cabina-borde-fuerte: rgb(255 255 255 / 0.26);
+  --cabina-rejilla: rgb(255 255 255 / 0.1);
+  --cabina-texto: var(--paper);
+  --cabina-texto-2: rgb(250 250 247 / 0.78);
+  --cabina-tenue: rgb(250 250 247 / 0.6);
+  --cabina-ok: var(--vivo);
+  --cabina-warn: var(--media);
+  --cabina-bad: #ff7a7d;
+  --cabina-ok-suave: color-mix(in srgb, var(--cabina-ok) 16%, transparent);
+  --cabina-warn-suave: color-mix(in srgb, var(--cabina-warn) 16%, transparent);
+  --cabina-bad-suave: color-mix(in srgb, var(--cabina-bad) 16%, transparent);
+  --cabina-serie-1: #3987e5; /* azul: consultas */
+  --cabina-serie-2: #d95926; /* naranja: coincidencias */
+  --cabina-serie-3: #199e70; /* aqua: registros */
+  --cabina-serie-4: #9085e9; /* violeta: evaluaciones */
+  --cabina-serie-5: #d55181; /* magenta: denuncias */
+
   --sombra-sm: 0 8px 20px -8px rgb(14 17 22 / 0.07);
   --sombra-md: 0 16px 34px -14px rgb(14 17 22 / 0.1);
   --sombra-lg: 0 24px 50px -14px rgb(14 17 22 / 0.16);
@@ -103,6 +131,25 @@
   --color-info: var(--info); --color-info-soft: var(--info-soft);
   --color-critica: var(--critica); --color-critica-soft: var(--critica-soft);
   --color-media: var(--media); --color-media-soft: var(--media-soft); --color-media-aviso: var(--media-aviso);
+
+  /* Cabina de mando (banda oscura de Inicio) */
+  --color-cabina-fondo: var(--cabina-fondo-2);
+  --color-cabina-panel: var(--cabina-panel);
+  --color-cabina-panel-2: var(--cabina-panel-2);
+  --color-cabina-borde: var(--cabina-borde);
+  --color-cabina-borde-fuerte: var(--cabina-borde-fuerte);
+  --color-cabina-rejilla: var(--cabina-rejilla);
+  --color-cabina-texto: var(--cabina-texto);
+  --color-cabina-texto-2: var(--cabina-texto-2);
+  --color-cabina-tenue: var(--cabina-tenue);
+  --color-cabina-ok: var(--cabina-ok); --color-cabina-ok-suave: var(--cabina-ok-suave);
+  --color-cabina-warn: var(--cabina-warn); --color-cabina-warn-suave: var(--cabina-warn-suave);
+  --color-cabina-bad: var(--cabina-bad); --color-cabina-bad-suave: var(--cabina-bad-suave);
+  --color-cabina-serie-1: var(--cabina-serie-1);
+  --color-cabina-serie-2: var(--cabina-serie-2);
+  --color-cabina-serie-3: var(--cabina-serie-3);
+  --color-cabina-serie-4: var(--cabina-serie-4);
+  --color-cabina-serie-5: var(--cabina-serie-5);
 
   /* Nombres heredados de la primera versión: siguen funcionando y apuntan a la paleta actual. */
   --color-brand-navy: var(--brand);
@@ -207,6 +254,23 @@
   .nav-item[aria-current="page"] > svg { @apply text-ink; }
   .nav-item[aria-disabled="true"] { @apply cursor-not-allowed text-muted hover:bg-transparent; }
   .nav-item[aria-disabled="true"] > svg { @apply text-faint; }
+
+  /* ---- Cabina de mando (la banda oscura de Inicio) ---- */
+  .cabina {
+    @apply rounded-[20px] text-cabina-texto sm:rounded-[28px];
+    background: linear-gradient(155deg, var(--cabina-fondo-1) 0%, var(--cabina-fondo-2) 100%);
+    box-shadow: var(--sombra-lg), inset 0 1px 0 var(--cabina-borde);
+  }
+  /* El foco de la aplicación es marino: sobre la banda oscura no se vería. */
+  .cabina :focus-visible { outline: 2px solid var(--cabina-texto); outline-offset: 2px; }
+  /* Un instrumento: panel translúcido con borde de 1 px y un brillo suave en la esquina de arriba. */
+  .cabina-instrumento {
+    @apply rounded-2xl border border-cabina-borde bg-cabina-panel;
+    background-image: radial-gradient(120% 90% at 0% 0%, var(--cabina-panel-2), transparent 60%);
+    box-shadow: inset 0 1px 0 var(--cabina-borde);
+  }
+  /* Rótulo de instrumento: mono, mayúsculas y letra espaciada, como las leyendas de un tablero. */
+  .cabina-rotulo { @apply font-mono text-[10px] font-normal uppercase leading-[1.5] tracking-[0.14em] text-cabina-tenue; }
 
   /* ---- Esqueletos de carga ---- */
   .skeleton { @apply animate-pulse rounded-lg bg-ink/5; }
@@ -324,9 +388,24 @@
   animation-delay: calc(200ms + var(--paso, 0) * 130ms);
 }
 
+/*
+ * Cabina de mando: la aguja gira desde el mínimo hasta su valor (el valor final está en el estilo base: --ang), las líneas se
+ * dibujan con el trazo normalizado (pathLength="1") y las luces ámbar y rojas laten despacio. El estado final siempre es el
+ * estilo base, así que sin animación todo se ve igual, solo que quieto.
+ */
+@keyframes cabina-aguja { from { transform: rotate(0deg); } to { transform: rotate(var(--ang)); } }
+@keyframes cabina-traza { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes cabina-barrido { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes cabina-destello { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.95; transform: scale(1.5); } }
+.cabina-aguja { animation: cabina-aguja 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms backwards; }
+.cabina-traza { stroke-dasharray: 1; animation: cabina-traza 1000ms ease-out 300ms backwards; }
+.cabina-barrido { animation: cabina-barrido 1000ms ease-out 300ms backwards; }
+.cabina-destello { animation: cabina-destello 2.4s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   /* Sin movimiento no hay turnos: se ve todo de una vez. La regla de abajo solo acorta la duración, y los bloques seguirían ocultos esperando su turno. */
   .inicio-entra { animation: none; }
+  .cabina-aguja, .cabina-traza, .cabina-barrido, .cabina-destello { animation: none; }
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

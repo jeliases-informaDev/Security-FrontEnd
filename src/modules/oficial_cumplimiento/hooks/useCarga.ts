@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
-import { oficialService, type CatalogosOficial, type EstadoOficial } from '../services/oficialService';
+import { oficialService, type CatalogosOficial, type EstadoOficial, type FichaOficial, type HistorialOficial } from '../services/oficialService';
 
 interface Respuesta<T> {
   leer: () => Promise<T>;
@@ -52,3 +52,15 @@ export const useEstadoOficial = (): Carga<EstadoOficial> => useCarga(leerEstado,
 
 /** Opciones de los desplegables, reglas y textos que sirve el backend. */
 export const useCatalogosOficial = (): Carga<CatalogosOficial> => useCarga(leerCatalogos, 'No se pudieron cargar las opciones y reglas del módulo.');
+
+/** Ficha completa de una designación (la de hoy o una anterior). */
+export function useFichaOficial(id: string): Carga<FichaOficial> {
+  const leer = useCallback(() => oficialService.ficha(id), [id]);
+  return useCarga(leer, 'No se pudo cargar la ficha del oficial de cumplimiento.');
+}
+
+/** Historial de una designación: eventos de más nuevo a más viejo y los pendientes con la UIF. */
+export function useHistorialOficial(id: string): Carga<HistorialOficial> {
+  const leer = useCallback(() => oficialService.historial(id), [id]);
+  return useCarga(leer, 'No se pudo cargar el historial del oficial de cumplimiento.');
+}

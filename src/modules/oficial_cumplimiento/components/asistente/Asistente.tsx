@@ -9,10 +9,12 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, Boton, type AvisoDatos } from '@/shared/ui/kit';
 import { IconoOficial } from '@/shared/ui/iconos';
-import { CAMPOS_PASO, DEPENDIENTES, aSolicitud, crearEsquema, datosVistaPrevia, pasoDeCampo, rutaDeCampo, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
+import { CAMPOS_PASO, DEPENDIENTES, aSolicitud, aSolicitudCorreccion, crearEsquema, datosVistaPrevia, pasoDeCampo, rutaDeCampo, valoresDeFicha, valoresIniciales, type FormularioDesignacion } from '../../lib/designacion';
 import { textoDeFalla } from '../../lib/errores';
+import { fechaCorta } from '../../lib/formato';
 import { enfocarPrimerError, subirAlInicio } from '../../lib/pantalla';
-import { camposDeError, esTitularActivo, oficialService, type CatalogosOficial, type DatosVistaPrevia, type EstadoOficial } from '../../services/oficialService';
+import { camposDeError, codigoDeError, esTitularActivo, oficialService, type CatalogosOficial, type DatosVistaPrevia, type EstadoOficial, type FichaOficial } from '../../services/oficialService';
+import { AvisoLila } from '../AvisoLila';
 import { BTN, BarraGuia, RUTA_OFICIAL } from '../piezas';
 import { PasoDatos } from './PasoDatos';
 import { PasoDeclaraciones } from './PasoDeclaraciones';
@@ -29,21 +31,31 @@ const PASOS = [
   { titulo: 'Revisión y guardado', descripcion: 'Revisa todo antes de guardar. Puedes volver a cualquier paso para corregir.' },
 ];
 
-/** Asistente «Designar oficial de cumplimiento» (OC 2 a OC 6): un solo formulario con cuatro pasos. */
-export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalogos: CatalogosOficial }) {
+/** Lo que dice la bajada de la cabecera al corregir, en los pasos donde cambia (en los otros sirve la de siempre). */
+const DESCRIPCION_CORRECCION: Record<number, string> = {
+  0: 'Corrige lo que haga falta: lo que no cambies se queda como está.',
+  3: 'Revisa los datos y escribe el motivo de la corrección. Puedes volver a cualquier paso.',
+};
+
+/**
+ * Asistente «Designar oficial de cumplimiento» (OC 2 a OC 6): un solo formulario con cuatro pasos.
+ * Con `correccion` (la ficha de una designación que todavía no se comunicó, por ejemplo tras un «No procedente») es el mismo asistente,
+ * ya lleno con los datos guardados; en la revisión pide el motivo y el guardado es `PUT /designaciones/{id}`.
+ */
+export function Asistente({ estado, catalogos, correccion }: { estado: EstadoOficial; catalogos: CatalogosOficial; correccion?: FichaOficial }) {
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [aviso, setAviso] = useState<AvisoDatos | null>(null);
   // Datos con los que se abrió la vista previa de la declaración (null = cerrada). Se arman al abrir, así la ventana no cambia mientras se lee.
   const [vistaPrevia, setVistaPrevia] = useState<DatosVistaPrevia | null>(null);
   const [guardando, setGuardando] = useState(false);
-  // El servidor dijo que ya hay un titular: además del aviso, se ofrece ir a verlo.
+  // El servidor dijo que ya hay un titular (o que la designación ya no se puede corregir): además del aviso, se ofrece ir a ver al oficial.
   const [titularActivo, setTitularActivo] = useState(false);
   const inicio = useRef<HTMLDivElement>(null);
-  const esquema = useMemo(() => crearEsquema(catalogos), [catalogos]);
+  const esquema = useMemo(() => crearEsquema(catalogos, correccion !== undefined), [catalogos, correccion]);
   const metodos = useForm<FormularioDesignacion>({
     resolver: zodResolver(esquema),
-    defaultValues: valoresIniciales(catalogos, estado),
+    defaultValues: correccion ? valoresDeFicha(correccion, catalogos) : valoresIniciales(catalogos, estado),
     mode: 'onTouched',
   });
   const { trigger, subscribe, getFieldState, getValues, setError } = metodos;
@@ -99,15 +111,17 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
 
     setGuardando(true);
     try {
-      await oficialService.designar(aSolicitud(getValues(), catalogos));
+      if (correccion) await oficialService.corregir(correccion.id, aSolicitudCorreccion(getValues(), catalogos, correccion));
+      else await oficialService.designar(aSolicitud(getValues(), catalogos));
       // Ya guardada: los archivos quedaron ligados a la designación y la pantalla raíz pasa a mostrarla.
       router.push(RUTA_OFICIAL);
     } catch (error) {
       setGuardando(false);
-      const texto = textoDeFalla(error, 'No se pudo guardar la designación. Inténtalo de nuevo.');
-      if (esTitularActivo(error)) {
+      const texto = textoDeFalla(error, correccion ? 'No se pudo guardar la corrección. Inténtalo de nuevo.' : 'No se pudo guardar la designación. Inténtalo de nuevo.');
+      // Alta: ya hay un titular. Corrección: la designación ya se comunicó (o cambió) y no admite corregirse; «No cambiaste ningún dato» llega como aviso normal.
+      if (esTitularActivo(error) || (correccion && codigoDeError(error) === 'OC_ESTADO_INVALIDO')) {
         setTitularActivo(true);
-        return falla(texto ?? 'Ya hay un oficial de cumplimiento titular designado.');
+        return falla(texto ?? (correccion ? 'Esta designación ya no se puede corregir.' : 'Ya hay un oficial de cumplimiento titular designado.'));
       }
       const campos = camposDeError(error);
       if (campos) {
@@ -128,17 +142,19 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
           enfocarPrimerError();
           return;
         }
-        return falla(sinCampo ?? texto ?? 'No se pudo guardar la designación.');
+        return falla(sinCampo ?? texto ?? (correccion ? 'No se pudo guardar la corrección.' : 'No se pudo guardar la designación.'));
       }
-      falla(texto ?? 'No se pudo guardar la designación.');
+      falla(texto ?? (correccion ? 'No se pudo guardar la corrección.' : 'No se pudo guardar la designación.'));
     }
   };
 
   // Cancelar: los archivos que ya se subieron quedaron sueltos en el servidor; se pide borrarlos (sin esperar) y se vuelve al módulo.
+  // Al corregir, los que ya venían con la designación están ligados a ella (el servidor no los borra): solo se piden los que se subieron ahora.
   const cancelar = () => {
     const v = getValues();
     const subidos = [v.designacion.adjunto, v.declaraciones.requisitos.adjunto, v.declaraciones.designante.adjunto];
-    for (const adjunto of subidos) if (adjunto) void oficialService.borrarAdjunto(adjunto.id).catch(() => undefined);
+    const guardados = new Set(correccion ? [correccion.designacion.adjunto, correccion.declaraciones.requisitos.adjunto, correccion.declaraciones.designante.adjunto].map((a) => a?.id) : []);
+    for (const adjunto of subidos) if (adjunto && !guardados.has(adjunto.id)) void oficialService.borrarAdjunto(adjunto.id).catch(() => undefined);
     router.push(RUTA_OFICIAL);
   };
 
@@ -155,7 +171,7 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
       {paso < PASOS.length - 1 ? (
         <Boton type="submit" icono={ArrowRight} className={BTN}>Continuar</Boton>
       ) : (
-        <Boton type="submit" icono={Check} cargando={guardando} className={BTN}>{guardando ? 'Guardando…' : 'Guardar designación'}</Boton>
+        <Boton type="submit" icono={Check} cargando={guardando} className={BTN}>{guardando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar designación'}</Boton>
       )}
     </>
   );
@@ -167,8 +183,8 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
           <PageHeader
             antetitulo={`Paso ${paso + 1} de ${PASOS.length} · ${PASOS[paso].titulo}`}
             icono={IconoOficial}
-            titulo="Designar oficial de cumplimiento"
-            descripcion={PASOS[paso].descripcion}
+            titulo={correccion ? 'Corregir la designación' : 'Designar oficial de cumplimiento'}
+            descripcion={(correccion && DESCRIPCION_CORRECCION[paso]) || PASOS[paso].descripcion}
             sinLinea
           />
           {/* Avisa a los lectores de pantalla en qué paso está la persona. */}
@@ -183,6 +199,18 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
           }}
           className="flex flex-col gap-[18px]"
         >
+          {correccion && (
+            <AvisoLila titulo={`Estás corrigiendo la designación de ${correccion.nombreCompleto}`}>
+              {correccion.observacionUif ? (
+                <>
+                  La UIF-Perú respondió «No procedente» el {fechaCorta(correccion.observacionUif.fechaNotificacion)}:{' '}
+                  <span className="whitespace-pre-line">{correccion.observacionUif.motivo}</span>
+                </>
+              ) : (
+                'Todavía no se comunicó a la UIF-Perú. Lo que cambies queda anotado en el historial del oficial.'
+              )}
+            </AvisoLila>
+          )}
           <BarraGuia />
           <PasosAsistente pasos={PASOS.map((p) => p.titulo)} actual={paso} />
           {aviso && (
@@ -196,7 +224,7 @@ export function Asistente({ estado, catalogos }: { estado: EstadoOficial; catalo
           {paso === 0 && <PasoDatos catalogos={catalogos} estado={estado} pie={pie} />}
           {paso === 1 && <PasoDesignacion catalogos={catalogos} pie={pie} />}
           {paso === 2 && <PasoDeclaraciones catalogos={catalogos} pie={pie} alVerVistaPrevia={() => setVistaPrevia(datosVistaPrevia(getValues()))} />}
-          {paso === 3 && <PasoRevision catalogos={catalogos} pie={pie} alEditar={irAlPaso} deshabilitado={guardando} />}
+          {paso === 3 && <PasoRevision catalogos={catalogos} pie={pie} alEditar={irAlPaso} deshabilitado={guardando} correccion={correccion !== undefined} />}
         </form>
 
         {vistaPrevia && <VistaPreviaDeclaracion datos={vistaPrevia} onCerrar={() => setVistaPrevia(null)} />}

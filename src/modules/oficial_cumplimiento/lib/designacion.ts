@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import type { FieldPath } from 'react-hook-form';
-import type { Adjunto, CatalogosOficial, DatosVistaPrevia, EstadoOficial, SolicitudDesignacion } from '../services/oficialService';
+import type { Adjunto, CatalogosOficial, DatosVistaPrevia, EstadoOficial, FichaOficial, SolicitudDesignacion } from '../services/oficialService';
 import { fechaCorta, hoyIso } from './formato';
 
 const texto = z.string();
@@ -45,6 +45,8 @@ const FORMA = z.object({
     requisitos: z.object({ puntos: z.array(texto), firmaNombre: texto, fechaFirma: texto, adjunto: archivo }),
     designante: z.object({ aceptada: z.boolean(), firmaNombre: texto, fechaFirma: texto, adjunto: archivo }),
   }),
+  /** Solo al corregir (`PUT`): por qué se corrige; queda en el historial. En una designación nueva no se usa ni se valida. */
+  motivoCorreccion: texto,
 });
 
 export type FormularioDesignacion = z.infer<typeof FORMA>;
@@ -53,6 +55,7 @@ export type FormularioDesignacion = z.infer<typeof FORMA>;
 export function pasoDeCampo(nombre: string): number {
   if (nombre.startsWith('designacion.')) return 1;
   if (nombre.startsWith('declaraciones.')) return 2;
+  if (nombre === 'motivoCorreccion') return 3;
   return 0;
 }
 
@@ -72,7 +75,8 @@ export const CAMPOS_PASO: FieldPath<FormularioDesignacion>[][] = [
     'declaraciones.requisitos.puntos', 'declaraciones.requisitos.firmaNombre', 'declaraciones.requisitos.fechaFirma', 'declaraciones.requisitos.adjunto',
     'declaraciones.designante.aceptada', 'declaraciones.designante.firmaNombre', 'declaraciones.designante.fechaFirma', 'declaraciones.designante.adjunto',
   ],
-  [],
+  // La revisión no pide nada nuevo; solo al corregir se escribe el motivo (en una designación nueva este campo no se valida).
+  ['motivoCorreccion'],
 ];
 
 /** Al cambiar uno de estos campos, el que depende de él (si ya tiene error) se vuelve a validar. */
@@ -134,6 +138,59 @@ export function valoresIniciales(cat: CatalogosOficial, estado: EstadoOficial): 
       requisitos: { puntos: [], firmaNombre: '', fechaFirma: '', adjunto: null },
       designante: { aceptada: false, firmaNombre: '', fechaFirma: '', adjunto: null },
     },
+    motivoCorreccion: '',
+  };
+}
+
+/**
+ * Valores del asistente al corregir una designación que todavía no se comunicó (o que la UIF devolvió como «No procedente»): salen de
+ * la ficha que entrega el servidor. Los archivos ya guardados siguen puestos (el servidor los acepta de nuevo); el motivo se escribe en la revisión.
+ * Si la ficha dice que la declaración de requisitos está completa, están marcadas sus ocho afirmaciones.
+ */
+export function valoresDeFicha(ficha: FichaOficial, cat: CatalogosOficial): FormularioDesignacion {
+  const { persona, cargo, designacion } = ficha;
+  const requisitos = ficha.declaraciones.requisitos;
+  const designante = ficha.declaraciones.designante;
+  return {
+    tipoEmpresa: ficha.tipoEmpresa,
+    tipoCargo: ficha.tipoCargo,
+    dedicacion: ficha.dedicacion,
+    persona: {
+      nombres: persona.nombres,
+      apellidos: persona.apellidos,
+      nacionalidad: persona.nacionalidad,
+      tipoDocumento: persona.tipoDocumento,
+      numeroDocumento: persona.numeroDocumento,
+      fechaNacimiento: persona.fechaNacimiento,
+      domicilio: persona.domicilio,
+      telefono: persona.telefono ?? '',
+      correo: persona.correo,
+    },
+    cargo: { cargo: cargo.cargo, fechaIngreso: cargo.fechaIngreso, vinculo: cargo.vinculo, direccionOficina: cargo.direccionOficina },
+    designacion: {
+      designa: designacion.designa,
+      nombreOrgano: designacion.nombreOrgano,
+      documentoTipo: designacion.documentoTipo,
+      documentoFecha: designacion.documentoFecha,
+      fechaDesignacion: designacion.fechaDesignacion,
+      adjunto: designacion.adjunto,
+      reemplazaOficialAnterior: designacion.reemplazaAId !== null,
+    },
+    declaraciones: {
+      requisitos: {
+        puntos: requisitos.completa ? cat.declaracionRequisitos.map((p) => p.letra) : [],
+        firmaNombre: requisitos.firmaNombre ?? '',
+        fechaFirma: requisitos.fechaFirma ?? '',
+        adjunto: requisitos.adjunto,
+      },
+      designante: {
+        aceptada: designante.completa,
+        firmaNombre: designante.firmaNombre ?? '',
+        fechaFirma: designante.fechaFirma ?? '',
+        adjunto: designante.adjunto,
+      },
+    },
+    motivoCorreccion: '',
   };
 }
 
@@ -154,7 +211,8 @@ const FORMATO_DOCUMENTO: Record<string, { patron: RegExp; mensaje: string }> = {
 const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEFONO = /^[0-9 +\-()]*$/;
 
-export function crearEsquema(cat: CatalogosOficial) {
+/** `corregir`: además de todo lo del alta, pide el motivo de la corrección (`PUT /designaciones/{id}`). */
+export function crearEsquema(cat: CatalogosOficial, corregir = false) {
   return FORMA.superRefine((v, ctx) => {
     const hoy = hoyIso();
     const error = (ruta: string, mensaje: string) => ctx.addIssue({ code: 'custom', path: ruta.split('.'), message: mensaje });
@@ -244,6 +302,11 @@ export function crearEsquema(cat: CatalogosOficial) {
     };
     firma('declaraciones.requisitos', r);
     firma('declaraciones.designante', v.declaraciones.designante);
+
+    // Motivo de la corrección (solo al corregir): obligatorio, hasta 500 caracteres
+    if (corregir && obligatorio('motivoCorreccion', v.motivoCorreccion, 'Escribe el motivo de la corrección.')) {
+      largo('motivoCorreccion', v.motivoCorreccion, 500, 'El motivo admite hasta 500 caracteres.');
+    }
   });
 }
 
@@ -343,13 +406,32 @@ export function aSolicitud(v: FormularioDesignacion, cat: CatalogosOficial): Sol
   };
 }
 
+/**
+ * Cuerpo del «Guardar corrección» (`PUT /designaciones/{id}`): el mismo del alta más el motivo. La hoja de vida y el documento del
+ * vínculo no se dibujan en el asistente: se mandan tal como ya están guardados, para que corregir no los quite.
+ */
+export function aSolicitudCorreccion(v: FormularioDesignacion, cat: CatalogosOficial, ficha: FichaOficial): SolicitudDesignacion {
+  const base = aSolicitud(v, cat);
+  return {
+    ...base,
+    designacion: {
+      ...base.designacion,
+      hojaVidaAdjuntoId: ficha.designacion.hojaVida?.id ?? null,
+      documentoVinculoAdjuntoId: ficha.designacion.documentoVinculo?.id ?? null,
+    },
+    motivo: v.motivoCorreccion.trim(),
+  };
+}
+
 const RUTAS_DEL_FORMULARIO = new Set<string>(CAMPOS_PASO.flat());
 
 /**
  * Clave que manda el servidor en `campos` → campo del formulario. Los archivos se guardan aquí como `adjunto` y el contrato los
- * llama `adjuntoId`. Devuelve null si el formulario no tiene ese campo (por ejemplo, la hoja de vida, que el diseño no dibuja).
+ * llama `adjuntoId`; el `motivo` de la corrección se guarda como `motivoCorreccion`. Devuelve null si el formulario no tiene ese
+ * campo (por ejemplo, la hoja de vida, que el diseño no dibuja).
  */
 export function rutaDeCampo(clave: string): FieldPath<FormularioDesignacion> | null {
+  if (clave === 'motivo') return 'motivoCorreccion';
   const ruta = clave.replace(/adjuntoId$/, 'adjunto');
   return RUTAS_DEL_FORMULARIO.has(ruta) ? (ruta as FieldPath<FormularioDesignacion>) : null;
 }

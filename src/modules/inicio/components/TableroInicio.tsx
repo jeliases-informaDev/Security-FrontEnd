@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/modules/auth/hooks/AuthProvider';
 import { esAdministrador, modulosVisibles, type ModuloDashboard } from '@/shared/lib/modulos';
@@ -9,6 +9,12 @@ import { IconoDerecha, IconoDestello, IconoDestellos, IconoFlecha } from '@/shar
 import { listasNegativasService, type InicioListas } from '@/modules/listas_negativas/services/listasNegativasService';
 import { MedidorCoincidencia } from './MedidorCoincidencia';
 import { UltimasBusquedas, type EstadoUltimas } from './UltimasBusquedas';
+
+/**
+ * Turno de un bloque en la entrada de la página (`.inicio-entra` en globals.css, Figma 109:153). Orden del diseño: 0 bienvenida y tarjeta
+ * de Listas Negativas (en el marco son un solo bloque), 1 últimas búsquedas, 2 en adelante los módulos y al final Indira.
+ */
+const turno = (paso: number) => ({ '--paso': paso }) as CSSProperties;
 
 /** Tarjeta de un módulo: icono, rótulos de lo que hay dentro, nombre, descripción y «Abrir». */
 function TarjetaModulo({ modulo }: { modulo: ModuloDashboard }) {
@@ -68,7 +74,7 @@ export function TableroInicio() {
   return (
     <main className="px-4 pb-10 pt-4 sm:px-6 lg:pb-12 lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)] lg:pt-[35px]">
       {/* Bienvenida */}
-      <section className="aparece flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+      <section className="inicio-entra flex flex-wrap items-end justify-between gap-x-8 gap-y-5" style={turno(0)}>
         <div className="min-w-0 lg:pl-1">
           <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.16em] text-muted">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink" aria-hidden="true" />
@@ -87,7 +93,7 @@ export function TableroInicio() {
       <div className="mt-9 grid gap-6 xl:grid-cols-[minmax(0,800fr)_minmax(0,654fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           {/* Listas Negativas */}
-          <section className="aparece sombra-calida relative overflow-hidden rounded-[28px] border border-white/90 bg-white/95 sm:rounded-[34px]" aria-labelledby="titulo-listas">
+          <section className="inicio-entra sombra-calida relative overflow-hidden rounded-[28px] border border-white/90 bg-white/95 sm:rounded-[34px]" style={turno(0)} aria-labelledby="titulo-listas">
             {/* Brillo suave bajo la rueda */}
             <div className="pointer-events-none absolute -bottom-12 right-5 h-[260px] w-[620px] max-w-full rounded-[50%] bg-white/60 blur-[30px]" aria-hidden="true" />
             <div className="relative grid gap-x-1 gap-y-8 p-[27px] md:grid-cols-[minmax(0,324fr)_minmax(0,424fr)] md:items-center">
@@ -108,7 +114,7 @@ export function TableroInicio() {
             </div>
           </section>
 
-          <div className="aparece" style={{ animationDelay: '60ms' }}>
+          <div className="inicio-entra" style={turno(1)}>
             <UltimasBusquedas estado={ultimas} />
           </div>
         </div>
@@ -116,11 +122,11 @@ export function TableroInicio() {
         {/* Módulos */}
         <ul className="grid min-w-0 gap-6 sm:grid-cols-2 xl:auto-rows-fr" aria-label="Módulos">
           {modulos.map((modulo, i) => (
-            <li key={modulo.codigo} className="aparece" style={{ animationDelay: `${80 + i * 40}ms` }}>
+            <li key={modulo.codigo} className="inicio-entra" style={turno(2 + i)}>
               <TarjetaModulo modulo={modulo} />
             </li>
           ))}
-          <li className="aparece" style={{ animationDelay: `${80 + modulos.length * 40}ms` }}>
+          <li className="inicio-entra" style={turno(2 + modulos.length)}>
             <button
               type="button"
               onClick={alternarIndira}

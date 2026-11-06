@@ -49,22 +49,22 @@ export function InsigniaEstado({ estado, largo = false }: { estado: string; larg
   return <span className={`badge badge-neutral ${base}`}>{estado}</span>;
 }
 
-/** Dato de solo lectura: rótulo en mono y valor. */
+/** Dato de solo lectura: rótulo en mono (11 px, interletraje de 0,04 em) y valor de 16 px, como el diseño (RO 4 y RO 5). */
 export function Dato({ rotulo, children, className = '' }: { rotulo: string; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
-      <p className="rotulo">{rotulo}</p>
-      <p className="mt-1 break-words text-[15px] font-medium leading-[22px] text-ink">{children}</p>
+      <p className="rotulo leading-[normal] tracking-[0.04em]">{rotulo}</p>
+      <p className="mt-1 break-words text-base font-medium leading-[normal] text-ink">{children}</p>
     </div>
   );
 }
 
-/** Fila «etiqueta … valor» de las tarjetas laterales. */
+/** Fila «etiqueta … valor» de las tarjetas laterales (el valor va en semibold, como el diseño). */
 export function FilaValor({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 text-sm">
+    <div className="flex items-center justify-between gap-4 text-sm leading-[normal]">
       <span className="text-muted">{etiqueta}</span>
-      <span className="text-right font-medium tabular-nums text-ink">{children}</span>
+      <span className="text-right font-semibold text-ink">{children}</span>
     </div>
   );
 }

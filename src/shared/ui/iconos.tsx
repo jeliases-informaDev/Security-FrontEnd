@@ -330,3 +330,35 @@ export function IconoAyuda(props: Props) {
     </Base>
   );
 }
+
+/** Flecha hacia abajo sobre una base: descargar el PDF. */
+export function IconoDescargar(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M8 2.8V10" />
+      <path d="M4.8 7.2L8 10.4L11.2 7.2" />
+      <path d="M3.2 12.8H12.8" />
+    </Base>
+  );
+}
+
+/** Triángulo con signo de exclamación: marcar un registro como inusual. */
+export function IconoTriangulo(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M8 2.8L13.6 12.8H2.4L8 2.8Z" />
+      <path d="M8 6.4V9.2" />
+      <path d="M8 10.88V10.96" />
+    </Base>
+  );
+}
+
+/** Lápiz: editar el registro. */
+export function IconoLapiz(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M3.2 12.8L3.84 10.08L10.72 3.2L12.8 5.28L5.92 12.16L3.2 12.8Z" />
+      <path d="M9.6 4.4L11.6 6.4" />
+    </Base>
+  );
+}

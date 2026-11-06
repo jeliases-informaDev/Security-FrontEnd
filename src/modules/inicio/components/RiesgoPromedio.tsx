@@ -207,7 +207,7 @@ export function RiesgoPromedio({ resumen, paso }: PropsRiesgo) {
                           <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${n.punto}`} aria-hidden="true" />
                           {n.nombre}
                         </span>
-                        <span className="block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
+                        <span className="block h-2 overflow-hidden rounded-full bg-line" aria-hidden="true">
                           <span className={`block h-full rounded-full ${n.punto}`} style={{ width: `${cantidad ? Math.max(2, parte) : 0}%` }} />
                         </span>
                         <span className="text-right tabular-nums">

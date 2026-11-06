@@ -39,7 +39,7 @@ function FilaPendiente({ pendiente, puedeRegistrar, alRegistrar }: { pendiente: 
  * Los pendientes con la UIF que todavía no se comunicaron (cambios de datos y remoción). Cada uno tiene su plazo y su botón
  * «Registrar comunicación», que abre la ventana para anotar cuándo se hizo. Si no hay ninguno, no se muestra nada.
  */
-export function TarjetaPendientes({ pendientes, catalogos, puedeRegistrar, alGuardar, titulo = 'Pendientes con la UIF', descripcion = 'Lo que falta comunicarle a la UIF-Perú.' }: { pendientes: Pendiente[]; catalogos: CatalogosOficial; puedeRegistrar: boolean; alGuardar: () => void; titulo?: string; descripcion?: string }) {
+export function TarjetaPendientes({ pendientes, catalogos, puedeRegistrar, alGuardar, titulo = 'Pendientes con la UIF', descripcion = 'Lo que falta comunicarle a la UIF-Perú.' }: { pendientes: Pendiente[]; catalogos: CatalogosOficial; puedeRegistrar: boolean; alGuardar?: () => void; titulo?: string; descripcion?: string }) {
   const [abierto, setAbierto] = useState<Pendiente | null>(null);
   const sinComunicar = pendientes.filter((p) => !p.comunicado);
   if (sinComunicar.length === 0) return null;
@@ -58,7 +58,7 @@ export function TarjetaPendientes({ pendientes, catalogos, puedeRegistrar, alGua
           onCerrar={() => setAbierto(null)}
           onGuardado={() => {
             setAbierto(null);
-            alGuardar();
+            alGuardar?.();
           }}
         />
       )}

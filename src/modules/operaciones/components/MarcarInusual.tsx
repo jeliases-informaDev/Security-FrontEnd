@@ -18,8 +18,8 @@ import {
   camposDeError, operacionesService,
   type AdjuntoAnalisis, type CatalogosOperacion, type DecisionInusualidad, type Inusualidad, type SolicitudInusualidad,
 } from '../services/operacionesService';
-import { BTN, BTN_P, CAMPO, CAMPO_BORDE, ErrorPagina, EsqueletoPagina, FilaValor, Tarjeta } from './piezas';
-import { AREA_B, BotonAdjuntar, CampoB, ChipArchivo, OpcionRadio, REJILLA_B } from './piezasB';
+import { CAMPO, CAMPO_BORDE, ErrorPagina, EsqueletoPagina, FilaValor, Tarjeta } from './piezas';
+import { AREA_B, AreaAutoajustable, BTN_B, BTN_PB, BotonAdjuntar, CampoB, ChipArchivo, OpcionRadio, REJILLA_B, SELECT_B } from './piezasB';
 
 const DESCRIPCION = 'Documenta la señal de alerta y tu análisis. Si la calificas como sospechosa, el ROS debe comunicarse a la UIF en un máximo de 24 horas.';
 
@@ -218,7 +218,7 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
   const opcionesFuente = catalogos.fuentesSenal.map((o) => ({ value: o.codigo, label: o.nombre }));
   const pideSenalTexto = pideTexto(catalogos.senalesAlerta, b.senal);
   const clase = (campo: string) => `input ${CAMPO} ${errores[campo] ? 'input-error' : CAMPO_BORDE}`;
-  const claseArea = (campo: string, minimo: string) => `input ${AREA_B} ${minimo} resize-y ${errores[campo] ? 'input-error' : CAMPO_BORDE}`;
+  const claseArea = (campo: string, minimo: string) => `input ${AREA_B} ${minimo} ${errores[campo] ? 'input-error' : CAMPO_BORDE}`;
   const ariaError = (campo: string) => (errores[campo] ? { 'aria-invalid': true as const, 'aria-describedby': `inu-${campo}-error` } : {});
 
   return (
@@ -243,10 +243,10 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
           <Tarjeta titulo="Señal de alerta" descripcion="Qué te llamó la atención." espacio="gap-[18px]">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <CampoB id="inu-senal" texto="Señal de alerta" error={errores.senal}>
-                <StyledSelect id="inu-senal" value={b.senal} options={opcionesSenal} onChange={(v) => poner({ senal: v })} placeholder="Elige una señal" disabled={bloqueado} error={!!errores.senal} className={`${CAMPO} ${errores.senal ? '' : CAMPO_BORDE}`} />
+                <StyledSelect id="inu-senal" value={b.senal} options={opcionesSenal} onChange={(v) => poner({ senal: v })} placeholder="Elige una señal" disabled={bloqueado} error={!!errores.senal} ajustar className={`${SELECT_B} ${errores.senal ? '' : CAMPO_BORDE}`} />
               </CampoB>
               <CampoB id="inu-fuente" texto="Fuente de la señal" error={errores.fuente}>
-                <StyledSelect id="inu-fuente" value={b.fuente} options={opcionesFuente} onChange={(v) => poner({ fuente: v })} placeholder="Elige una fuente" disabled={bloqueado} error={!!errores.fuente} className={`${CAMPO} ${errores.fuente ? '' : CAMPO_BORDE}`} />
+                <StyledSelect id="inu-fuente" value={b.fuente} options={opcionesFuente} onChange={(v) => poner({ fuente: v })} placeholder="Elige una fuente" disabled={bloqueado} error={!!errores.fuente} ajustar className={`${SELECT_B} ${errores.fuente ? '' : CAMPO_BORDE}`} />
               </CampoB>
               <CampoB id="inu-fechaDeteccion" texto="Fecha de detección" error={errores.fechaDeteccion}>
                 <input id="inu-fechaDeteccion" type="date" max={hoy} value={b.fechaDeteccion} onChange={(e) => poner({ fechaDeteccion: e.target.value })} disabled={bloqueado} className={clase('fechaDeteccion')} {...ariaError('fechaDeteccion')} />
@@ -258,16 +258,16 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
               </CampoB>
             )}
             <CampoB id="inu-descripcionSenal" texto="Descripción de la señal" error={errores.descripcionSenal}>
-              <textarea id="inu-descripcionSenal" rows={3} maxLength={4000} value={b.descripcionSenal} onChange={(e) => poner({ descripcionSenal: e.target.value })} disabled={bloqueado} className={claseArea('descripcionSenal', 'min-h-[88px]')} {...ariaError('descripcionSenal')} />
+              <AreaAutoajustable id="inu-descripcionSenal" rows={3} maxLength={4000} value={b.descripcionSenal} onChange={(e) => poner({ descripcionSenal: e.target.value })} disabled={bloqueado} className={claseArea('descripcionSenal', 'min-h-[88px]')} {...ariaError('descripcionSenal')} />
             </CampoB>
           </Tarjeta>
 
           <Tarjeta titulo="Análisis de la operación" descripcion="Queda como constancia documental." espacio="gap-[18px]">
             <CampoB id="inu-descripcionOperacion" texto="Descripción de la operación y argumentos" error={errores.descripcionOperacion}>
-              <textarea id="inu-descripcionOperacion" rows={3} maxLength={4000} value={b.descripcionOperacion} onChange={(e) => poner({ descripcionOperacion: e.target.value })} disabled={bloqueado} className={claseArea('descripcionOperacion', 'min-h-[96px]')} {...ariaError('descripcionOperacion')} />
+              <AreaAutoajustable id="inu-descripcionOperacion" rows={3} maxLength={4000} value={b.descripcionOperacion} onChange={(e) => poner({ descripcionOperacion: e.target.value })} disabled={bloqueado} className={claseArea('descripcionOperacion', 'min-h-[96px]')} {...ariaError('descripcionOperacion')} />
             </CampoB>
             <CampoB id="inu-analisis" texto="Análisis y evaluación" error={errores.analisis}>
-              <textarea id="inu-analisis" rows={4} maxLength={4000} value={b.analisis} onChange={(e) => poner({ analisis: e.target.value })} disabled={bloqueado} className={claseArea('analisis', 'min-h-[112px]')} {...ariaError('analisis')} />
+              <AreaAutoajustable id="inu-analisis" rows={4} maxLength={4000} value={b.analisis} onChange={(e) => poner({ analisis: e.target.value })} disabled={bloqueado} className={claseArea('analisis', 'min-h-[112px]')} {...ariaError('analisis')} />
             </CampoB>
             <div className="flex flex-col gap-2.5">
               {(actual.adjuntos.length > 0 || pendientes.length > 0) && (
@@ -305,15 +305,15 @@ function FormularioInusual({ id, catalogos, inicial }: { id: number; catalogos: 
           <div className="flex flex-wrap justify-end gap-2.5 pb-2 pt-1">
             {cerrado ? (
               <>
-                <Link href={volver} className={`btn btn-secondary ${BTN}`}>Volver al registro</Link>
-                {actual.estado === 'SOSPECHOSA' && <Link href={`/operaciones/${id}/ros`} className={`btn btn-primary ${BTN_P}`}>Preparar el ROS</Link>}
+                <Link href={volver} className={`btn btn-secondary ${BTN_B}`}>Volver al registro</Link>
+                {actual.estado === 'SOSPECHOSA' && <Link href={`/operaciones/${id}/ros`} className={`btn btn-primary ${BTN_PB}`}>Preparar el ROS</Link>}
               </>
             ) : (
               <>
-                <Link href={volver} className={`btn btn-secondary ${BTN}`}>Cancelar</Link>
-                <Boton variante="secundario" className={BTN} onClick={guardarAnalisis} cargando={enviando === 'guardar'} disabled={bloqueado}>Guardar análisis</Boton>
+                <Link href={volver} className={`btn btn-secondary ${BTN_B}`}>Cancelar</Link>
+                <Boton variante="secundario" className={BTN_B} onClick={guardarAnalisis} cargando={enviando === 'guardar'} disabled={bloqueado}>Guardar análisis</Boton>
                 {actual.puedeCalificar && (
-                  <Boton icono={decision === 'NO_SOSPECHOSA' ? undefined : IconoTriangulo} className={BTN_P} onClick={calificar} cargando={enviando === 'calificar'} disabled={bloqueado || !decision}>
+                  <Boton icono={decision === 'NO_SOSPECHOSA' ? undefined : IconoTriangulo} className={BTN_PB} onClick={calificar} cargando={enviando === 'calificar'} disabled={bloqueado || !decision}>
                     {decision === 'NO_SOSPECHOSA' ? 'Calificar como no sospechosa' : 'Calificar como sospechosa'}
                   </Boton>
                 )}

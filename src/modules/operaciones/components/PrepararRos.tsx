@@ -12,8 +12,8 @@ import { fechaHora } from '../lib/formato';
 import { ahoraLocal, tiempoRestante } from '../lib/formatoB';
 import { useCarga } from '../lib/useCarga';
 import { camposDeError, codigoDeError, operacionesService, type Ros } from '../services/operacionesService';
-import { BTN, BTN_P, CAMPO, CAMPO_BORDE, Dato, ErrorPagina, EsqueletoPagina, Tarjeta } from './piezas';
-import { CampoB, REJILLA_B } from './piezasB';
+import { CAMPO, CAMPO_BORDE, Dato, ErrorPagina, EsqueletoPagina, Tarjeta } from './piezas';
+import { BTN_B, BTN_PB, CampoB, NotaLateral, REJILLA_B } from './piezasB';
 
 /** Dirección de ROSEL tal como la escribe el diseño en el paso 3 («plaft.sbs.gob.pe»). Hay que confirmarla con la SBS antes de publicar. */
 const ROSEL_URL = 'https://plaft.sbs.gob.pe';
@@ -38,7 +38,7 @@ function Marco({ antetitulo, id, children }: { antetitulo?: string; id: number; 
         descripcion={DESCRIPCION}
         icono={IconoAlerta}
         sinLinea
-        acciones={<Link href={`/operaciones/${id}/inusual`} className={`btn btn-secondary ${BTN}`}>Volver al análisis</Link>}
+        acciones={<Link href={`/operaciones/${id}/inusual`} className={`btn btn-secondary ${BTN_B}`}>Volver al análisis</Link>}
       />
       {children}
     </PageShell>
@@ -112,7 +112,7 @@ function ContenidoRos({ id, inicial, avisoInicial, onCerrarAvisoInicial }: { id:
           {avisoInicial && !aviso && <Aviso aviso={avisoInicial} onCerrar={onCerrarAvisoInicial} />}
           {aviso && <div id="aviso-ros" className="scroll-mt-6"><Aviso aviso={aviso} onCerrar={() => setAviso(null)} /></div>}
 
-          <section aria-label="Pasos para preparar el ROS" className="card overflow-hidden">
+          <section aria-label="Pasos para preparar el ROS" className="card">
             <ol className="divide-y divide-line">
               <Paso numero={1} estado="hecho" titulo="Operación calificada como sospechosa">
                 <p className={TEXTO_PASO}>
@@ -128,7 +128,7 @@ function ContenidoRos({ id, inicial, avisoInicial, onCerrarAvisoInicial }: { id:
                 </p>
                 {!listos && (
                   <div className="mt-1.5">
-                    <Link href={`/operaciones/${id}/editar`} className={`btn btn-secondary ${BTN}`}>Completar el registro</Link>
+                    <Link href={`/operaciones/${id}/editar`} className={`btn btn-secondary ${BTN_B}`}>Completar el registro</Link>
                   </div>
                 )}
               </Paso>
@@ -136,8 +136,8 @@ function ContenidoRos({ id, inicial, avisoInicial, onCerrarAvisoInicial }: { id:
               <Paso numero={3} estado={cerrado ? 'hecho' : listos ? 'activo' : 'pendiente'} titulo="Envía el ROS por ROSEL">
                 <p className={TEXTO_PASO}>Entra a ROSEL en plaft.sbs.gob.pe con el usuario del oficial de cumplimiento y carga la plantilla ROSEL con estos datos.</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
-                  <a href={ROSEL_URL} target="_blank" rel="noopener noreferrer" className={`btn btn-primary ${BTN_P}`}>
-                    <IconoFlecha className="h-4 w-4" aria-hidden="true" />
+                  <a href={ROSEL_URL} target="_blank" rel="noopener noreferrer" className={`btn btn-primary ${BTN_PB}`}>
+                    <IconoFlecha className="h-4 w-4 shrink-0" aria-hidden="true" />
                     Abrir ROSEL (sitio de la SBS)
                     <span className="sr-only"> (se abre en otra pestaña)</span>
                   </a>
@@ -173,10 +173,7 @@ function ContenidoRos({ id, inicial, avisoInicial, onCerrarAvisoInicial }: { id:
             </ul>
           </Tarjeta>
 
-          <aside className="card rounded-[22px] px-5 py-[18px]" aria-label="Reserva">
-            <p className="font-mono text-[11px] uppercase leading-[normal] tracking-[0.04em] text-muted">Reserva</p>
-            <p className="mt-2 text-sm leading-[21px] text-ink/80">El ROS es confidencial: no se avisa al cliente ni a terceros, y no es una denuncia penal ni administrativa.</p>
-          </aside>
+          <NotaLateral rotulo="Reserva">El ROS es confidencial: no se avisa al cliente ni a terceros, y no es una denuncia penal ni administrativa.</NotaLateral>
         </div>
       </div>
     </Marco>
@@ -208,7 +205,7 @@ function TarjetaPlazo({ ros }: { ros: Ros }) {
 
   return (
     <Tarjeta titulo={cerrado ? 'Plazo del ROS' : 'Tiempo restante'} descripcion={cerrado ? 'Con el número de ROS ya registrado.' : 'Desde la calificación.'} derecha={etiqueta} espacio="gap-3">
-      <p className={`text-[40px] font-bold leading-[normal] tracking-[-0.02em] ${vencido ? 'text-bad' : 'text-ink'}`}>
+      <p className={`break-words text-[40px] font-bold leading-[normal] tracking-[-0.02em] ${vencido ? 'text-bad' : 'text-ink'}`}>
         {cerrado ? 'Cerrado' : vencido ? 'Plazo vencido' : tiempoRestante(restante)}
       </p>
       {!cerrado && (
@@ -319,7 +316,7 @@ function FormularioNumero({ id, ros, onGuardado, onError }: { id: number; ros: R
       {ros.puedeRegistrar
         ? (
           <div>
-            <Boton type="submit" icono={IconoVisto} className={BTN_P} cargando={guardando}>Guardar número de ROS</Boton>
+            <Boton type="submit" icono={IconoVisto} className={BTN_PB} cargando={guardando}>Guardar número de ROS</Boton>
           </div>
         )
         : <p className="text-sm leading-[21px] text-muted">Solo el administrador de tu empresa puede registrar el número de ROS.</p>}

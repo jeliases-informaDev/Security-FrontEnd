@@ -120,18 +120,23 @@ export function TableroInicio() {
       {!hayIzquierda && !hayDerecha ? (
         <p className="card mt-7 px-6 py-10 text-center text-sm text-muted">Con tu cuenta no hay resúmenes para mostrar aquí. Elige un módulo en el menú para empezar.</p>
       ) : (
-        <div className={`mt-7 grid items-start gap-4 lg:gap-[17px] ${hayIzquierda && hayDerecha ? 'lg:grid-cols-[minmax(0,1.96fr)_minmax(0,1fr)]' : ''}`}>
+        // Las dos columnas se estiran a la altura de la más alta y la última tarjeta de cada una absorbe la diferencia (`last:flex-1`;
+        // el envoltorio es una cuadrícula de una celda para que la tarjeta llene esa altura): así terminan parejas y no queda un
+        // vacío debajo de la columna más corta. Solo desde 1216 px: ahí las tarjetas ya están en su forma ancha y la diferencia es de
+        // unas decenas de píxeles (con menos ancho cambian de forma y la diferencia es de cientos). La tarjeta no se estira más de
+        // lo razonable (ver `Tarjeta`). En una sola columna no hay diferencia que repartir.
+        <div className={`mt-7 grid gap-4 lg:gap-[17px] ${hayIzquierda && hayDerecha ? 'lg:grid-cols-[minmax(0,1.96fr)_minmax(0,1fr)]' : ''}`}>
           {hayIzquierda && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.listas && (
-                <div className="inicio-entra" style={turno(1 + turnoBase)}>
+                <div className="inicio-entra grid grid-cols-1 min-[1216px]:last:flex-1" style={turno(1 + turnoBase)}>
                   <Bloque key={`listas-${version}`} id="inicio-listas" icono={IconoLupa} titulo="Listas negativas" onReintentar={recargar}>
                     <TarjetaListas bloque={datos?.listas} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.operaciones && (
-                <div className="inicio-entra" style={turno(2 + turnoBase)}>
+                <div className="inicio-entra grid grid-cols-1 min-[1216px]:last:flex-1" style={turno(2 + turnoBase)}>
                   <Bloque key={`operaciones-${version}`} id="inicio-operaciones" icono={IconoRecibo} titulo="Registro de operaciones" onReintentar={recargar}>
                     <TarjetaOperaciones bloque={datos?.operaciones} {...propiedades} />
                   </Bloque>
@@ -142,14 +147,14 @@ export function TableroInicio() {
           {hayDerecha && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.oficial && (
-                <div className="inicio-entra" style={turno(3 + turnoBase)}>
+                <div className="inicio-entra grid grid-cols-1 min-[1216px]:last:flex-1" style={turno(3 + turnoBase)}>
                   <Bloque key={`oficial-${version}`} id="inicio-oficial" icono={IconoOficial} titulo="Oficial de cumplimiento" onReintentar={recargar}>
                     <TarjetaOficial bloque={datos?.oficial} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.denuncias && (
-                <div className="inicio-entra" style={turno(4 + turnoBase)}>
+                <div className="inicio-entra grid grid-cols-1 min-[1216px]:last:flex-1" style={turno(4 + turnoBase)}>
                   <Bloque key={`denuncias-${version}`} id="inicio-denuncias" icono={IconoMensaje} titulo="Canal de denuncias" onReintentar={recargar}>
                     <TarjetaDenuncias bloque={datos?.denuncias} {...propiedades} />
                   </Bloque>

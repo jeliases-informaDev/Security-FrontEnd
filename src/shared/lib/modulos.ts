@@ -87,11 +87,12 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
   {
     codigo: 'oficial-cumplimiento',
     nombre: 'Oficial de Cumplimiento',
-    descripcion: 'Próximamente',
+    descripcion: 'Designación y comunicación a la UIF-Perú',
     href: '/oficial-cumplimiento',
     icono: IconoOficial,
-    disponible: false,
+    disponible: true,
     grupo: 'Registro',
+    etiquetas: ['Designación', 'UIF'],
   },
   {
     codigo: 'clientes',

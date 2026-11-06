@@ -95,6 +95,15 @@ export function diasTexto(dias: number): string {
   return dias > 0 ? `en ${plural(dias, 'día', 'días')}` : `hace ${plural(-dias, 'día', 'días')}`;
 }
 
+/** Tipos de plazo que son una sugerencia y no un plazo legal: aunque estén vencidos, solo llegan al ámbar. */
+const PLAZOS_SUGERIDOS: readonly string[] = ['DECLARACION'];
+
+/** Color de un plazo (el mismo criterio de las luces): vencido, rojo (ámbar si es solo una sugerencia); de hoy a 2 días, ámbar; más lejos, verde. */
+export function estadoDePlazo(tipo: string | null | undefined, dias: number): EstadoLuz {
+  if (dias < 0) return PLAZOS_SUGERIDOS.includes(String(tipo)) ? 'ambar' : 'rojo';
+  return dias < DIAS_PLAZO_CERCANO ? 'ambar' : 'verde';
+}
+
 /** Solo rutas internas del front (empiezan con «/», sin «//»): el enlace viene del servidor y no se sigue a ciegas. */
 export function rutaInterna(enlace: string | null | undefined): string | null {
   const ruta = (enlace ?? '').trim();

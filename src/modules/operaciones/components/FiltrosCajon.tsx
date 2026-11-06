@@ -5,25 +5,46 @@ import { createPortal } from 'react-dom';
 import { IconoCerrar, IconoVisto } from '@/shared/ui/iconos';
 import { StyledSelect } from '@/shared/ui/StyledSelect';
 import { Boton } from '@/shared/ui/kit';
+import { montoANumero } from '../lib/formato';
 import type { CatalogosOperacion, UsuarioEmpresa } from '../services/operacionesService';
-import { BTN, BTN_P, CAMPO, CAMPO_BORDE, ETIQUETA, Interruptor, Pronto, Segmentado } from './piezas';
+import { BTN, BTN_P, CAMPO, CAMPO_BORDE, ETIQUETA, Interruptor, Segmentado } from './piezas';
 
-/** Filtros de la lista (todos se resuelven en el servidor). El estado lo comparten las pestañas y el panel. */
+/**
+ * Filtros de la lista (todos se resuelven en el servidor). El estado lo comparten las pestañas y el panel: lista vacía = todos;
+ * con varios estados cuenta cualquiera de ellos. Los montos son lo que la persona escribió (en US$ equivalente).
+ */
 export interface FiltrosLista {
-  estado: '' | 'PENDIENTE';
+  estado: string[];
   desde: string;
   hasta: string;
   tipoOperacion: string;
   moneda: string;
   responsableId: string;
   sinResponsable: boolean;
+  oficina: string;
+  montoMin: string;
+  montoMax: string;
 }
 
-export const SIN_FILTROS: FiltrosLista = { estado: '', desde: '', hasta: '', tipoOperacion: '', moneda: '', responsableId: '', sinResponsable: false };
+export const SIN_FILTROS: FiltrosLista = { estado: [], desde: '', hasta: '', tipoOperacion: '', moneda: '', responsableId: '', sinResponsable: false, oficina: '', montoMin: '', montoMax: '' };
 
-/** Cuántos filtros del panel están puestos (el estado cuenta). */
+/** Cuántos filtros del panel están puestos (el estado cuenta como uno, sean cuantos sean los elegidos). */
 export const cuantosFiltros = (f: FiltrosLista): number =>
-  [f.estado, f.desde, f.hasta, f.tipoOperacion, f.moneda, f.responsableId].filter(Boolean).length + (f.sinResponsable ? 1 : 0);
+  (f.estado.length > 0 ? 1 : 0) + [f.desde, f.hasta, f.tipoOperacion, f.moneda, f.responsableId, f.oficina.trim(), f.montoMin.trim(), f.montoMax.trim()].filter(Boolean).length + (f.sinResponsable ? 1 : 0);
+
+/** Estados que se pueden elegir en el panel (los mismos que acepta el servidor). */
+const ESTADOS = [
+  { valor: 'PENDIENTE', etiqueta: 'Pendiente de envío' },
+  { valor: 'ENVIADO', etiqueta: 'Enviado' },
+  { valor: 'INUSUAL', etiqueta: 'Inusual' },
+];
+
+/** Problema de un monto escrito en el panel (o `null` si está vacío o es válido). */
+function problemaDeMonto(texto: string): string | null {
+  if (texto.trim() === '') return null;
+  const monto = montoANumero(texto);
+  return monto === null ? 'Escribe un monto válido, por ejemplo 30,000.' : null;
+}
 
 interface Props {
   filtros: FiltrosLista;
@@ -58,6 +79,14 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
   const responsables = [{ value: '', label: 'Todos' }, ...(usuarios ?? []).map((u) => ({ value: String(u.id), label: u.nombreCompleto }))];
   const monedas = [{ valor: '', etiqueta: 'Todas' }, ...(catalogos?.monedas ?? []).map((m) => ({ valor: m.codigo, etiqueta: `${m.simbolo ?? ''} ${m.codigo}`.trim() }))];
   const fechasMal = borrador.desde !== '' && borrador.hasta !== '' && borrador.desde > borrador.hasta;
+  const alternarEstado = (valor: string) => poner({ estado: borrador.estado.includes(valor) ? borrador.estado.filter((e) => e !== valor) : [...borrador.estado, valor] });
+  const problemaMin = problemaDeMonto(borrador.montoMin);
+  const problemaMax = problemaDeMonto(borrador.montoMax);
+  const minimo = montoANumero(borrador.montoMin);
+  const maximo = montoANumero(borrador.montoMax);
+  const montosMal = minimo !== null && maximo !== null && minimo > maximo;
+  const oficinas = catalogos?.oficinas ?? [];
+  const opcionesOficina = [{ value: '', label: 'Todas' }, ...oficinas.map((o) => ({ value: o, label: o }))];
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end bg-ink/45" onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>
@@ -77,14 +106,14 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
           <fieldset>
             <legend className={`${SECCION} mb-2.5`}>Estado</legend>
             <div className="flex flex-wrap items-start gap-2">
-              <button type="button" aria-pressed={borrador.estado === 'PENDIENTE'} onClick={() => poner({ estado: borrador.estado === 'PENDIENTE' ? '' : 'PENDIENTE' })} className={`${CHIP} ${borrador.estado === 'PENDIENTE' ? 'bg-ink text-paper' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}>
-                Pendiente de envío
-              </button>
-              {['Enviado', 'Inusual'].map((texto) => (
-                <button key={texto} type="button" aria-disabled="true" title="Próximamente" onClick={(e) => e.preventDefault()} className={`${CHIP} cursor-not-allowed border border-line bg-white text-faint`}>
-                  {texto} <Pronto />
-                </button>
-              ))}
+              {ESTADOS.map((e) => {
+                const activo = borrador.estado.includes(e.valor);
+                return (
+                  <button key={e.valor} type="button" aria-pressed={activo} onClick={() => alternarEstado(e.valor)} className={`${CHIP} ${activo ? 'bg-ink text-paper' : 'border border-line bg-white text-ink/80 hover:bg-paper'}`}>
+                    {e.etiqueta}
+                  </button>
+                );
+              })}
             </div>
           </fieldset>
 
@@ -117,17 +146,19 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
           </div>
 
           <fieldset>
-            <legend className={`${SECCION} mb-2.5 flex items-center gap-2`}>Monto (US$ equivalente) <Pronto /></legend>
+            <legend className={`${SECCION} mb-2.5`}>Monto (US$ equivalente)</legend>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="ro-filtro-min" className={ETIQUETA}>Mínimo</label>
-                <input id="ro-filtro-min" className={CAMPO_FILTRO} placeholder="Ej. 30,000" disabled />
+                <input id="ro-filtro-min" type="text" inputMode="decimal" autoComplete="off" className={`input ${CAMPO} ${problemaMin || montosMal ? 'input-error' : CAMPO_BORDE}`} placeholder="Ej. 30,000" value={borrador.montoMin} onChange={(e) => poner({ montoMin: e.target.value })} aria-invalid={problemaMin || montosMal ? true : undefined} aria-describedby={problemaMin || problemaMax || montosMal ? 'ro-filtro-monto-error' : undefined} />
               </div>
               <div>
                 <label htmlFor="ro-filtro-max" className={ETIQUETA}>Máximo</label>
-                <input id="ro-filtro-max" className={CAMPO_FILTRO} placeholder="Ej. 150,000" disabled />
+                <input id="ro-filtro-max" type="text" inputMode="decimal" autoComplete="off" className={`input ${CAMPO} ${problemaMax || montosMal ? 'input-error' : CAMPO_BORDE}`} placeholder="Ej. 150,000" value={borrador.montoMax} onChange={(e) => poner({ montoMax: e.target.value })} aria-invalid={problemaMax || montosMal ? true : undefined} aria-describedby={problemaMin || problemaMax || montosMal ? 'ro-filtro-monto-error' : undefined} />
               </div>
             </div>
+            {(problemaMin || problemaMax || montosMal) && <p id="ro-filtro-monto-error" role="alert" className="error-text">{problemaMin ?? problemaMax ?? 'El mínimo no puede ser mayor que el máximo.'}</p>}
+            <p className="hint">Los registros sin equivalente en dólares no aparecen cuando usas este filtro.</p>
           </fieldset>
 
           <div className={GRUPO}>
@@ -138,8 +169,13 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
                 <StyledSelect id="ro-filtro-responsable" value={borrador.responsableId} options={responsables} onChange={(v) => poner({ responsableId: v })} placeholder="Todos" disabled={borrador.sinResponsable || usuarios === null} className={`${CAMPO} ${CAMPO_BORDE}`} />
               </div>
               <div>
-                <label htmlFor="ro-filtro-oficina" className={ETIQUETA}>Oficina <Pronto /></label>
-                <StyledSelect id="ro-filtro-oficina" value="" options={[{ value: '', label: 'Todas' }]} onChange={() => undefined} placeholder="Todas" disabled className={`${CAMPO} ${CAMPO_BORDE}`} />
+                <label htmlFor="ro-filtro-oficina" className={ETIQUETA}>Oficina</label>
+                {oficinas.length > 0 ? (
+                  <StyledSelect id="ro-filtro-oficina" value={borrador.oficina} options={opcionesOficina} onChange={(v) => poner({ oficina: v })} placeholder="Todas" disabled={!catalogos} className={`${CAMPO} ${CAMPO_BORDE}`} />
+                ) : (
+                  // Sin lista de oficinas configurada (RO 16) la oficina de cada registro es texto libre: se busca por el nombre exacto.
+                  <input id="ro-filtro-oficina" type="text" maxLength={100} autoComplete="off" className={CAMPO_FILTRO} placeholder="Todas" value={borrador.oficina} onChange={(e) => poner({ oficina: e.target.value })} />
+                )}
               </div>
             </div>
             {usuarios !== null && usuarios.length === 0 && <p className="hint">No se pudo cargar la lista de responsables.</p>}
@@ -151,7 +187,7 @@ export function FiltrosCajon({ filtros, catalogos, usuarios, onAplicar, onCerrar
         <div className="h-px shrink-0 bg-line" />
         <div className="flex items-center justify-end gap-2.5 px-7 pb-5 pt-4">
           <Boton variante="secundario" onClick={() => setBorrador(SIN_FILTROS)} className={BTN}>Limpiar</Boton>
-          <Boton icono={IconoVisto} disabled={fechasMal} onClick={() => onAplicar(borrador)} className={BTN_P}>Aplicar filtros</Boton>
+          <Boton icono={IconoVisto} disabled={fechasMal || !!problemaMin || !!problemaMax || montosMal} onClick={() => onAplicar(borrador)} className={BTN_P}>Aplicar filtros</Boton>
         </div>
       </aside>
     </div>,

@@ -17,7 +17,6 @@ import { AREA_B, AreaAutoajustable, BTN_B, BTN_PB, CampoB, ChipArchivo, NotaLate
 import { TipoCambioMensual } from './TipoCambioMensual';
 
 const DESCRIPCION = 'Define tu actividad para saber qué operaciones deben registrarse y desde qué monto.';
-const CAMPO_SELECT = `${SELECT_B} ${CAMPO_BORDE}`;
 const TITULO_TARJETA = 'text-[17px] font-semibold leading-[normal] tracking-[-0.01em] text-ink';
 
 /** Lo que la persona escribe en el formulario (todo texto; al guardar se arma la solicitud). */

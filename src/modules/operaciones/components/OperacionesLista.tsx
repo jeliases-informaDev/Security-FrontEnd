@@ -6,9 +6,11 @@ import { AlertCircle, Search } from 'lucide-react';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
 import { IconoAjustes, IconoCandado, IconoDocumento, IconoFiltro, IconoHistorial, IconoInfo, IconoLupa, IconoMas, IconoOjo, IconoRecibo, IconoReloj, IconoSubir, IconoUsuario, IconoVisto } from '@/shared/ui/iconos';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
-import { Aviso, EstadoVacio } from '@/shared/ui/kit';
+import { Aviso, Esqueleto, Etiqueta, EstadoVacio } from '@/shared/ui/kit';
 import { useAvisoPendiente } from '../lib/aviso';
-import { fechaCorta, mesLargo, montoConMoneda } from '../lib/formato';
+import { fechaCorta, mesLargo, montoANumero, montoConMoneda } from '../lib/formato';
+import { usd } from '../lib/formatoB';
+import { useCarga } from '../lib/useCarga';
 import {
   operacionesService,
   TAMANO_PAGINA,
@@ -22,7 +24,8 @@ import {
 import { CambiarResponsableModal } from './CambiarResponsableModal';
 import { cuantosFiltros, FiltrosCajon, SIN_FILTROS, type FiltrosLista } from './FiltrosCajon';
 import { usePdfOperacion } from './PdfOperacion';
-import { AccionFila, BotonPronto, BTN, BTN_P, CeldaResponsable, InsigniaEstado, PiePaginas, Pronto, Segmentado, Tarjeta } from './piezas';
+import { AccionFila, BTN, BTN_P, CeldaResponsable, FilaValor, InsigniaEstado, PiePaginas, Segmentado, Tarjeta } from './piezas';
+import { BTN_B } from './piezasB';
 
 // Anchos de las columnas del diseño (RO 1).
 const COLUMNAS = [
@@ -37,19 +40,27 @@ const COLUMNAS = [
   { titulo: 'Acciones', ancho: 'w-[132px]' },
 ];
 
-type Pestana = FiltrosLista['estado'] | 'ENVIADO' | 'INUSUAL';
-const PESTANAS: { valor: Pestana; etiqueta: string; pronto?: boolean }[] = [
+/** Las pestañas son atajos del filtro de estado; con varios estados elegidos en el panel no queda ninguna marcada (`VARIOS`). */
+type Pestana = '' | 'PENDIENTE' | 'ENVIADO' | 'INUSUAL' | 'VARIOS';
+const PESTANAS: { valor: Pestana; etiqueta: string }[] = [
   { valor: '', etiqueta: 'Todos' },
   { valor: 'PENDIENTE', etiqueta: 'Pendientes' },
-  { valor: 'ENVIADO', etiqueta: 'Enviados', pronto: true },
-  { valor: 'INUSUAL', etiqueta: 'Inusuales', pronto: true },
+  { valor: 'ENVIADO', etiqueta: 'Enviados' },
+  { valor: 'INUSUAL', etiqueta: 'Inusuales' },
 ];
+const pestanaDe = (estado: string[]): Pestana => (estado.length === 0 ? '' : estado.length === 1 ? (estado[0] as Pestana) : 'VARIOS');
 
-function Indicador({ rotulo, valor, detalle, pronto = false }: { rotulo: string; valor: string; detalle: string; pronto?: boolean }) {
+/** Detalle del indicador de inusuales: el servidor cuenta las que están en análisis y las ya calificadas como sospechosas. */
+function detalleInusuales(i: Indicadores): string {
+  const sospechosas = i.sospechosas ?? 0;
+  return sospechosas > 0 ? `En análisis · ${sospechosas} ${sospechosas === 1 ? 'sospechosa' : 'sospechosas'}` : 'En análisis';
+}
+
+function Indicador({ rotulo, valor, detalle }: { rotulo: string; valor: string; detalle: string }) {
   return (
     <div className="card flex flex-col gap-1.5 rounded-[22px] px-5 py-[18px]">
-      <p className="flex items-center gap-2 font-mono text-xs uppercase leading-[normal] tracking-[0.04em] text-muted">{rotulo}{pronto && <Pronto />}</p>
-      <p className={`text-[40px] font-bold leading-[normal] tracking-[-0.02em] tabular-nums ${pronto ? 'text-faint' : 'text-ink'}`}>{valor}</p>
+      <p className="flex items-center gap-2 font-mono text-xs uppercase leading-[normal] tracking-[0.04em] text-muted">{rotulo}</p>
+      <p className="text-[40px] font-bold leading-[normal] tracking-[-0.02em] tabular-nums text-ink">{valor}</p>
       <p className="text-sm leading-[normal] text-muted">{detalle}</p>
     </div>
   );
@@ -57,6 +68,39 @@ function Indicador({ rotulo, valor, detalle, pronto = false }: { rotulo: string;
 
 const REGLAS = ['Se registra el mismo día', 'Un RO por cada actividad', 'No se excluye a ningún cliente', 'Copia de seguridad del RO', 'Conservación: 5 años'];
 const QUE_SE_GUARDA = ['Persona que realiza', 'Persona representada', 'Beneficiarios', 'Monto y moneda', 'Medio de pago', 'Origen de fondos', 'Historial de cambios'];
+
+/** Tarjeta «Umbral de tu sector» (RO 0): lo que ya está configurado en RO 16 o la invitación a configurarlo. Si la configuración no llega, queda la invitación. */
+function UmbralDeTuSector() {
+  const carga = useCarga('lista-configuracion', () => operacionesService.configuracion(), 'No se pudo cargar la configuración del registro.');
+  const c = !carga.cargando && !carga.error ? carga.datos : null;
+  const configurado = c !== null && c.sector !== null;
+  return (
+    <Tarjeta
+      espacio="gap-[14px]"
+      titulo="Umbral de tu sector"
+      derecha={c ? (c.porConfigurar ? <Etiqueta className="!leading-[normal]">Por configurar</Etiqueta> : <span className="badge badge-ok !leading-[normal]">Configurado</span>) : undefined}
+    >
+      {carga.cargando && <Esqueleto lineas={2} />}
+      {!carga.cargando && !configurado && (
+        <p className="text-[15px] leading-[22px] text-muted">Define tu sector para saber qué operaciones deben ir al registro y desde qué monto. Hasta entonces no se puede calcular el umbral.</p>
+      )}
+      {c && configurado && (
+        <div className="flex flex-col gap-3">
+          <FilaValor etiqueta="Sector">{c.sectorNombre ?? c.sector}</FilaValor>
+          {c.umbralesNorma.map((u) => <FilaValor key={u.tipoBien} etiqueta={u.nombre}>{usd(u.umbralUsd)}</FilaValor>)}
+          {c.umbralInterno && <FilaValor etiqueta="Umbral interno">{usd(c.umbralInterno.montoUsd)}</FilaValor>}
+          {c.umbralesNorma.length === 0 && <p className="text-sm leading-[21px] text-muted">Este sector todavía no tiene umbrales cargados en PLAFT.</p>}
+        </div>
+      )}
+      <div>
+        <Link href="/operaciones/configuracion" className={`btn btn-secondary ${BTN_B}`}>
+          <IconoAjustes className="h-4 w-4 shrink-0" aria-hidden="true" />
+          {configurado ? 'Cambiar sector o umbral' : 'Configurar sector'}
+        </Link>
+      </div>
+    </Tarjeta>
+  );
+}
 
 /** RO 0 · Todavía no hay registros. La columna de la derecha mide 460 px en el diseño (1920 px) y se encoge hasta 340 px en pantallas chicas. */
 function SinRegistros() {
@@ -71,7 +115,7 @@ function SinRegistros() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN_P}`}><IconoMas className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
-            <BotonPronto icono={IconoInfo} className={BTN}>Cómo se define el umbral</BotonPronto>
+            <Link href="/operaciones/configuracion" className={`btn btn-secondary ${BTN_B}`}><IconoInfo className="h-4 w-4 shrink-0" aria-hidden="true" /> Cómo se define el umbral</Link>
           </div>
           <div className="h-px w-full bg-line" aria-hidden="true" />
           <p className="font-mono text-xs leading-[normal] text-muted">Qué se guarda en cada registro</p>
@@ -96,10 +140,7 @@ function SinRegistros() {
       </div>
 
       <div className="flex flex-col gap-4">
-        <Tarjeta espacio="gap-[14px]" titulo="Umbral de tu sector" derecha={<Pronto />}>
-          <p className="text-[15px] leading-[22px] text-muted">Define tu sector para saber qué operaciones deben ir al registro y desde qué monto. Hasta entonces no se puede calcular el umbral.</p>
-          <div><BotonPronto icono={IconoAjustes} className={BTN}>Configurar sector</BotonPronto></div>
-        </Tarjeta>
+        <UmbralDeTuSector />
         <Tarjeta espacio="gap-3" titulo="Reglas del registro">
           <ul className="flex flex-col gap-3">
             {REGLAS.map((r) => (
@@ -177,6 +218,9 @@ export function OperacionesLista() {
       moneda: filtros.moneda,
       responsableId: filtros.responsableId ? Number(filtros.responsableId) : undefined,
       sinResponsable: filtros.sinResponsable,
+      oficina: filtros.oficina.trim() || undefined,
+      montoMinUsd: montoANumero(filtros.montoMin) ?? undefined,
+      montoMaxUsd: montoANumero(filtros.montoMax) ?? undefined,
     };
     operacionesService
       .resumen(f, pagina)
@@ -190,8 +234,8 @@ export function OperacionesLista() {
     if (usuarios === null) operacionesService.usuariosActivos().then(setUsuarios).catch(() => setUsuarios([]));
   };
 
-  const cambiarEstado = (estado: FiltrosLista['estado']) => {
-    setFiltros((f) => ({ ...f, estado }));
+  const cambiarPestana = (pestana: Pestana) => {
+    setFiltros((f) => ({ ...f, estado: pestana === '' || pestana === 'VARIOS' ? [] : [pestana] }));
     setPagina(0);
   };
 
@@ -216,8 +260,12 @@ export function OperacionesLista() {
         icono={IconoRecibo}
         sinLinea
         acciones={
-          <div className="flex items-start gap-2.5">
-            {sinRegistros ? <BotonPronto icono={IconoAjustes} className={BTN}>Configurar umbral</BotonPronto> : <BotonPronto icono={IconoSubir} className={BTN}>Exportar a la UIF</BotonPronto>}
+          <div className="flex flex-wrap items-start gap-2.5">
+            {sinRegistros ? (
+              <Link href="/operaciones/configuracion" className={`btn btn-secondary ${BTN_B}`}><IconoAjustes className="h-4 w-4 shrink-0" aria-hidden="true" /> Configurar umbral</Link>
+            ) : (
+              <Link href="/operaciones/exportar" className={`btn btn-secondary ${BTN_B}`}><IconoSubir className="h-4 w-4 shrink-0" aria-hidden="true" /> Exportar a la UIF</Link>
+            )}
             <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN_P}`}><IconoMas className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
           </div>
         }
@@ -234,7 +282,7 @@ export function OperacionesLista() {
               <>
                 <Indicador rotulo="Registros del mes" valor={String(indicadores.registrosDelPeriodo)} detalle={mesLargo(indicadores.periodo)} />
                 <Indicador rotulo="Pendientes de envío" valor={String(indicadores.pendientesDeEnvio)} detalle="A la UIF-Perú" />
-                <Indicador rotulo="Operaciones inusuales" valor="—" detalle="En análisis" pronto />
+                <Indicador rotulo="Operaciones inusuales" valor={indicadores.inusualesEnAnalisis != null ? String(indicadores.inusualesEnAnalisis) : '—'} detalle={detalleInusuales(indicadores)} />
                 <Indicador rotulo="Sin responsable" valor={String(indicadores.sinResponsable)} detalle="Asigna uno" />
               </>
             ) : (
@@ -249,7 +297,7 @@ export function OperacionesLista() {
                 <label htmlFor="ro-buscar" className="sr-only">Buscar por N.º, persona o documento</label>
                 <input id="ro-buscar" type="search" className="input h-[46px] rounded-[10px] border-line bg-paper pl-[42px] text-[15px]" placeholder="Buscar por N.º, persona o documento" autoComplete="off" value={texto} onChange={(e) => setTexto(e.target.value)} />
               </div>
-              <Segmentado ariaLabel="Filtrar por estado" valor={filtros.estado} opciones={PESTANAS} onCambiar={(v) => cambiarEstado(v as FiltrosLista['estado'])} />
+              <Segmentado ariaLabel="Filtrar por estado" valor={pestanaDe(filtros.estado)} opciones={PESTANAS} onCambiar={cambiarPestana} />
               <button type="button" onClick={abrirPanel} className={`btn btn-secondary ${BTN} sm:ml-auto`}>
                 <IconoFiltro className="h-4 w-4" aria-hidden="true" /> Filtros
                 {filtrosPuestos > 0 && <span className="badge badge-brand !px-2">{filtrosPuestos}</span>}

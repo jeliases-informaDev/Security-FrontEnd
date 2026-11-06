@@ -8,6 +8,7 @@ import type { CabinaInicio, ResumenInicio } from '../../services/inicioService';
 import { ChipEstado } from './Instrumento';
 import { LucesAlerta } from './LucesAlerta';
 import { MedidorAguja } from './MedidorAguja';
+import { PulsoLineas } from './PulsoLineas';
 import { RadarPerfil } from './RadarPerfil';
 
 /*
@@ -89,6 +90,7 @@ export function CabinaDeMando({ estado, resumen }: Props) {
             <div className="grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-7 @[72rem]:content-start">
               <MedidorAguja scoring={cabina.scoring} className="@[72rem]:col-span-3" />
               <RadarPerfil scoring={cabina.scoring} className="@[72rem]:col-span-4" />
+              <PulsoLineas tendencia={cabina.tendencia} className="@[40rem]:col-span-2 @[72rem]:col-span-7" />
             </div>
           </div>
         </div>

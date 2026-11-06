@@ -3,7 +3,7 @@
 
 import { montoTexto } from '@/modules/operaciones/lib/formato';
 
-export { fechaCorta, iniciales, plural } from '@/modules/listas_negativas/lib/formato';
+export { diaYMes, fechaCorta, iniciales, plural } from '@/modules/listas_negativas/lib/formato';
 
 export const SIN_DATO = '—';
 

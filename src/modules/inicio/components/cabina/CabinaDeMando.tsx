@@ -8,6 +8,7 @@ import { ChipEstado } from './Instrumento';
 import { LucesAlerta } from './LucesAlerta';
 import { MapaPeru } from './MapaPeru';
 import { MedidorAguja } from './MedidorAguja';
+import { ProximosVencimientos } from './ProximosVencimientos';
 import { PulsoLineas } from './PulsoLineas';
 import { RadarPerfil } from './RadarPerfil';
 
@@ -74,6 +75,7 @@ export function CabinaDeMando({ resumen }: Props) {
             </div>
             <div className="grid gap-3 @[40rem]:grid-cols-2 @[72rem]:grid-cols-1 @[72rem]:content-start">
               <MapaPeru mapa={cabina.mapa} />
+              <ProximosVencimientos plazos={cabina.plazos} />
             </div>
           </div>
         </div>

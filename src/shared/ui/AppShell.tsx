@@ -73,7 +73,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                   <li key={opcion.codigo}>
                     <span className="nav-item" aria-disabled="true" title="Próximamente">
                       <Icono />
-                      <span className="solo-abierta min-w-0 flex-1">{opcion.nombre}</span>
+                      <span className="solo-abierta etiqueta-menu min-w-0 flex-1">{opcion.nombre}</span>
                       <span className="solo-abierta badge badge-neutral px-2.5 py-[3px]">Pronto</span>
                     </span>
                   </li>
@@ -84,7 +84,7 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
                 <li key={opcion.codigo}>
                   <Link href={opcion.href} aria-current={activo ? 'page' : undefined} className="nav-item" onClick={onNavegar}>
                     <Icono />
-                    <span className="solo-abierta min-w-0">{opcion.nombre}</span>
+                    <span className="solo-abierta etiqueta-menu min-w-0">{opcion.nombre}</span>
                   </Link>
                 </li>
               );
@@ -126,7 +126,7 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
     <div className="barra-plegable-interior flex h-full flex-col pb-[26px] pl-[clamp(0.875rem,1.35vw,1.625rem)] pr-3 pt-7">
       <Logo />
       <div className="-mx-2 mt-[27px] min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-        <div className="max-w-[236px]">
+        <div className="max-w-[var(--ancho-fila-menu)]">
           <Navegacion usuario={usuario} onNavegar={() => setMenuAbierto(false)} />
         </div>
       </div>

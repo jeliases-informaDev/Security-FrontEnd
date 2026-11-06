@@ -104,6 +104,8 @@ function Navegacion({ usuario, onNavegar }: { usuario: UsuarioLoginResponse; onN
 export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, children }: AppShellProps) {
   const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  // La barra superior es opaca; solo al desplazar la página le sale una sombra suave que la separa del contenido que pasa por debajo.
+  const [desplazado, setDesplazado] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const nombre = usuario.nombreCompleto || usuario.usuario;
   const enPrincipal = pathname === '/overview';
@@ -120,6 +122,18 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
   useEffect(() => {
     panelRef.current?.scrollTo({ top: 0 });
   }, [pathname]);
+
+  // En pantallas anchas se desplaza el panel; en las angostas, la ventana. Se escuchan los dos.
+  useEffect(() => {
+    const panel = panelRef.current;
+    const alDesplazar = () => setDesplazado((panel?.scrollTop ?? 0) > 2 || window.scrollY > 2);
+    panel?.addEventListener('scroll', alDesplazar, { passive: true });
+    window.addEventListener('scroll', alDesplazar, { passive: true });
+    return () => {
+      panel?.removeEventListener('scroll', alDesplazar);
+      window.removeEventListener('scroll', alDesplazar);
+    };
+  }, []);
 
   // El botón de Indira del menú fijo lleva el id al que vuelve el foco al cerrar el chat; el del cajón móvil no lo repite.
   const lateral = (fijo: boolean) => (
@@ -171,15 +185,15 @@ export function AppShell({ usuario, onLogout, indiraAbierta, onAlternarIndira, c
           ref={panelRef}
           className="panel-principal flex min-h-dvh flex-col panel-desplazable lg:h-dvh lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r-0 lg:border-t-0"
         >
-          {/* Barra superior: buscador (solo en la página principal) y la cuenta */}
-          <header className="sticky top-0 z-20 flex h-[var(--alto-barra)] shrink-0 items-center gap-3 bg-white/60 px-4 backdrop-blur-xl sm:px-6 lg:items-center lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)]">
+          {/* Barra superior: buscador (solo en la página principal) y la cuenta. Superficie sólida: el contenido no se transparenta al desplazar. */}
+          <header className={`sticky top-0 z-20 flex h-[var(--alto-barra)] shrink-0 items-center gap-3 bg-white px-4 transition-shadow duration-200 sm:px-6 lg:items-center lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)] ${desplazado ? 'shadow-[0_12px_24px_-16px_rgb(14_17_22/0.24)]' : ''}`}>
             <button type="button" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú" className="btn btn-ghost btn-icon -ml-1.5 lg:hidden"><Menu className="h-5 w-5" /></button>
             <div className="lg:hidden"><Logo compacto /></div>
 
             {enPrincipal && (
-              // Todavía no hay buscador general en el producto: se muestra como en el diseño, marcado «Pronto».
+              // Todavía no hay buscador general en el producto: se muestra como en el diseño, marcado «Pronto». Debajo de 1024 px no cabe junto a la cuenta (se aplastaba y se cortaba), así que ahí no se muestra.
               <div
-                className="hidden h-[52px] min-w-0 max-w-[560px] flex-1 items-center gap-3 rounded-full border border-ink/6 bg-white/92 pl-5 pr-3 shadow-[0_10px_24px_-10px_rgb(14_17_22/0.07)] md:flex"
+                className="hidden h-[52px] min-w-0 max-w-[560px] flex-1 items-center gap-3 rounded-full border border-ink/6 bg-white/92 pl-5 pr-3 shadow-[0_10px_24px_-10px_rgb(14_17_22/0.07)] lg:flex"
                 title="Próximamente: buscar un cliente desde aquí"
               >
                 <IconoLupa className="shrink-0 text-muted" />

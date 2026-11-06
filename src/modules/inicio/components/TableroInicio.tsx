@@ -9,10 +9,18 @@ import { useResumenInicio } from '../hooks/useResumenInicio';
 import { CabinaDeMando } from './cabina/CabinaDeMando';
 import { LimiteError } from './LimiteError';
 import { ErrorTarjeta, Tarjeta } from './piezas';
+import { leerRiesgo, RiesgoPromedio } from './RiesgoPromedio';
 import { TarjetaDenuncias } from './TarjetaDenuncias';
 import { TarjetaListas } from './TarjetaListas';
 import { TarjetaOficial } from './TarjetaOficial';
 import { TarjetaOperaciones } from './TarjetaOperaciones';
+
+/**
+ * Banda oscura de instrumentos (luces, radar, líneas, mapa…). Guardado: el usuario pidió el Inicio como el modelo inicial.
+ * Los componentes siguen en `./cabina/`, sin montar. Para volver a encenderla basta con poner esta constante en `true`
+ * (solo se dibuja si el servidor manda `cabina`).
+ */
+const MOSTRAR_BANDA_DE_INSTRUMENTOS = false;
 
 /**
  * Turno de un bloque en la entrada de la página (`.inicio-entra` en globals.css, Figma 109:153): primero la bienvenida y
@@ -71,6 +79,8 @@ export function TableroInicio() {
   const hayDerecha = ve.oficial || ve.denuncias;
   const periodo = datos?.periodoEtiqueta ?? null;
   const propiedades = { estado, periodoEtiqueta: periodo, onReintentar: recargar };
+  // El medidor «Riesgo promedio» (si el servidor manda scoring) entra primero, y las tarjetas esperan un turno más.
+  const turnoBase = leerRiesgo(resumen) ? 1 : 0;
 
   return (
     <main className="px-4 pb-10 pt-4 sm:px-6 lg:pb-12 lg:pl-[clamp(1.5rem,2.03vw,2.4375rem)] lg:pr-[clamp(1.5rem,3.33vw,4rem)] lg:pt-[35px]">
@@ -95,9 +105,16 @@ export function TableroInicio() {
         </div>
       </section>
 
-      {/* Cabina de mando: banda oscura de instrumentos. Solo se dibuja si el resumen trae `cabina`; si algo falla al dibujarla, desaparece sin afectar a las tarjetas. */}
-      <LimiteError key={`cabina-${version}`} respaldo={null}>
-        <CabinaDeMando resumen={resumen} />
+      {/* Banda de instrumentos: guardada, no se monta (ver MOSTRAR_BANDA_DE_INSTRUMENTOS). */}
+      {MOSTRAR_BANDA_DE_INSTRUMENTOS && (
+        <LimiteError key={`cabina-${version}`} respaldo={null}>
+          <CabinaDeMando resumen={resumen} />
+        </LimiteError>
+      )}
+
+      {/* Medidor de aguja «Riesgo promedio»: lo único que se queda de los instrumentos. Solo se dibuja si el resumen trae `cabina.scoring`; si algo falla, desaparece sin afectar a las tarjetas. */}
+      <LimiteError key={`riesgo-${version}`} respaldo={null}>
+        <RiesgoPromedio resumen={resumen} paso={1} />
       </LimiteError>
 
       {!hayIzquierda && !hayDerecha ? (
@@ -107,14 +124,14 @@ export function TableroInicio() {
           {hayIzquierda && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.listas && (
-                <div className="inicio-entra" style={turno(1)}>
+                <div className="inicio-entra" style={turno(1 + turnoBase)}>
                   <Bloque key={`listas-${version}`} id="inicio-listas" icono={IconoLupa} titulo="Listas negativas" onReintentar={recargar}>
                     <TarjetaListas bloque={datos?.listas} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.operaciones && (
-                <div className="inicio-entra" style={turno(2)}>
+                <div className="inicio-entra" style={turno(2 + turnoBase)}>
                   <Bloque key={`operaciones-${version}`} id="inicio-operaciones" icono={IconoRecibo} titulo="Registro de operaciones" onReintentar={recargar}>
                     <TarjetaOperaciones bloque={datos?.operaciones} {...propiedades} />
                   </Bloque>
@@ -125,14 +142,14 @@ export function TableroInicio() {
           {hayDerecha && (
             <div className="flex min-w-0 flex-col gap-4 lg:gap-[17px]">
               {ve.oficial && (
-                <div className="inicio-entra" style={turno(3)}>
+                <div className="inicio-entra" style={turno(3 + turnoBase)}>
                   <Bloque key={`oficial-${version}`} id="inicio-oficial" icono={IconoOficial} titulo="Oficial de cumplimiento" onReintentar={recargar}>
                     <TarjetaOficial bloque={datos?.oficial} {...propiedades} />
                   </Bloque>
                 </div>
               )}
               {ve.denuncias && (
-                <div className="inicio-entra" style={turno(4)}>
+                <div className="inicio-entra" style={turno(4 + turnoBase)}>
                   <Bloque key={`denuncias-${version}`} id="inicio-denuncias" icono={IconoMensaje} titulo="Canal de denuncias" onReintentar={recargar}>
                     <TarjetaDenuncias bloque={datos?.denuncias} {...propiedades} />
                   </Bloque>

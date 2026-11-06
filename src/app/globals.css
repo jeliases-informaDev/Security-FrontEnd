@@ -57,6 +57,8 @@
   --ancho-menu-reposo: var(--ancho-menu);
   /* Alto de cada opción del menú: se encoge en pantallas bajas para que el menú completo entre sin desplazarse */
   --alto-opcion: clamp(2.5rem, 4.8vh, 3.25rem);
+  /* Ancho de cada opción del menú (el del diseño). El ancho de las etiquetas del menú plegable se calcula a partir de él */
+  --ancho-fila-menu: 236px;
 
   --background: var(--canvas);
   --foreground: var(--ink);
@@ -268,6 +270,17 @@
   }
   .barra-plegable .nav-item > svg { width: 20px; height: 20px; }
   .barra-plegable:is(:hover, :has(:focus-visible)) .nav-item { width: 100%; }
+
+  /*
+    Ningún nombre se corta: si no cabe en una línea (por ejemplo junto a la insignia «Pronto»), pasa a dos. El ancho de la etiqueta no
+    depende de la píldora que se ensancha, así que el texto no se reacomoda mientras el menú se despliega:
+    - opciones con enlace: el ancho de la fila menos el relleno izquierdo (10 px), el icono (20 px) y el espacio entre ambos (14 px);
+      el texto puede llegar hasta el borde derecho de la fila (como en el diseño), y solo pasa a dos líneas lo que no cabe;
+    - opciones marcadas «Pronto» (sin fondo propio): su fila mide siempre el ancho desplegado y el menú solo la recorta.
+  */
+  .barra-plegable .nav-item .solo-abierta.etiqueta-menu { white-space: normal; text-wrap: balance; }
+  .barra-plegable a.nav-item > .etiqueta-menu { flex: none; width: calc(var(--ancho-fila-menu) - 44px); }
+  .barra-plegable .nav-item[aria-disabled="true"] { width: 100%; }
 
   /* Indira: plegada es solo su botón; desplegada, la tarjeta completa */
   .barra-plegable .indira-tarjeta {

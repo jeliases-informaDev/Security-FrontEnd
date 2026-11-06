@@ -1,4 +1,4 @@
-import { decimal, esNumero } from '../../lib/formato';
+import { esNumero, puntajeTexto } from '../../lib/formato';
 import { limitar, lineaQuebrada, polar } from '../../lib/grafico';
 import { leerEscala, zonaDePuntaje, type EscalaValida, type EstadoLuz } from '../../lib/luces';
 import type { CabinaScoring, FactorRadar } from '../../services/inicioService';
@@ -42,9 +42,9 @@ const ESTADO_ZONA: Record<'bajo' | 'medio' | 'alto', EstadoLuz> = { bajo: 'verde
 /** El cambio contra el periodo anterior de un factor: si el riesgo sube es aviso (ámbar) y si baja, buena noticia (verde). */
 function cambio(valor: number | null, anterior: number | null): { texto: string; estado: EstadoLuz } | null {
   if (valor == null || anterior == null) return null;
-  const d = Math.round((valor - anterior) * 10) / 10;
+  const d = Math.round((valor - anterior) * 100) / 100;
   if (d === 0) return { texto: '= igual', estado: 'gris' };
-  return d > 0 ? { texto: `▲ +${decimal(d)}`, estado: 'ambar' } : { texto: `▼ −${decimal(-d)}`, estado: 'verde' };
+  return d > 0 ? { texto: `▲ +${puntajeTexto(d)}`, estado: 'ambar' } : { texto: `▼ −${puntajeTexto(-d)}`, estado: 'verde' };
 }
 
 export function RadarPerfil({ scoring, className = '' }: { scoring: CabinaScoring | null | undefined; className?: string }) {
@@ -80,10 +80,10 @@ export function RadarPerfil({ scoring, className = '' }: { scoring: CabinaScorin
   const poligonoAnterior = hayAnterior ? `${lineaQuebrada(puntosRadar(filas.map((f) => f.anterior), escala))}Z` : null;
   const vertices = puntosRadar(filas.map((f) => f.valor), escala);
   const aros = [escala.corteMedio, escala.corteAlto, escala.max];
-  const resumenAccesible = `Perfil de riesgo del periodo, de ${decimal(escala.min)} a ${decimal(escala.max)}: ${filas.map((f) => `${f.nombre} ${f.valor == null ? 'sin dato' : decimal(f.valor)}`).join('; ')}.${hayAnterior ? ' La línea punteada es el periodo anterior.' : ''}`;
+  const resumenAccesible = `Perfil de riesgo del periodo, de ${puntajeTexto(escala.min)} a ${puntajeTexto(escala.max)}: ${filas.map((f) => `${f.nombre} ${f.valor == null ? 'sin dato' : puntajeTexto(f.valor)}`).join('; ')}.${hayAnterior ? ' La línea punteada es el periodo anterior.' : ''}`;
 
   return (
-    <Instrumento {...marco} subtitulo={`Promedio de cada factor, de ${decimal(escala.min)} a ${decimal(escala.max)}`}>
+    <Instrumento {...marco} subtitulo={`Promedio de cada factor, de ${puntajeTexto(escala.min)} a ${puntajeTexto(escala.max)}`}>
       <svg viewBox={`0 0 ${LADO} ${LADO}`} className="mx-auto block h-auto w-full max-w-[17rem]" role="img" aria-label={resumenAccesible}>
         {/* Rejilla: un aro por corte de la escala y un radio por factor */}
         <g fill="none" stroke="var(--cabina-rejilla)" strokeWidth={1} aria-hidden="true">
@@ -98,7 +98,7 @@ export function RadarPerfil({ scoring, className = '' }: { scoring: CabinaScorin
         <g className="font-mono" fill="var(--cabina-tenue)" fontSize={9} aria-hidden="true">
           {aros.map((v) => (
             <text key={v} x={CENTRO + 4} y={CENTRO - (RADIO * (v - escala.min)) / (escala.max - escala.min) - 2.5}>
-              {decimal(v)}
+              {puntajeTexto(v)}
             </text>
           ))}
         </g>
@@ -157,7 +157,7 @@ export function RadarPerfil({ scoring, className = '' }: { scoring: CabinaScorin
                 <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <span className="flex items-center gap-1.5 text-[14px] font-medium leading-snug text-cabina-texto">
                     {zona && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${FONDO_ESTADO[ESTADO_ZONA[zona]]}`} aria-hidden="true" />}
-                    {f.valor == null ? '—' : decimal(f.valor)}
+                    {f.valor == null ? '—' : puntajeTexto(f.valor)}
                     {zona && <span className="sr-only">, riesgo {zona}</span>}
                   </span>
                   {dif && <span className={`font-mono text-[10px] leading-snug tracking-[0.02em] ${TEXTO_ESTADO[dif.estado]}`}>{dif.texto}</span>}

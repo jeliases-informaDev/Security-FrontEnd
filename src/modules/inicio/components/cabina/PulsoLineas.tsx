@@ -212,11 +212,15 @@ export function PulsoLineas({ tendencia, className = '' }: { tendencia: CabinaTe
   );
   if (!tendencia) return sinDatos('Tu cuenta no ve este módulo, o todavía no hay datos.');
 
-  const largoMayor = Math.max(0, ...SERIES.map((s) => tendencia[s.clave]?.length ?? 0));
+  // Una serie `null` es un módulo que la cuenta no ve: no se dibuja ni lleva chip (no se confunde con «0 todos los días»).
+  const presentes = SERIES.filter((s) => Array.isArray(tendencia[s.clave]));
+  if (presentes.length === 0) return sinDatos('Tu cuenta no ve los módulos de estas series, o todavía no hay datos.');
+
+  const largoMayor = Math.max(0, ...presentes.map((s) => tendencia[s.clave]?.length ?? 0));
   const dias = Math.min(MAX_DIAS, esNumero(tendencia.dias) && tendencia.dias >= 2 ? Math.round(tendencia.dias) : largoMayor);
   if (dias < 2) return sinDatos('Todavía no hay una serie de días para dibujar.');
 
-  const series: Serie[] = SERIES.map((s) => ({ ...s, valores: serieDe(tendencia[s.clave], dias) }));
+  const series: Serie[] = presentes.map((s) => ({ ...s, valores: serieDe(tendencia[s.clave], dias) }));
   const desde = tendencia.desde ?? null;
   const ini = diaYMes(fechaDelDia(desde, 0));
   const fin = diaYMes(fechaDelDia(desde, dias - 1));

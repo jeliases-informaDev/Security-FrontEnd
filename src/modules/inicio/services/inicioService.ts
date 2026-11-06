@@ -118,6 +118,8 @@ export interface EscalaScoring {
 
 /** Un factor del radar «Perfil de riesgo»: promedio del periodo y del periodo anterior (null si no hay). */
 export interface FactorRadar {
+  /** Código estable del factor en la metodología (por ejemplo «OCUPACION»); el nombre es `factor`. */
+  codigo?: string | null;
   factor?: string | null;
   valor?: number | null;
   anterior?: number | null;
@@ -160,7 +162,11 @@ export interface CabinaMapa {
   departamentos?: DepartamentoCifras[] | null;
 }
 
-export type TipoPlazoCabina = 'COMUNICACION_UIF' | 'DENUNCIA' | 'REGISTRO_MENSUAL' | 'DECLARACION';
+/**
+ * Tipos de plazo que manda hoy el servidor. `DECLARACION` es la revisión sugerida de la declaración jurada (no un plazo legal) y
+ * `REGISTRO_MENSUAL` vence el último día del mes en curso (fecha supuesta). El tipo puede traer valores nuevos: se tolera cualquier texto.
+ */
+export type TipoPlazoCabina = 'COMUNICACION_UIF' | 'VACANCIA_OFICIAL' | 'DENUNCIA' | 'REGISTRO_MENSUAL' | 'DECLARACION';
 
 /** Un vencimiento próximo. `dias` negativo = ya venció. `enlace` es la ruta del front donde se resuelve. */
 export interface PlazoCabina {

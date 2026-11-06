@@ -15,6 +15,7 @@ const NOMBRE_DEMO: Record<string, string> = {
   consultas: 'consultas de listas negativas',
   registros: 'registros de operaciones',
   denuncias: 'denuncias',
+  oficial: 'oficial de cumplimiento',
 };
 
 /** «312 consultas de listas negativas, 64 registros de operaciones y 24 denuncias»; vacío si no hay nada que contar. */
@@ -99,7 +100,7 @@ export function DatosDemostracion() {
       relleno
     >
       <p className="max-w-3xl text-sm leading-relaxed text-muted">
-        Al cargarlos, Inicio muestra consultas, registros de operaciones y denuncias de ejemplo, repartidos entre este mes y el anterior. Al quitarlos se borra solo lo que creó
+        Al cargarlos, Inicio muestra consultas, registros de operaciones y denuncias de ejemplo, repartidos entre este mes y el anterior, y un oficial de cumplimiento de ejemplo. Al quitarlos se borra solo lo que creó
         la demostración (está marcado): los datos reales nunca se tocan.
       </p>
 
@@ -131,7 +132,7 @@ export function DatosDemostracion() {
           }
         >
           <p className="text-sm text-ink">
-            Se borrarán las consultas, los registros de operaciones y las denuncias de ejemplo que creó la demostración. Los datos reales no se tocan, y Inicio quedará sin esos
+            Se borrarán las consultas, los registros de operaciones, las denuncias y el oficial de cumplimiento de ejemplo que creó la demostración. Los datos reales no se tocan, y Inicio quedará sin esos
             ejemplos.
           </p>
         </Modal>

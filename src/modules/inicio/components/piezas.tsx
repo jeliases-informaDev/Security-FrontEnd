@@ -23,7 +23,7 @@ export interface PropsBloque<T> {
 }
 
 /** Rótulo en mono de 10 px (rótulos de las cifras y subtítulos de cada bloque). */
-export const ROTULO = 'font-mono text-[10px] font-normal uppercase leading-[1.5] tracking-[0.08em] text-muted';
+export const ROTULO = 'font-mono text-[10px] font-normal uppercase leading-[1.5] tracking-[0.05em] text-muted';
 
 /** Color de la serie o del valor: la clase de texto que toma `currentColor`. El ámbar sale de mezclar los tokens `media` y `warn`. */
 export const COLOR_SERIE = {
@@ -114,9 +114,12 @@ export function Subtitulo({ children }: { children: ReactNode }) {
  * y quedan alineados.
  */
 export function Cifras({ children, columnas = 4 }: { children: ReactNode; columnas?: 3 | 4 }) {
-  return (
-    <div className={`-mb-2.5 grid grid-cols-2 gap-x-2.5 ${columnas === 3 ? '@[22rem]:grid-cols-3' : '@[41rem]:grid-cols-4'}`}>{children}</div>
-  );
+  // De a tres: si no caben, de a dos y la tercera ocupa todo el ancho de la segunda fila (no queda sola a medias).
+  const columnasClase =
+    columnas === 3
+      ? '@[19.5rem]:grid-cols-3 [&>:last-child:nth-child(odd)]:col-span-2 @[19.5rem]:[&>:last-child:nth-child(odd)]:col-span-1'
+      : '@[41rem]:grid-cols-4';
+  return <div className={`-mb-2.5 grid grid-cols-2 gap-x-2.5 ${columnasClase}`}>{children}</div>;
 }
 
 const TONO_VALOR = { tinta: 'text-ink', rojo: 'text-bad', ambar: 'text-warn', verde: 'text-ok' } as const;
@@ -137,7 +140,7 @@ interface CifraProps {
 
 export function Cifra({ rotulo, valor, unidad, detalle, tono = 'tinta', serie, conSerie = false, className = '' }: CifraProps) {
   return (
-    <div className={`${conSerie ? 'row-span-4' : 'row-span-3'} mb-2.5 grid min-w-0 grid-rows-subgrid rounded-2xl border border-line bg-white/70 px-3.5 py-3 ${className}`}>
+    <div className={`${conSerie ? 'row-span-4' : 'row-span-3'} mb-2.5 grid min-w-0 grid-rows-subgrid rounded-2xl border border-line bg-white/70 px-3 py-3 ${className}`}>
       <p className={`${ROTULO} break-words`}>{rotulo}</p>
       <p className={`mt-1.5 flex flex-wrap items-baseline gap-x-1 ${TONO_VALOR[tono]}`}>
         <span className="text-[1.75rem] font-medium leading-none tracking-[-0.02em] tabular-nums">{valor}</span>
@@ -245,16 +248,17 @@ export interface FilaBarra {
 }
 
 /**
- * Barras horizontales: nombre a la izquierda (si es largo pasa a otra línea), barra marino proporcional a la mayor y el valor
- * a la derecha. Las columnas son las mismas en todas las filas, así las barras quedan alineadas.
+ * Barras horizontales: nombre a la izquierda, barra marino proporcional a la mayor y el valor a la derecha. La columna de los
+ * nombres mide lo que el más largo (hasta el 45 % del ancho): si no cabe, pasa a otra línea. Todas las filas comparten las
+ * mismas columnas (subcuadrícula), así las barras quedan alineadas.
  */
 export function BarrasHorizontales({ filas, etiqueta }: { filas: FilaBarra[]; etiqueta: string }) {
   const mayor = Math.max(1, ...filas.map((f) => f.valor));
   return (
-    <ul className="flex flex-col gap-2.5" aria-label={etiqueta}>
+    <ul className="grid grid-cols-[fit-content(45%)_minmax(0,1fr)_2.25rem] items-center gap-x-3 gap-y-2.5 text-[12px] leading-snug text-ink" aria-label={etiqueta}>
       {filas.map((fila) => (
-        <li key={fila.clave} className="grid grid-cols-[minmax(5.5rem,32%)_minmax(0,1fr)_2.25rem] items-center gap-x-3 text-[12px] leading-snug text-ink">
-          <span className="min-w-0 break-words">{fila.etiqueta}</span>
+        <li key={fila.clave} className="col-span-full grid grid-cols-subgrid items-center">
+          <span className="min-w-[4.5rem] break-words">{fila.etiqueta}</span>
           <span className="block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
             <span className="block h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (fila.valor / mayor) * 100))}%` }} />
           </span>
@@ -273,7 +277,7 @@ export function BarrasHorizontales({ filas, etiqueta }: { filas: FilaBarra[]; et
 export function EsqueletoTarjeta({ cifras = 4, bloques = 2 }: { cifras?: 3 | 4; bloques?: 1 | 2 }) {
   return (
     <div role="status" aria-live="polite" aria-label="Cargando…" aria-busy="true" className="flex flex-col gap-4">
-      <div className={`grid grid-cols-2 gap-2.5 ${cifras === 3 ? '@[22rem]:grid-cols-3' : '@[41rem]:grid-cols-4'}`}>
+      <div className={`grid grid-cols-2 gap-2.5 ${cifras === 3 ? '@[19.5rem]:grid-cols-3' : '@[41rem]:grid-cols-4'}`}>
         {Array.from({ length: cifras }, (_, i) => (
           <div key={i} className="skeleton min-h-[6.5rem] rounded-2xl" />
         ))}

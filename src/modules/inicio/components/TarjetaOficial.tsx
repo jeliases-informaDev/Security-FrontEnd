@@ -27,6 +27,7 @@ function nombreAlterno(alterno: ResumenOficial['alterno']): string | null {
 /** El chip de la esquina: cómo está el cargo. Con un estado que no se conoce no se dibuja nada. */
 function chipDe(b: ResumenOficial): { tono: 'ok' | 'warn' | 'bad' | 'info'; texto: string } | null {
   if (b.estado === 'EN_EVALUACION') return { tono: 'info', texto: 'En evaluación' };
+  if (b.estado === 'PENDIENTE_COMUNICAR') return { tono: 'warn', texto: 'Por comunicar' };
   if (b.estado === 'VACANTE') return { tono: 'bad', texto: 'Cargo vacante' };
   if (b.estado === 'VIGENTE') {
     if (b.alDia === true) return { tono: 'ok', texto: 'Al día' };
@@ -42,7 +43,7 @@ function DatosOficial({ b }: { b: ResumenOficial }) {
   const alterno = nombreAlterno(b.alterno);
 
   return (
-    <dl className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-baseline gap-x-3 gap-y-2.5">
+    <dl className="grid grid-cols-[fit-content(50%)_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2.5">
       <Dato rotulo="Comunicado a la UIF">
         {comunicado?.fecha ? (
           <>
@@ -50,6 +51,8 @@ function DatosOficial({ b }: { b: ResumenOficial }) {
             {comunicado.enPlazo === true && ' · en plazo'}
             {comunicado.enPlazo === false && <span className="text-bad"> · fuera de plazo</span>}
           </>
+        ) : b.estado === 'PENDIENTE_COMUNICAR' ? (
+          <span className="text-warn">Pendiente de comunicar</span>
         ) : (
           SIN_DATO
         )}

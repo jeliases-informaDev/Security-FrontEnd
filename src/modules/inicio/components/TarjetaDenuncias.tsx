@@ -30,12 +30,22 @@ function tonoPlazos(pct: number | null | undefined): TonoValor {
   return pct >= 80 ? 'verde' : pct >= 50 ? 'ambar' : 'rojo';
 }
 
+/** «— · Sin dato»: el servidor todavía no guarda este dato (hoy el cierre y la derivación). El guion lleva el color del valor y la leyenda va en gris. */
+function SinDato() {
+  return (
+    <>
+      <span aria-hidden="true">{SIN_DATO}</span>
+      <span className="font-normal text-muted"> · Sin dato</span>
+    </>
+  );
+}
+
 /** Fila «RÓTULO … valor» del pie de la tarjeta: el rótulo ocupa lo que necesita y pasa a otra línea antes de cortarse. */
 function FilaPie({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 border-t border-line py-2.5 first:border-t-0">
       <dt className={`${ROTULO} break-words`}>{rotulo}</dt>
-      <dd className="max-w-[60%] text-right text-[13px] font-semibold leading-snug tabular-nums text-ink">{children}</dd>
+      <dd className="text-right text-[13px] font-semibold leading-snug tabular-nums text-ink">{children}</dd>
     </div>
   );
 }
@@ -79,17 +89,20 @@ function ContenidoDenuncias({ b }: { b: ResumenDenuncias }) {
         <Subtitulo>Resultado de los cierres</Subtitulo>
         {segmentosCierres && hayCierres ? (
           <BarraApilada etiqueta="Resultado de los cierres" segmentos={segmentosCierres} />
-        ) : (
+        ) : segmentosCierres ? (
           <p className="text-[13px] text-muted">Todavía no hay denuncias cerradas en este periodo.</p>
+        ) : (
+          // Sin el reparto (el servidor aún no lo guarda).
+          <p className="text-[13px] text-ink"><SinDato /></p>
         )}
       </div>
 
       <dl className="border-t border-line">
         <FilaPie rotulo="Tiempo promedio hasta el cierre">
-          {esNumero(b.tiempoPromedioCierreDias) ? plural(Math.round(b.tiempoPromedioCierreDias), 'día', 'días') : SIN_DATO}
+          {esNumero(b.tiempoPromedioCierreDias) ? plural(Math.round(b.tiempoPromedioCierreDias), 'día', 'días') : <SinDato />}
         </FilaPie>
         <FilaPie rotulo="Derivadas al oficial de cumplimiento">
-          {esNumero(b.derivadasAlOficial) ? `${entero(b.derivadasAlOficial)} · en reserva` : SIN_DATO}
+          {esNumero(b.derivadasAlOficial) ? `${entero(b.derivadasAlOficial)} · en reserva` : <SinDato />}
         </FilaPie>
       </dl>
     </>

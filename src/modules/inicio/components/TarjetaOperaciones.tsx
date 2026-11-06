@@ -25,25 +25,30 @@ const ESTADO_REGISTRO: Record<string, { texto: string; tono: 'warn' | 'bad' | 'o
 };
 
 /**
- * Una fila de «Últimos registros». Ancha: código, persona, tipo, monto y estado en una sola línea. Angosta: arriba el código y
- * el estado; en medio la persona; abajo el tipo y el monto. Todo pasa a otra línea antes de cortarse.
+ * Una fila de «Últimos registros»; toda la fila lleva al detalle (el enlace es el código, estirado sobre la fila). Ancha:
+ * código, persona, tipo, monto y estado en una sola línea. Angosta: arriba el código y el estado; en medio la persona; abajo
+ * el tipo y el monto. La fila comparte las columnas de la lista (subcuadrícula), así las filas quedan alineadas entre sí, y
+ * todo pasa a otra línea antes de cortarse.
  */
 function FilaRegistro({ registro }: { registro: UltimoRegistro }) {
   const estado = ESTADO_REGISTRO[registro.estado] ?? { texto: legible(String(registro.estado ?? '')), tono: 'neutral' as const };
   return (
-    <li>
+    <li className="relative col-span-full grid grid-cols-subgrid items-center gap-y-1 border-t border-line px-1 py-2.5 transition-colors first:border-t-0 hover:bg-brand-soft/40">
       <Link
         href={`/operaciones/${registro.id}`}
-        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-xl px-1 py-2.5 transition-colors hover:bg-brand-soft/40 @[40rem]:grid-cols-[minmax(7.75rem,auto)_minmax(0,1.25fr)_minmax(0,1fr)_auto_auto]"
+        className="order-1 min-w-0 break-words font-mono text-[11px] leading-snug tracking-[0.02em] text-ink after:absolute after:inset-0 after:content-['']"
       >
-        <span className="order-1 min-w-0 break-words font-mono text-[11px] leading-snug tracking-[0.02em] text-ink">{registro.codigo}</span>
-        <span className="order-3 col-span-2 min-w-0 break-words text-[13px] font-medium leading-snug text-ink @[40rem]:order-2 @[40rem]:col-span-1">{registro.persona || SIN_DATO}</span>
-        <span className="order-4 min-w-0 break-words text-[13px] leading-snug text-muted @[40rem]:order-3">{registro.tipo || SIN_DATO}</span>
-        <span className="order-5 min-w-0 justify-self-end text-right text-[13px] font-semibold leading-snug tabular-nums text-ink @[40rem]:order-4">{montoConSimbolo(registro.monto, registro.moneda)}</span>
-        <span className="order-2 justify-self-end @[40rem]:order-5">
-          <Etiqueta tono={estado.tono} punto>{estado.texto}</Etiqueta>
-        </span>
+        {registro.codigo || `Registro ${registro.id}`}
       </Link>
+      <span className="order-3 col-span-2 min-w-0 break-words text-[13px] font-medium leading-snug text-ink @[40rem]:order-2 @[40rem]:col-span-1">{registro.persona || SIN_DATO}</span>
+      {/* Angosta: tipo y monto comparten línea mientras el tipo tenga lugar; si no, el monto baja a su propia línea (así el tipo no se parte en sílabas). Ancha: cada uno es una celda de la lista. */}
+      <div className="order-4 col-span-2 flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 @[40rem]:contents">
+        <span className="min-w-0 flex-[1_1_9rem] break-words text-[13px] leading-snug text-muted @[40rem]:order-3">{registro.tipo || SIN_DATO}</span>
+        <span className="ml-auto min-w-0 text-right text-[13px] font-semibold leading-snug tabular-nums text-ink @[40rem]:order-4 @[40rem]:justify-self-end">{montoConSimbolo(registro.monto, registro.moneda)}</span>
+      </div>
+      <span className="order-2 justify-self-end @[40rem]:order-5">
+        <Etiqueta tono={estado.tono} punto>{estado.texto}</Etiqueta>
+      </span>
     </li>
   );
 }
@@ -77,7 +82,10 @@ function ContenidoOperaciones({ b }: { b: ResumenOperaciones }) {
       {ultimos.length > 0 && (
         <div>
           <Subtitulo>Últimos registros</Subtitulo>
-          <ul className="divide-y divide-line border-y border-line" aria-label="Últimos registros de operaciones">
+          <ul
+            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-y border-line @[40rem]:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto]"
+            aria-label="Últimos registros de operaciones"
+          >
             {ultimos.map((registro) => (
               <FilaRegistro key={registro.id} registro={registro} />
             ))}

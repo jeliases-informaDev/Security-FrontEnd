@@ -48,7 +48,8 @@ export type EstadoRegistroInicio = 'SIN_RESPONSABLE' | 'INUSUAL' | 'ENVIADO' | '
 
 export interface UltimoRegistro {
   id: number;
-  codigo: string;
+  /** El servidor puede mandarlo null si el registro aún no tiene código. */
+  codigo: string | null;
   persona: string | null;
   tipo: string | null;
   monto: number | null;
@@ -67,7 +68,8 @@ export interface ResumenOperaciones {
   ultimos: UltimoRegistro[] | null;
 }
 
-export type EstadoOficialInicio = 'SIN_OFICIAL' | 'EN_EVALUACION' | 'VIGENTE' | 'VACANTE';
+/** `PENDIENTE_COMUNICAR`: designado, pero falta comunicarlo a la UIF (nunca se muestra como «al día»). */
+export type EstadoOficialInicio = 'SIN_OFICIAL' | 'EN_EVALUACION' | 'PENDIENTE_COMUNICAR' | 'VIGENTE' | 'VACANTE';
 
 export interface ResumenOficial {
   estado: EstadoOficialInicio | string;

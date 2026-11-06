@@ -81,7 +81,7 @@ export function TableroInicio() {
             {fecha}
           </p>
           <h1 className="titulo-serif mt-2 break-words text-[clamp(2.25rem,3.3vw,4rem)]">Bienvenido, {nombre}</h1>
-          <p className="mt-3 max-w-[42rem] text-[clamp(0.9375rem,0.94vw,1.0625rem)] leading-relaxed text-muted">{frase(ve)}</p>
+          <p className="mt-3 max-w-[36rem] text-[clamp(0.9375rem,0.94vw,1.0625rem)] leading-relaxed text-muted">{frase(ve)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 lg:mb-1.5">
           {/* «Nueva evaluación» lleva a Scoring de riesgo, donde se evalúa a un cliente. */}

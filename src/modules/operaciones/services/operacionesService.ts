@@ -308,7 +308,8 @@ export interface ArchivoPdf {
   huella: string | null;
 }
 
-export const TAMANO_PAGINA = 10;
+/** Filas por página de la lista: el diseño (RO 1) dice «Mostrando 1–8 de 10 registros», o sea 8 por página. */
+export const TAMANO_PAGINA = 8;
 
 // ============================================================
 // SERVICIO

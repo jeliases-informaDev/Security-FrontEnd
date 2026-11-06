@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, Check, Clock, Eye, FileText, Info, Lock, Plus, Receipt, Search, SlidersHorizontal, Upload, UserRound } from 'lucide-react';
+import { AlertCircle, Search } from 'lucide-react';
 import { mensajeDe } from '@/modules/licencias/lib/errores';
+import { IconoAjustes, IconoCandado, IconoDocumento, IconoFiltro, IconoHistorial, IconoInfo, IconoLupa, IconoMas, IconoOjo, IconoRecibo, IconoReloj, IconoSubir, IconoUsuario, IconoVisto } from '@/shared/ui/iconos';
 import { PageHeader, PageShell } from '@/shared/ui/PageShell';
 import { Aviso, EstadoVacio } from '@/shared/ui/kit';
 import { useAvisoPendiente } from '../lib/aviso';
@@ -21,18 +22,19 @@ import {
 import { CambiarResponsableModal } from './CambiarResponsableModal';
 import { cuantosFiltros, FiltrosCajon, SIN_FILTROS, type FiltrosLista } from './FiltrosCajon';
 import { usePdfOperacion } from './PdfOperacion';
-import { BotonPronto, BTN, CeldaResponsable, InsigniaEstado, PiePaginas, Pronto, Segmentado, Tarjeta } from './piezas';
+import { AccionFila, BotonPronto, BTN, BTN_P, CeldaResponsable, InsigniaEstado, PiePaginas, Pronto, Segmentado, Tarjeta } from './piezas';
 
+// Anchos de las columnas del diseño (RO 1).
 const COLUMNAS = [
-  { titulo: 'N.º de registro', ancho: 'w-[150px]' },
+  { titulo: 'N.º de registro', ancho: 'w-[170px]' },
   { titulo: 'Persona que realiza', ancho: 'w-[190px]' },
   { titulo: 'Representada', ancho: 'w-[170px]' },
-  { titulo: 'Operación', ancho: 'w-[150px]' },
+  { titulo: 'Operación', ancho: 'w-[160px]' },
   { titulo: 'Monto', ancho: 'w-[130px]' },
-  { titulo: 'Fecha', ancho: 'w-[100px]' },
-  { titulo: 'Estado', ancho: 'w-[110px]' },
-  { titulo: 'Responsable', ancho: 'w-[150px]' },
-  { titulo: 'Acciones', ancho: 'w-[130px]' },
+  { titulo: 'Fecha', ancho: 'w-[90px]' },
+  { titulo: 'Estado', ancho: 'w-[150px]' },
+  { titulo: 'Responsable', ancho: 'w-[120px]' },
+  { titulo: 'Acciones', ancho: 'w-[132px]' },
 ];
 
 type Pestana = FiltrosLista['estado'] | 'ENVIADO' | 'INUSUAL';
@@ -46,9 +48,9 @@ const PESTANAS: { valor: Pestana; etiqueta: string; pronto?: boolean }[] = [
 function Indicador({ rotulo, valor, detalle, pronto = false }: { rotulo: string; valor: string; detalle: string; pronto?: boolean }) {
   return (
     <div className="card flex flex-col gap-1.5 rounded-[22px] px-5 py-[18px]">
-      <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.04em] text-muted">{rotulo}{pronto && <Pronto />}</p>
-      <p className={`text-[40px] font-bold leading-[1.15] tracking-[-0.02em] tabular-nums ${pronto ? 'text-faint' : 'text-ink'}`}>{valor}</p>
-      <p className="text-sm text-muted">{detalle}</p>
+      <p className="flex items-center gap-2 font-mono text-xs uppercase leading-[normal] tracking-[0.04em] text-muted">{rotulo}{pronto && <Pronto />}</p>
+      <p className={`text-[40px] font-bold leading-[normal] tracking-[-0.02em] tabular-nums ${pronto ? 'text-faint' : 'text-ink'}`}>{valor}</p>
+      <p className="text-sm leading-[normal] text-muted">{detalle}</p>
     </div>
   );
 }
@@ -56,61 +58,58 @@ function Indicador({ rotulo, valor, detalle, pronto = false }: { rotulo: string;
 const REGLAS = ['Se registra el mismo día', 'Un RO por cada actividad', 'No se excluye a ningún cliente', 'Copia de seguridad del RO', 'Conservación: 5 años'];
 const QUE_SE_GUARDA = ['Persona que realiza', 'Persona representada', 'Beneficiarios', 'Monto y moneda', 'Medio de pago', 'Origen de fondos', 'Historial de cambios'];
 
-/** RO 0 · Todavía no hay registros. */
+/** RO 0 · Todavía no hay registros. La columna de la derecha mide 460 px en el diseño (1920 px) y se encoge hasta 340 px en pantallas chicas. */
 function SinRegistros() {
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_clamp(21.25rem,24vw,28.75rem)]">
       <div className="flex min-w-0 flex-col gap-5">
-        <section className="card flex flex-col items-center gap-5 px-6 py-10 text-center sm:px-10">
-          <span className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-brand-soft text-ink" aria-hidden="true"><Receipt className="h-7 w-7" /></span>
-          <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.01em] text-ink">Aún no hay operaciones registradas</h2>
-            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
-              Cuando registres la primera operación aparecerá aquí, con su responsable, su PDF y su historial de cambios. Recuerda registrarla el mismo día en que ocurra.
-            </p>
+        <section className="card flex flex-col items-center gap-[14px] px-6 py-10 text-center sm:px-12">
+          <span className="flex h-[72px] w-[72px] items-center justify-center rounded-[20px] bg-brand-soft text-brand" aria-hidden="true"><IconoRecibo className="h-8 w-8" /></span>
+          <h2 className="max-w-[560px] text-[26px] font-bold leading-[normal] tracking-normal text-ink">Aún no hay operaciones registradas</h2>
+          <p className="max-w-[560px] text-base leading-6 text-muted">
+            Cuando registres la primera operación aparecerá aquí, con su responsable, su PDF y su historial de cambios. Recuerda registrarla el mismo día en que ocurre.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN_P}`}><IconoMas className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
+            <BotonPronto icono={IconoInfo} className={BTN}>Cómo se define el umbral</BotonPronto>
           </div>
-          <div className="flex flex-wrap justify-center gap-2.5">
-            <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN}`}><Plus className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
-            <BotonPronto icono={Info} className={BTN}>Cómo se define el umbral</BotonPronto>
-          </div>
-          <div className="w-full border-t border-line pt-5">
-            <p className="rotulo mb-3 !normal-case tracking-[0.04em]">Qué se guarda en cada registro</p>
-            <ul className="flex flex-wrap justify-center gap-2">
-              {QUE_SE_GUARDA.map((t) => <li key={t} className="badge badge-neutral">{t}</li>)}
-            </ul>
-          </div>
+          <div className="h-px w-full bg-line" aria-hidden="true" />
+          <p className="font-mono text-xs leading-[normal] text-muted">Qué se guarda en cada registro</p>
+          <ul className="flex w-full flex-wrap justify-center gap-2">
+            {QUE_SE_GUARDA.map((t) => <li key={t} className="badge badge-neutral !leading-[normal]">{t}</li>)}
+          </ul>
         </section>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {[
-            { icono: Clock, titulo: 'El mismo día', texto: 'Cada operación se registra el día en que ocurre, de forma cronológica.' },
-            { icono: Lock, titulo: 'Confidencial', texto: 'Solo ven el registro los usuarios autorizados; todo acceso queda anotado.' },
-            { icono: Clock, titulo: '5 años', texto: 'Se conserva desde la fecha de la operación, con copia de seguridad.' },
+            { icono: IconoReloj, titulo: 'El mismo día', texto: 'Cada operación se registra el día en que ocurre, de forma cronológica.' },
+            { icono: IconoCandado, titulo: 'Confidencial', texto: 'Solo ven el registro los usuarios autorizados; todo acceso queda anotado.' },
+            { icono: IconoHistorial, titulo: '5 años', texto: 'Se conserva desde la fecha de la operación, con copia de seguridad.' },
           ].map(({ icono: Icono, titulo, texto }) => (
-            <section key={titulo} className="card flex flex-col gap-3 p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-ink" aria-hidden="true"><Icono className="h-[18px] w-[18px]" /></span>
-              <h3 className="text-[15px] font-semibold text-ink">{titulo}</h3>
-              <p className="text-sm leading-relaxed text-muted">{texto}</p>
+            <section key={titulo} className="card flex flex-col gap-[10px] p-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand" aria-hidden="true"><Icono className="h-5 w-5" /></span>
+              <h3 className="text-base font-semibold leading-[normal] tracking-normal text-ink">{titulo}</h3>
+              <p className="text-sm leading-[normal] text-muted">{texto}</p>
             </section>
           ))}
         </div>
       </div>
 
-      <div className="flex flex-col gap-5">
-        <Tarjeta titulo="Umbral de tu sector" derecha={<Pronto />}>
-          <p className="text-sm leading-relaxed text-muted">Define tu sector para saber qué operaciones deben ir al registro y desde qué monto. Hasta entonces no se puede calcular el umbral.</p>
-          <div><BotonPronto icono={SlidersHorizontal}>Configurar sector</BotonPronto></div>
+      <div className="flex flex-col gap-4">
+        <Tarjeta espacio="gap-[14px]" titulo="Umbral de tu sector" derecha={<Pronto />}>
+          <p className="text-[15px] leading-[22px] text-muted">Define tu sector para saber qué operaciones deben ir al registro y desde qué monto. Hasta entonces no se puede calcular el umbral.</p>
+          <div><BotonPronto icono={IconoAjustes} className={BTN}>Configurar sector</BotonPronto></div>
         </Tarjeta>
-        <Tarjeta titulo="Reglas del registro">
+        <Tarjeta espacio="gap-3" titulo="Reglas del registro">
           <ul className="flex flex-col gap-3">
             {REGLAS.map((r) => (
-              <li key={r} className="flex items-center gap-3 text-sm text-ink">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent" aria-hidden="true"><Check className="h-3 w-3" strokeWidth={3} /></span>
+              <li key={r} className="flex items-center gap-2.5 text-[15px] font-medium leading-[normal] text-ink">
+                <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand" aria-hidden="true"><IconoVisto className="h-3 w-3" /></span>
                 {r}
               </li>
             ))}
           </ul>
-          <p className="rotulo !normal-case">Res. SBS 789-2018 · art. 22 y 31</p>
+          <p className="font-mono text-[11px] leading-[normal] tracking-[0.04em] text-muted">Res. SBS 789-2018 · art. 22 y 31</p>
         </Tarjeta>
       </div>
     </div>
@@ -214,13 +213,13 @@ export function OperacionesLista() {
         antetitulo="Cumplimiento · UIF-Perú"
         titulo="Registro de operaciones"
         descripcion={sinRegistros ? 'Bitácora confidencial de las operaciones de tu empresa. Se registra el mismo día, con respaldo y conservación por 5 años.' : 'Bitácora de las operaciones de tu empresa, con su responsable, su PDF y su estado de envío a la UIF.'}
-        icono={Receipt}
+        icono={IconoRecibo}
         sinLinea
         acciones={
-          <>
-            {sinRegistros ? <BotonPronto icono={SlidersHorizontal} className={BTN}>Configurar umbral</BotonPronto> : <BotonPronto icono={Upload} className={BTN}>Exportar a la UIF</BotonPronto>}
-            <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN}`}><Plus className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
-          </>
+          <div className="flex items-start gap-2.5">
+            {sinRegistros ? <BotonPronto icono={IconoAjustes} className={BTN}>Configurar umbral</BotonPronto> : <BotonPronto icono={IconoSubir} className={BTN}>Exportar a la UIF</BotonPronto>}
+            <Link href="/operaciones/nueva" className={`btn btn-primary ${BTN_P}`}><IconoMas className="h-4 w-4" aria-hidden="true" /> Nueva operación</Link>
+          </div>
         }
       />
 
@@ -246,13 +245,13 @@ export function OperacionesLista() {
           <section ref={seccionRef} className="card scroll-mt-4 overflow-hidden" aria-label="Registros">
             <div className="flex flex-wrap items-center gap-3.5 px-5 py-4">
               <div className="relative w-full lg:w-[420px]">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />
+                <IconoLupa className="pointer-events-none absolute left-[15px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden="true" />
                 <label htmlFor="ro-buscar" className="sr-only">Buscar por N.º, persona o documento</label>
-                <input id="ro-buscar" type="search" className="input h-[46px] rounded-[10px] border-line bg-paper pl-[42px]" placeholder="Buscar por N.º, persona o documento" autoComplete="off" value={texto} onChange={(e) => setTexto(e.target.value)} />
+                <input id="ro-buscar" type="search" className="input h-[46px] rounded-[10px] border-line bg-paper pl-[42px] text-[15px]" placeholder="Buscar por N.º, persona o documento" autoComplete="off" value={texto} onChange={(e) => setTexto(e.target.value)} />
               </div>
               <Segmentado ariaLabel="Filtrar por estado" valor={filtros.estado} opciones={PESTANAS} onCambiar={(v) => cambiarEstado(v as FiltrosLista['estado'])} />
-              <button type="button" onClick={abrirPanel} className="btn btn-secondary h-[46px] sm:ml-auto">
-                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> Filtros
+              <button type="button" onClick={abrirPanel} className={`btn btn-secondary ${BTN} sm:ml-auto`}>
+                <IconoFiltro className="h-4 w-4" aria-hidden="true" /> Filtros
                 {filtrosPuestos > 0 && <span className="badge badge-brand !px-2">{filtrosPuestos}</span>}
               </button>
             </div>
@@ -264,26 +263,26 @@ export function OperacionesLista() {
                 <thead>
                   <tr className="bg-paper">
                     {COLUMNAS.map((c, i) => (
-                      <th key={c.titulo} scope="col" className={`${c.ancho} py-2.5 pr-3 text-left font-mono text-[11px] font-normal uppercase tracking-[0.04em] text-muted ${i === 0 ? 'pl-6' : ''}`}>{c.titulo}</th>
+                      <th key={c.titulo} scope="col" className={`${c.ancho} py-2.5 pr-2 text-left font-mono text-[11px] font-normal uppercase leading-[normal] tracking-[0.04em] text-muted ${i === 0 ? 'pl-6' : ''}`}>{c.titulo}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className={cargando && datos ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
                   {datos?.content.map((o) => (
-                    <tr key={o.id} className="border-t border-line">
-                      <td className="py-3 pl-6 pr-3 font-mono text-xs text-ink">{o.numeroRegistro ?? '—'}</td>
-                      <td className="py-3 pr-3 text-sm font-medium text-ink">{o.personaFisica ?? '—'}</td>
-                      <td className="py-3 pr-3 text-sm text-muted">{o.personaNombre || '—'}</td>
-                      <td className="py-3 pr-3 text-sm text-ink">{o.tipoOperacionNombre ?? o.tipoOperacion ?? '—'}</td>
-                      <td className="py-3 pr-3 text-sm font-semibold tabular-nums text-ink">{montoConMoneda(o)}</td>
-                      <td className="py-3 pr-3 font-mono text-xs text-muted">{fechaCorta(o.fechaOperacion ?? o.fecha) ?? '—'}</td>
-                      <td className="py-3 pr-3"><InsigniaEstado estado={o.estado} /></td>
-                      <td className="py-3 pr-3"><CeldaResponsable responsable={o.responsable} /></td>
-                      <td className="py-3 pr-3">
+                    <tr key={o.id} className="border-t border-line first:border-t-0">
+                      <td className="py-3 pl-6 pr-2 font-mono text-xs leading-[normal] text-ink">{o.numeroRegistro ?? '—'}</td>
+                      <td className="py-3 pr-2 text-sm font-medium leading-[normal] text-ink">{o.personaFisica ?? '—'}</td>
+                      <td className={`py-3 pr-2 text-sm leading-[normal] ${o.personaNombre ? 'text-muted' : 'text-faint'}`}>{o.personaNombre || '—'}</td>
+                      <td className="py-3 pr-2 text-sm leading-[normal] text-ink">{o.tipoOperacionNombre ?? o.tipoOperacion ?? '—'}</td>
+                      <td className="py-3 pr-2 text-sm font-semibold leading-[normal] tabular-nums text-ink">{montoConMoneda(o)}</td>
+                      <td className="py-3 pr-2 font-mono text-xs leading-[normal] text-muted">{fechaCorta(o.fechaOperacion ?? o.fecha) ?? '—'}</td>
+                      <td className="py-3 pr-2"><InsigniaEstado estado={o.estado} /></td>
+                      <td className="py-3 pr-2"><CeldaResponsable responsable={o.responsable} /></td>
+                      <td className="py-3 pr-2">
                         <div className="flex items-center gap-1.5">
-                          <Link href={`/operaciones/${o.id}`} aria-label={`Ver el detalle de ${o.numeroRegistro ?? 'este registro'}`} title="Ver detalle" className="btn btn-secondary btn-icon btn-sm"><Eye className="h-4 w-4" aria-hidden="true" /></Link>
-                          <button type="button" onClick={() => abrirPdf(o.id, o.numeroRegistro ?? `operacion-${o.id}`)} aria-label={`Ver el PDF de ${o.numeroRegistro ?? 'este registro'}`} title="PDF" className="btn btn-secondary btn-icon btn-sm"><FileText className="h-4 w-4" aria-hidden="true" /></button>
-                          <button type="button" onClick={() => setCambiando(o)} aria-label={`Cambiar el responsable de ${o.numeroRegistro ?? 'este registro'}`} title="Cambiar responsable" className="btn btn-secondary btn-icon btn-sm"><UserRound className="h-4 w-4" aria-hidden="true" /></button>
+                          <AccionFila href={`/operaciones/${o.id}`} etiqueta={`Ver el detalle de ${o.numeroRegistro ?? 'este registro'}`}><IconoOjo className="h-[18px] w-[18px]" /></AccionFila>
+                          <AccionFila onClick={() => abrirPdf(o.id, o.numeroRegistro ?? `operacion-${o.id}`)} etiqueta={`Ver el PDF de ${o.numeroRegistro ?? 'este registro'}`}><IconoDocumento className="h-[18px] w-[18px]" /></AccionFila>
+                          <AccionFila onClick={() => setCambiando(o)} etiqueta={`Cambiar el responsable de ${o.numeroRegistro ?? 'este registro'}`}><IconoUsuario className="h-[18px] w-[18px]" /></AccionFila>
                         </div>
                       </td>
                     </tr>

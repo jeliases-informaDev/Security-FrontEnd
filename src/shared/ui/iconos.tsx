@@ -208,3 +208,157 @@ export function IconoAlerta(props: Props) {
     </Base>
   );
 }
+
+/** Más: nueva operación. */
+export function IconoMas(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M8 3.2V12.8" />
+      <path d="M3.2 8H12.8" />
+    </Base>
+  );
+}
+
+/** Círculo con i: información. */
+export function IconoInfo(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M12.8 8C12.8 10.651 10.651 12.8 8 12.8C5.34903 12.8 3.2 10.651 3.2 8C3.2 5.34903 5.34903 3.2 8 3.2C10.651 3.2 12.8 5.34903 12.8 8Z" />
+      <path d="M8 7.2V10.8" />
+      <path d="M8 5.44V5.52" />
+    </Base>
+  );
+}
+
+/** Reloj: «el mismo día». */
+export function IconoReloj(props: Props) {
+  return (
+    <Base lado={20} grosor={1.66667} {...props}>
+      <path d="M18.3333 10C18.3333 14.6024 14.6024 18.3333 10 18.3333C5.39763 18.3333 1.66667 14.6024 1.66667 10C1.66667 5.39763 5.39763 1.66667 10 1.66667C14.6024 1.66667 18.3333 5.39763 18.3333 10Z" />
+      <path d="M10 5V10L13.3333 11.6667" />
+    </Base>
+  );
+}
+
+/** Candado: confidencialidad. */
+export function IconoCandado(props: Props) {
+  return (
+    <Base lado={20} grosor={1.6} {...props}>
+      <path d="M5 9H15V16.5H5V9Z" />
+      <path d="M7 9V7C7 3.5 13 3.5 13 7V9" />
+    </Base>
+  );
+}
+
+/** Reloj fino en círculo: historial y conservación. */
+export function IconoHistorial(props: Props) {
+  return (
+    <Base lado={20} grosor={1.6} {...props}>
+      <path d="M15.7 10C15.7 13.148 13.148 15.7 10 15.7C6.85198 15.7 4.3 13.148 4.3 10C4.3 6.85198 6.85198 4.3 10 4.3C13.148 4.3 15.7 6.85198 15.7 10Z" />
+      <path d="M10 6.5V10L12.5 11.5" />
+    </Base>
+  );
+}
+
+/** Visto bueno pequeño (reglas del registro). */
+export function IconoVisto(props: Props) {
+  return (
+    <Base lado={12} grosor={0.96} {...props}>
+      <path d="M2.4 6.3L4.92 8.7L9.6 3.3" />
+    </Base>
+  );
+}
+
+/** Embudo: filtros. */
+export function IconoFiltro(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M2.8 4H13.2L9.2 8.4V12.8L6.8 11.6V8.4L2.8 4Z" />
+    </Base>
+  );
+}
+
+/** Ojo: ver el detalle. */
+export function IconoOjo(props: Props) {
+  return (
+    <Base lado={18} grosor={1.44} {...props}>
+      <path d="M1.8 9C4.5 4.5 13.5 4.5 16.2 9C13.5 13.5 4.5 13.5 1.8 9Z" />
+      <circle cx="9" cy="9" r="1.35" />
+    </Base>
+  );
+}
+
+/** Hoja con líneas: PDF o documento. */
+export function IconoDocumento(props: Props) {
+  return (
+    <Base lado={18} grosor={1.44} {...props}>
+      <path d="M4.5 2.7H10.8L13.5 5.4V15.3H4.5V2.7Z" />
+      <path d="M10.8 2.7V5.4H13.5" />
+      <path d="M6.75 9H11.25" />
+      <path d="M6.75 11.7H11.25" />
+    </Base>
+  );
+}
+
+/** Persona: responsable. */
+export function IconoUsuario(props: Props) {
+  return (
+    <Base lado={18} grosor={1.5} {...props}>
+      <path d="M14.25 15.75V14.25C14.25 13.4544 13.9339 12.6913 13.3713 12.1287C12.8087 11.5661 12.0456 11.25 11.25 11.25H6.75C5.95435 11.25 5.19129 11.5661 4.62868 12.1287C4.06607 12.6913 3.75 13.4544 3.75 14.25V15.75" />
+      <path d="M12 5.25C12 6.90685 10.6569 8.25 9 8.25C7.34315 8.25 6 6.90685 6 5.25C6 3.59315 7.34315 2.25 9 2.25C10.6569 2.25 12 3.59315 12 5.25Z" />
+    </Base>
+  );
+}
+
+/** Flecha hacia arriba sobre una base: exportar. */
+export function IconoSubir(props: Props) {
+  return (
+    <Base lado={16} grosor={1.33333} {...props}>
+      <path d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10" />
+      <path d="M11.3333 5.33333L8 2L4.66667 5.33333" />
+      <path d="M8 2V10" />
+    </Base>
+  );
+}
+
+/** Círculo con i, de 16 px: ayuda junto a un título. */
+export function IconoAyuda(props: Props) {
+  return (
+    <Base lado={16} grosor={1.33333} {...props}>
+      <path d="M14.6667 8C14.6667 11.6819 11.6819 14.6667 8 14.6667C4.3181 14.6667 1.33333 11.6819 1.33333 8C1.33333 4.3181 4.3181 1.33333 8 1.33333C11.6819 1.33333 14.6667 4.3181 14.6667 8Z" />
+      <path d="M8 10.6667V8M8 5.33333H8.00667" />
+    </Base>
+  );
+}
+
+/** Flecha hacia abajo sobre una base: descargar el PDF. */
+export function IconoDescargar(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M8 2.8V10" />
+      <path d="M4.8 7.2L8 10.4L11.2 7.2" />
+      <path d="M3.2 12.8H12.8" />
+    </Base>
+  );
+}
+
+/** Triángulo con signo de exclamación: marcar un registro como inusual. */
+export function IconoTriangulo(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M8 2.8L13.6 12.8H2.4L8 2.8Z" />
+      <path d="M8 6.4V9.2" />
+      <path d="M8 10.88V10.96" />
+    </Base>
+  );
+}
+
+/** Lápiz: editar el registro. */
+export function IconoLapiz(props: Props) {
+  return (
+    <Base lado={16} grosor={1.28} {...props}>
+      <path d="M3.2 12.8L3.84 10.08L10.72 3.2L12.8 5.28L5.92 12.16L3.2 12.8Z" />
+      <path d="M9.6 4.4L11.6 6.4" />
+    </Base>
+  );
+}

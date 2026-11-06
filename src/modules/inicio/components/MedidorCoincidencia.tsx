@@ -6,7 +6,8 @@
  *
  * Muestra el mayor porcentaje de las últimas consultas de Listas Negativas. Sin valor, la rueda queda apagada y sin cifra inventada.
  * Si además se sabe que no hay consultas, lo dice con una insignia.
- * La aguja arranca como un velocímetro: parte de 0 y barre hasta el valor; las marcas y la cifra salen del mismo número animado.
+ * La aguja parte de 0 y barre hasta el valor con la curva y los tiempos del prototipo de Figma (marco «ANIMACIÓN DE ENTRADA · tarjetas»);
+ * las marcas y la cifra salen del mismo número animado.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -23,15 +24,20 @@ export const COLORES_MEDIDOR = [
 ];
 const ULTIMA = COLORES_MEDIDOR.length - 1;
 
-const ESPERA_MS = 200;
-const DURACION_TOTAL_MS = 1300; // para la escala completa (0 a 100)
+// Curva y tiempos de la aguja: los del prototipo de Figma (marco «ANIMACIÓN DE ENTRADA · tarjetas», 109:153). Allí la rueda sube de 0 a 75
+// en 8 cuadros de 130 ms, pasando por estos valores, y Figma une cada cuadro con el siguiente en línea recta (sin rebase al final).
+const CUADROS = [0, 10, 23, 35, 47, 57, 64, 70, 75];
+const CUADRO_MS = 130;
+const AVANCE = CUADROS.map((valor) => valor / CUADROS[CUADROS.length - 1]); // fracción del recorrido en cada cuadro, de 0 a 1
+const MS_POR_PUNTO = (CUADRO_MS * (CUADROS.length - 1)) / CUADROS[CUADROS.length - 1]; // 1040 ms por 75 puntos ≈ 13,9 ms por punto
+const ESPERA_MS = 200; // Figma: la aguja espera 200 ms antes de moverse
 const DURACION_MINIMA_MS = 700;
-const REBASE = 0.5; // rebase muy pequeño (~2 %) al asentarse, como una aguja real
 
-/** Salida rápida y asentamiento suave con un pequeño rebase (easeOutBack suave). */
+/** Cuánto del recorrido (0 a 1) lleva la aguja cuando ha pasado la fracción t (0 a 1) del tiempo: sube parejo y va frenando al llegar. */
 function suavizar(t: number): number {
-  const c3 = REBASE + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + REBASE * Math.pow(t - 1, 2);
+  const x = Math.min(1, Math.max(0, t)) * (AVANCE.length - 1);
+  const i = Math.min(AVANCE.length - 2, Math.floor(x));
+  return AVANCE[i] + (AVANCE[i + 1] - AVANCE[i]) * (x - i);
 }
 
 /**
@@ -53,7 +59,7 @@ function useValorAnimado(objetivo: number | null): number {
     if (reducir || objetivo === null || inicio === fin) {
       cuadro = requestAnimationFrame(() => publicar(fin));
     } else {
-      const duracion = Math.max(DURACION_MINIMA_MS, (Math.abs(fin - inicio) / 100) * DURACION_TOTAL_MS);
+      const duracion = Math.max(DURACION_MINIMA_MS, Math.abs(fin - inicio) * MS_POR_PUNTO);
       temporizador = setTimeout(() => {
         const t0 = performance.now();
         const paso = (ahora: number) => {

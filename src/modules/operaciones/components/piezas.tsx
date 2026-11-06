@@ -9,11 +9,22 @@ import type { ResponsableOperacion } from '../services/operacionesService';
 
 type Icono = ComponentType<SVGProps<SVGSVGElement>>;
 
-/** Alto y tamaño de los botones de la cabecera (como en Listas Negativas). */
+/**
+ * Alto y tamaño de los botones del diseño (RO 0 a RO 11): el secundario mide 46 px (44 + el borde de 1 px por lado) y el
+ * primario 44 px, porque no lleva borde.
+ */
 export const BTN = 'h-[46px] text-[15px]';
+export const BTN_P = 'h-11 text-[15px]';
+
+/**
+ * Campos de formulario del diseño (RO 2): 46 px de alto, esquinas de 10 px, borde suave y texto de 15 px. Se suman a `.input`;
+ * el borde claro y sus estados (hover, foco, deshabilitado) van aparte porque en un campo con error manda el borde rojo.
+ */
+export const CAMPO = 'h-[46px] rounded-[10px] text-[15px]';
+export const CAMPO_BORDE = 'border-line hover:border-ink/30 focus:border-brand disabled:bg-paper';
 
 /** Insignia «Pronto»: lo que el producto todavía no puede hacer de verdad. */
-export const Pronto = () => <Etiqueta>Pronto</Etiqueta>;
+export const Pronto = ({ compacto = false }: { compacto?: boolean }) => <Etiqueta className={compacto ? '!px-2 !py-px !leading-[normal]' : ''}>Pronto</Etiqueta>;
 
 /** Botón apagado con insignia «Pronto». Usa aria-disabled (y no disabled) para que se pueda enfocar y leer con teclado. */
 export function BotonPronto({ icono: Icono, children, className = '' }: { icono?: Icono; children: ReactNode; className?: string }) {
@@ -26,41 +37,47 @@ export function BotonPronto({ icono: Icono, children, className = '' }: { icono?
   );
 }
 
-/** Estado del registro: en esta entrega solo existe «Pendiente» (los demás llegan después y se muestran tal cual). */
+/**
+ * Estado del registro (chip de la lista, RO 1): en la entrega A solo llega «Pendiente»; «Enviado» e «Inusual» ya tienen su
+ * aspecto del diseño para cuando la entrega B los encienda. Cualquier otro valor se muestra tal cual.
+ */
 export function InsigniaEstado({ estado, largo = false }: { estado: string; largo?: boolean }) {
-  if (estado === 'PENDIENTE') return <span className="badge badge-warn">{largo ? 'Pendiente de envío' : 'Pendiente'}</span>;
-  return <span className="badge badge-neutral">{estado}</span>;
+  const base = '!leading-[normal]';
+  if (estado === 'PENDIENTE') return <span className={`badge badge-warn ${base}`}>{largo ? 'Pendiente de envío' : 'Pendiente'}</span>;
+  if (estado === 'ENVIADO') return <span className={`badge badge-ok ${base}`}>Enviado</span>;
+  if (estado === 'INUSUAL') return <span className={`badge badge-critica ${base}`}>Inusual</span>;
+  return <span className={`badge badge-neutral ${base}`}>{estado}</span>;
 }
 
-/** Dato de solo lectura: rótulo en mono y valor. */
+/** Dato de solo lectura: rótulo en mono (11 px, interletraje de 0,04 em) y valor de 16 px, como el diseño (RO 4 y RO 5). */
 export function Dato({ rotulo, children, className = '' }: { rotulo: string; children: ReactNode; className?: string }) {
   return (
     <div className={`min-w-0 ${className}`}>
-      <p className="rotulo">{rotulo}</p>
-      <p className="mt-1 break-words text-[15px] font-medium leading-[22px] text-ink">{children}</p>
+      <p className="rotulo leading-[normal] tracking-[0.04em]">{rotulo}</p>
+      <p className="mt-1 break-words text-base font-medium leading-[normal] text-ink">{children}</p>
     </div>
   );
 }
 
-/** Fila «etiqueta … valor» de las tarjetas laterales. */
+/** Fila «etiqueta … valor» de las tarjetas laterales (el valor va en semibold, como el diseño). */
 export function FilaValor({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 text-sm">
+    <div className="flex items-center justify-between gap-4 text-sm leading-[normal]">
       <span className="text-muted">{etiqueta}</span>
-      <span className="text-right font-medium tabular-nums text-ink">{children}</span>
+      <span className="text-right font-semibold text-ink">{children}</span>
     </div>
   );
 }
 
-/** Tarjeta del diseño: título, bajada, etiqueta a la derecha y contenido. */
-export function Tarjeta({ titulo, descripcion, derecha, children, className = '', id }: { titulo?: ReactNode; descripcion?: ReactNode; derecha?: ReactNode; children: ReactNode; className?: string; id?: string }) {
+/** Tarjeta del diseño: título, bajada, etiqueta a la derecha y contenido. `espacio` cambia la separación interior (16 px por defecto). */
+export function Tarjeta({ titulo, descripcion, derecha, children, className = '', id, espacio = 'gap-4' }: { titulo?: ReactNode; descripcion?: ReactNode; derecha?: ReactNode; children: ReactNode; className?: string; id?: string; espacio?: string }) {
   return (
-    <section id={id} className={`card flex flex-col gap-4 p-5 sm:p-6 ${className}`}>
+    <section id={id} className={`card flex flex-col p-5 sm:p-6 ${espacio} ${className}`}>
       {(titulo || derecha) && (
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            {titulo && <h2 className="text-[17px] font-semibold leading-[25px] tracking-[-0.01em] text-ink">{titulo}</h2>}
-            {descripcion && <p className="mt-0.5 text-sm text-muted">{descripcion}</p>}
+            {titulo && <h2 className="text-[17px] font-semibold leading-[normal] tracking-[-0.01em] text-ink">{titulo}</h2>}
+            {descripcion && <p className="mt-1 text-sm leading-[normal] text-muted">{descripcion}</p>}
           </div>
           {derecha}
         </div>
@@ -72,13 +89,20 @@ export function Tarjeta({ titulo, descripcion, derecha, children, className = ''
 
 /** Responsable en la lista: avatar con iniciales y primer nombre, o «Sin asignar» en ámbar. */
 export function CeldaResponsable({ responsable }: { responsable: ResponsableOperacion | null }) {
-  if (!responsable) return <span className="text-sm font-medium text-warn">Sin asignar</span>;
+  if (!responsable) return <span className="text-[13px] font-medium leading-[normal] text-warn">Sin asignar</span>;
   return (
-    <span className="flex items-center gap-2" title={responsable.nombreCompleto}>
-      <Avatar nombre={responsable.nombreCompleto} tamano="sm" className="!h-7 !w-7 !text-[10px]" />
-      <span className="truncate text-sm text-ink">{nombreCorto(responsable.nombreCompleto)}</span>
+    <span className="flex min-w-0 items-center gap-2" title={responsable.nombreCompleto}>
+      <Avatar nombre={responsable.nombreCompleto} tamano="sm" className="!h-7 !w-7 !text-[11px]" />
+      <span className="min-w-0 truncate text-[13px] leading-[normal] text-ink/80">{nombreCorto(responsable.nombreCompleto)}</span>
     </span>
   );
+}
+
+/** Botón cuadrado de 36 px de las filas de la lista (ver, PDF, responsable). Es un enlace si trae `href` y un botón si no. */
+export function AccionFila({ href, onClick, etiqueta, children }: { href?: string; onClick?: () => void; etiqueta: string; children: ReactNode }) {
+  const clase = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-line bg-white text-ink/80 transition-colors hover:border-line-strong hover:bg-paper hover:text-ink';
+  if (href) return <Link href={href} aria-label={etiqueta} title={etiqueta} className={clase}>{children}</Link>;
+  return <button type="button" onClick={onClick} aria-label={etiqueta} title={etiqueta} className={clase}>{children}</button>;
 }
 
 /** Selector segmentado del diseño; las opciones con `pronto` quedan apagadas con su insignia. */
@@ -96,10 +120,10 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
             aria-disabled={o.pronto || undefined}
             title={o.pronto ? 'Próximamente' : undefined}
             onClick={() => { if (!o.pronto) onCambiar(o.valor); }}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[14px] font-semibold leading-5 transition-colors ${activa ? 'bg-ink text-paper' : o.pronto ? 'cursor-not-allowed text-faint' : 'text-muted hover:text-ink'}`}
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[14px] font-semibold leading-[normal] transition-colors ${activa ? 'bg-ink text-paper' : o.pronto ? 'cursor-not-allowed text-faint' : 'text-muted hover:text-ink'}`}
           >
             {o.etiqueta}
-            {o.pronto && <Pronto />}
+            {o.pronto && <Pronto compacto />}
           </button>
         );
       })}
@@ -111,7 +135,7 @@ export function Segmentado<T extends string>({ valor, opciones, onCambiar, ariaL
 export function Interruptor({ activo, onCambiar, etiqueta, id }: { activo: boolean; onCambiar: (activo: boolean) => void; etiqueta: string; id: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span id={`${id}-texto`} className="text-sm text-ink">{etiqueta}</span>
+      <span id={`${id}-texto`} className="text-sm font-medium leading-[normal] text-ink/80">{etiqueta}</span>
       <button
         id={id}
         type="button"
@@ -119,9 +143,9 @@ export function Interruptor({ activo, onCambiar, etiqueta, id }: { activo: boole
         aria-checked={activo}
         aria-labelledby={`${id}-texto`}
         onClick={() => onCambiar(!activo)}
-        className={`relative h-6 w-10 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? 'bg-brand' : 'bg-ink/15'}`}
       >
-        <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${activo ? 'translate-x-4' : ''}`} aria-hidden="true" />
+        <span className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform ${activo ? 'translate-x-5' : ''}`} aria-hidden="true" />
       </button>
     </div>
   );
